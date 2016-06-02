@@ -1,0 +1,387 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configs>
+    <config templateClassName="AVLTree" storageClass="" specialization="RankMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RankListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="MultiRankMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="MultiRankListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RangeMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RangeListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="Range2MapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="Range2ListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RankMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RankListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="MultiRankMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="MultiRankListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RangeMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RangeListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="Range2MapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="Range2ListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RankMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RankListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="MultiRankMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="MultiRankListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RangeMapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RangeListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="Range2MapLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="Range2ListLong">
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+</configs>

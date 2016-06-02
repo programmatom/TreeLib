@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9F8074C9-ADE0-4CBD-B507-2698B6AE98F8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TreeLib</RootNamespace>
+    <AssemblyName>TreeLib</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Generated\AVLTreeList.cs" />
+    <Compile Include="Generated\AVLTreeMap.cs" />
+    <Compile Include="Generated\AVLTreeMultiRankList.cs" />
+    <Compile Include="Generated\AVLTreeMultiRankMap.cs" />
+    <Compile Include="Generated\AVLTreeRange2List.cs" />
+    <Compile Include="Generated\AVLTreeRange2Map.cs" />
+    <Compile Include="Generated\AVLTreeRangeList.cs" />
+    <Compile Include="Generated\AVLTreeRangeMap.cs" />
+    <Compile Include="Generated\AVLTreeRankList.cs" />
+    <Compile Include="Generated\AVLTreeRankMap.cs" />
+    <Compile Include="Generated\RedBlackTreeList.cs" />
+    <Compile Include="Generated\RedBlackTreeMap.cs" />
+    <Compile Include="Generated\RedBlackTreeMultiRankList.cs" />
+    <Compile Include="Generated\RedBlackTreeMultiRankMap.cs" />
+    <Compile Include="Generated\RedBlackTreeRange2List.cs" />
+    <Compile Include="Generated\RedBlackTreeRange2Map.cs" />
+    <Compile Include="Generated\RedBlackTreeRangeList.cs" />
+    <Compile Include="Generated\RedBlackTreeRangeMap.cs" />
+    <Compile Include="Generated\RedBlackTreeRankList.cs" />
+    <Compile Include="Generated\RedBlackTreeRankMap.cs" />
+    <Compile Include="Generated\SplayTreeList.cs" />
+    <Compile Include="Generated\SplayTreeMap.cs" />
+    <Compile Include="Generated\SplayTreeMultiRankList.cs" />
+    <Compile Include="Generated\SplayTreeMultiRankMap.cs" />
+    <Compile Include="Generated\SplayTreeRange2List.cs" />
+    <Compile Include="Generated\SplayTreeRange2Map.cs" />
+    <Compile Include="Generated\SplayTreeRangeList.cs" />
+    <Compile Include="Generated\SplayTreeRangeMap.cs" />
+    <Compile Include="Generated\SplayTreeRankList.cs" />
+    <Compile Include="Generated\SplayTreeRankMap.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TreeLibInterface\TreeLibInterface.csproj">
+      <Project>{cbe10293-74c4-4d29-af8e-b1fb8fef851b}</Project>
+      <Name>TreeLibInterface</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="transform.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>$(SolutionDir)\BuildTool\bin\$(ConfigurationName)\BuildTool.exe $(SolutionDir) $(SolutionDir)\TreeLibInterface TreeLib</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

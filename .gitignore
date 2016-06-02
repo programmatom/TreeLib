@@ -1,0 +1,33 @@
+# application compilation intermediate files
+
+/TreeLib/.vs
+/TreeLib/packages
+/TreeLib/BuildTool/bin
+/TreeLib/BuildTool/obj
+/TreeLib/BuildTool/*.csproj.user
+/TreeLib/Template/bin
+/TreeLib/Template/obj
+/TreeLib/Template/*.csproj.user
+/TreeLib/TreeLib/bin
+/TreeLib/TreeLib/obj
+/TreeLib/TreeLib/*.csproj.user
+/TreeLib/TreeLibArray/bin
+/TreeLib/TreeLibArray/obj
+/TreeLib/TreeLibArray/*.csproj.user
+/TreeLib/TreeLibLong/bin
+/TreeLib/TreeLibLong/obj
+/TreeLib/TreeLibLong/*.csproj.user
+/TreeLib/TreeLibInterfaces/bin
+/TreeLib/TreeLibInterfaces/obj
+/TreeLib/TreeLibInterfaces/*.csproj.user
+/TreeLib/TreeLibTest/bin
+/TreeLib/TreeLibTest/obj
+/TreeLib/TreeLibTest/*.csproj.user
+
+
+# local utility scripts, etc.
+
+Sync.cmd
+Diff.cmd
+
+link.URL
