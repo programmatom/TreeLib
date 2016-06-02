@@ -1,0 +1,393 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configs>
+    <config templateClassName="AVLTree" storageClass="" specialization="Map">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="List">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RankMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RankList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="MultiRankMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="MultiRankList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RangeMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="RangeList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="Range2Map">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="" specialization="Range2List">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="Map">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="List">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RankMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RankList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="MultiRankMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="MultiRankList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RangeMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="RangeList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="Range2Map">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="" specialization="Range2List">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="Map">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="List">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RankMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RankList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="MultiRankMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="MultiRankList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RangeMap">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="RangeList">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="Range2Map">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="" specialization="Range2List">
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Object</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+</configs>

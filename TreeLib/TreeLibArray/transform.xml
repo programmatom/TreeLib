@@ -1,0 +1,483 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configs>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="Map">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="List">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="RankMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="RankList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="MultiRankMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="MultiRankList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="RangeMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="RangeList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="Range2Map">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="AVLTree" storageClass="Array" specialization="Range2List">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="Map">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="List">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="RankMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="RankList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="MultiRankMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="MultiRankList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="RangeMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="RangeList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="Range2Map">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="RedBlackTree" storageClass="Array" specialization="Range2List">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="Map">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="List">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Dict</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="RankMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="RankList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Rank</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="MultiRankMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="MultiRankList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>RankMulti</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="RangeMap">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="RangeList">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="Range2Map">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>Value</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+    <config templateClassName="SplayTree" storageClass="Array" specialization="Range2List">
+        <flags>
+            <flag>DowngradeCountToUint</flag>
+        </flags>
+        <facetAxes>
+            <facetAxis tag="Storage">
+                <facet>Array</facet>
+            </facetAxis>
+            <facetAxis tag="Payload">
+                <facet>None</facet>
+            </facetAxis>
+            <facetAxis tag="Feature">
+                <facet>Range2</facet>
+            </facetAxis>
+        </facetAxes>
+    </config>
+</configs>
