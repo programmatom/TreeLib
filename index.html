@@ -1,6 +1,408 @@
-TreeLib
-=======
+<html>
+<head>
+<title>TreeLib - Balanced Binary Trees, Rank Augmented</title>
 
-Hellow 'orld!
-'allo *'allo*
+<link rel="stylesheet" href="base.css" />
 
+</head>
+<body style="margin:0 10% 0 10%">
+
+
+
+<h1 id="treelib-balanced-binary-trees-rank-augmented-for-net">TreeLib: Balanced Binary Trees - Rank Augmented, for .NET</h1>
+
+<p><div class="toc">
+<ul>
+<li><a href="#treelib-balanced-binary-trees-rank-augmented-for-net">TreeLib: Balanced Binary Trees - Rank Augmented, for .NET</a><ul>
+<li><a href="#whats-in-treelib">What’s in TreeLib?</a></li>
+<li><a href="#where-did-the-implementations-come-from">Where did the implementations come from?</a></li>
+<li><a href="#how-do-i-get-treelib">How do I get TreeLib?</a></li>
+<li><a href="#how-is-it-licensed">How is it licensed?</a></li>
+<li><a href="#how-do-i-use-it">How do I use it?</a></li>
+<li><a href="#whats-in-those-assemblies-how-do-i-actually-create-a-tree">What’s in those assemblies? How do I actually create a tree?</a><ul>
+<li><a href="#base-tree-type">Base Tree Type</a></li>
+<li><a href="#storage-mechanism">Storage Mechanism</a></li>
+<li><a href="#tree-specialization">Tree Specialization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#width-of-rankrange-numbers">Width of Rank/Range numbers</a><ul>
+<li><a href="#how-do-i-create-a-tree">How do I create a tree?</a></li>
+<li><a href="#how-do-the-interfaces-work">How do the interfaces work?</a></li>
+<li><a href="#what-about-enumeration">What about enumeration?</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</p>
+
+<h2 id="whats-in-treelib">What’s in TreeLib?</h2>
+
+<p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings.</p>
+
+<p>The source code is written in C# and the assemblies will work with any .NET language.</p>
+
+
+
+<h2 id="where-did-the-implementations-come-from">Where did the implementations come from?</h2>
+
+<p>The Splay tree comes from code written by the inventor, Daniel Sleator, available in basic form from <a href="http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c">http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c</a>.</p>
+
+<p>The Red-Black tree comes from the now-open-sourced Microsoft .NET Framework Base Class Library implementation of SortedSet, at <a href="https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs">https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs</a></p>
+
+<p>The AVL tree comes from the Glib library maintained by GNOME project, at <a href="https://github.com/GNOME/glib/blob/master/glib/gtree.c">https://github.com/GNOME/glib/blob/master/glib/gtree.c</a></p>
+
+<p>The rank-augmentation code was written by <a href="https://github.com/programmatom">Thomas R. Lawrence</a>.</p>
+
+<h2 id="how-do-i-get-treelib">How do I get TreeLib?</h2>
+
+<p>Coming soon: NuGet</p>
+
+<p>The project is available in source form at <a href="https://github.com/programmatom/TreeLib">https://github.com/programmatom/TreeLib</a>.</p>
+
+
+
+<h2 id="how-is-it-licensed">How is it licensed?</h2>
+
+<p>TreeLib is made available under the GNU Lesser General Public License (LGPL). It may be used,, unmodified, in proprietary software without forcing the source to that software to be disclosed. If it is modified, per the license, the source of the modification must be made available (source for other parts of the software that use the modified library do not need to be made available).</p>
+
+
+
+<h2 id="how-do-i-use-it">How do I use it?</h2>
+
+<p>TreeLib comes as four assemblies:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Assembly</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td><em>TreeLibInterface.dll</em></td>
+  <td>The public interfaces implemented by specializations.</td>
+</tr>
+<tr>
+  <td><em>TreeLib.dll</em></td>
+  <td>All implementations of all the trees in a “standard” form.</td>
+</tr>
+<tr>
+  <td><em>TreeLibLong.dll</em></td>
+  <td>All the rank-augmented trees modified to use 64-bit integers for rank information rather than 32-bit integers.</td>
+</tr>
+<tr>
+  <td><em>TreeLibArray.dll</em></td>
+  <td>Variants of the trees that store their internal nodes in a single array rather than linked heap objects.</td>
+</tr>
+</tbody></table>
+
+
+<p>Of these, <em>TreeLibInterface.dll</em> is the only one that is required. Of the other assemblies, you can include only the ones containing implementations you need.</p>
+
+
+
+<h2 id="whats-in-those-assemblies-how-do-i-actually-create-a-tree">What’s in those assemblies? How do I actually create a tree?</h2>
+
+<p>The implementations of the trees exist as specializations that enable specific features. The tree classes are named using a hierarchical naming scheme that identifies what features the tree supports. To understand what specializations are available and how to select them, read through this sequence which describes how the classes are named, left to right.</p>
+
+
+
+<h3 id="base-tree-type">Base Tree Type</h3>
+
+<p>The name starts with the base type of the tree, selected from the three types provided:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Base Type</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td><code>AVLTree</code></td>
+</tr>
+<tr>
+  <td><code>RedBlackTree</code></td>
+</tr>
+<tr>
+  <td><code>SplayTree</code></td>
+</tr>
+</tbody></table>
+
+
+<h3 id="storage-mechanism">Storage Mechanism</h3>
+
+<p>The next step indicates the storage mechanism for the underlying tree. The standard mechanism (heap-allocated nodes) does not add anything to the name.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Storage Mechanism</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td></td>
+  <td>Heap-allocated nodes.</td>
+</tr>
+<tr>
+  <td><code>Array</code></td>
+  <td>Nodes embedded as structs in a single array with an embedded free list.</td>
+</tr>
+</tbody></table>
+
+
+<h3 id="tree-specialization">Tree Specialization</h3>
+
+<p>The specialization is where most of the details get specified. This identifies the particular style of mapping, based around the three types, collection of key-value pairs, collection of keys, and collection of ranges. Given these three basic types, there are some additional flavors, identified below. Trees that take a key and/or value type are specified in the standard way for generic types.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Specialization</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td><code>Map&lt;TKey, TValue&gt;</code></td>
+  <td>A collection of key-value pairs</td>
+</tr>
+<tr>
+  <td><code>List&lt;TKey&gt;</code></td>
+  <td>A collection of keys</td>
+</tr>
+<tr>
+  <td><code>RankMap&lt;TKey, TValue&gt;</code></td>
+  <td>A collection of key-value pairs incorporating rank information. The rank information allows elements to be indexed as if in a sorted array, as well as by key.</td>
+</tr>
+<tr>
+  <td><code>RankList&lt;TKey&gt;</code></td>
+  <td>A collection of keys incorporating rank information. The rank information is as for RankMap.</td>
+</tr>
+<tr>
+  <td><code>MultiRankMap&lt;TKey, TValue&gt;</code></td>
+  <td>A collection of key-value pairs incorporating rank information. The <code>count</code> may be a number greater than or equal to 1. The indexing is equivalent to that of a sorted array where each key-value pair is present multiple times, as identified by the <em>count</em> for each key-value pair.</td>
+</tr>
+<tr>
+  <td><code>MultiRankList&lt;TKey&gt;</code></td>
+  <td>A collection of keys incorporating rank information. The rank information is as for MultiRankMap.</td>
+</tr>
+<tr>
+  <td><code>RangeMap&lt;TValue&gt;</code></td>
+  <td>A collection of ranges with each range associated with a value. The ranges are defined by their lengths, which must be at least 1. Conceptually, the tree assigns start indices for each range, beginning with 0, adding the length from each range to derive the start index for the next range. The ranges do not have keys, but are instead inserted and deleted based on their start index. The tree maintains the ranges in the sequence resulting from the insertions and deletions.</td>
+</tr>
+<tr>
+  <td><code>RangeList</code></td>
+  <td>A collection of ranges with no associated values. The indexing of the ranges is as for RangeMap.</td>
+</tr>
+<tr>
+  <td><code>Range2Map&lt;TValue&gt;</code></td>
+  <td>A mapping of one set of ranges to another set of ranges, with each map entry associated with a value. This is similar to RangeMap, except there are two sides to the collection, called X and Y. The sequence of the range pairs is maintained on both sides as a result of the insertions and deletions performed on the tree.</td>
+</tr>
+<tr>
+  <td><code>Range2List</code></td>
+  <td>A mapping of one set of ranges to another, with no associated values. The indexing of the ranges is as for Range2Map.</td>
+</tr>
+</tbody></table>
+
+
+<h1 id="width-of-rankrange-numbers">Width of Rank/Range numbers</h1>
+
+<p>The rank or range index values can be either an integer or a long. The integer case is specified by no additional qualifier.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Qualifier</th>
+  <th>Width</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td></td>
+  <td>Signed 32-bit integer (<code>int</code>)</td>
+</tr>
+<tr>
+  <td><code>Long</code></td>
+  <td>Signed 64-bit integer (<code>long</code>)</td>
+</tr>
+</tbody></table>
+
+
+<h2 id="how-do-i-create-a-tree">How do I create a tree?</h2>
+
+<p>Each tree has a set of constructors allowing the allocation of the internal data structures to be controlled. First, it is necessary to understand the allocation behaviors available. These are specified with the <code>AllocationMode</code> enumeration.</p>
+
+<table>
+<thead>
+<tr>
+  <th>AllocationMode</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td><code>DynamicDiscard</code></td>
+  <td>Nodes are allocated on the heap and discarded upon removal. At that point, the garbage collector can immediately reclaim the memory used by the node.</td>
+</tr>
+<tr>
+  <td><code>DynamicRetainFreelist</code></td>
+  <td>Nodes are allocated from a free list, if not empty, with fallback to the heap. Upon removal, the node object is returned to the free list.</td>
+</tr>
+<tr>
+  <td><code>PreallocatedFixed</code></td>
+  <td>The specified number of nodes is allocated upon tree creation and added to the free list. Allocations obtain node objects from the free list and deletions return the objects to the free list. If the free list is exhausted (i.e. the tree already contains the specified number of elements and an insert is attempted) an <code>OutOfMemory</code> exception is thrown.</td>
+</tr>
+</tbody></table>
+
+
+<p>The mode typically used in most scenarios would be <code>DynamicDiscard</code>. The other modes are provided to allow control over timing of allocations. <code>PreallocatedFixed</code> is used when the size of the tree is known to be limited and allocations during use of the tree cannot be tolerated, such as in the case where the application must meet hard deadlines (e.g. real-time scenarios). This is also the only storage mode permitted for the <code>Array</code> storage mechanism. <code>DynamicRetainFreelist</code> can be used make a certain number of allocations occur up front during tree construction while permitting the tree to grow beyond the initial capacity.</p>
+
+<p>The following constructors are available: <br>
+- <strong><code>new Tree&lt;...&gt;</code></strong> - create an empty tree using <code>DynamicDiscard</code> as it’s allocation mode (except for the <code>Array</code> storage mechanism, which must use <code>PreallocatedFixed</code>). Keys are compared using the default comparer (<code>Comparer&lt;TKey&gt;.Default</code>). <br>
+- <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer)</code></strong> - create an empty tree using the specified comparer for keys and the default allocation mode described above. <br>
+- <strong><code>new Tree&lt;&gt;(uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the default comparer. <br>
+- <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer, uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the specified comparer. <br>
+- <strong><code>new Tree&lt;&gt;(Tree&lt;&gt; original)</code></strong> - create a tree that is an exact clone of the provided tree. <br>
+Any type parameters for key or value (if applicable) are specified in the type name of the construction. Constructors taking an explicit comparer are not available for the range collections, as they do not have keys.</p>
+
+<h2 id="how-do-the-interfaces-work">How do the interfaces work?</h2>
+
+<p>Each specialization implements a specific interface appropriate to the specialization. The interface identifies the accessors that make sense for that particular type of tree. Here are the interfaces associated with each specialization type:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Specialization Qualifier</th>
+  <th>Interface Name</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td><code>Map&lt;TKey, TValue&gt;</code></td>
+  <td><code>IOrderedMap&lt;TKey, TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>List&lt;TKey&gt;</code></td>
+  <td><code>IOrderedList&lt;TKey&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RankMap&lt;TKey, TValue&gt;</code></td>
+  <td><code>IRankMap&lt;TKey, TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RankList&lt;TKey&gt;</code></td>
+  <td><code>IRankList&lt;TKey&gt;</code></td>
+</tr>
+<tr>
+  <td><code>MultiRankMap&lt;TKey, TValue&gt;</code></td>
+  <td><code>IMultiRankMap&lt;TKey, TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>MultiRankList&lt;TKey&gt;</code></td>
+  <td><code>IMultiRankList&lt;TKey&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RangeMap&lt;TValue&gt;</code></td>
+  <td><code>IRangeMap&lt;TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RangeList</code></td>
+  <td><code>IRangeList</code></td>
+</tr>
+<tr>
+  <td><code>Range2Map&lt;TValue&gt;</code></td>
+  <td><code>IRange2Map&lt;TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>Range2List</code></td>
+  <td><code>IRange2List</code></td>
+</tr>
+<tr>
+  <td><code>RankMapLong&lt;TKey, TValue&gt;</code></td>
+  <td><code>IRankMapLong&lt;TKey, TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RankListLong&lt;TKey&gt;</code></td>
+  <td><code>IRankListLong&lt;TKey&gt;</code></td>
+</tr>
+<tr>
+  <td><code>MultiRankMapLong&lt;TKey, TValue&gt;</code></td>
+  <td><code>IMultiRankMapLong&lt;TKey, TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>MultiRankListLong&lt;TKey&gt;</code></td>
+  <td><code>IMultiRankListLong&lt;TKey&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RangeMapLong&lt;TValue&gt;</code></td>
+  <td><code>IRangeMapLong&lt;TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>RangeListLong</code></td>
+  <td><code>IRangeListLong</code></td>
+</tr>
+<tr>
+  <td><code>Range2Map&lt;TValue&gt;</code></td>
+  <td><code>IRange2MapLong&lt;TValue&gt;</code></td>
+</tr>
+<tr>
+  <td><code>Range2ListLong</code></td>
+  <td><code>IRange2ListLong</code></td>
+</tr>
+</tbody></table>
+
+
+<p>The interfaces exist to allow consumers of the collections to be decoupled from the specific base type (AVL, Red-Black, or Splay) being used. The interfaces are not required - the tree type may be used directly, if desired.</p>
+
+<h2 id="what-about-enumeration">What about enumeration?</h2>
+
+<p>Each basic tree type provides two enumerators, the <em>robust</em> enumerator and the <em>fast</em> enumerator.</p>
+
+<table>
+<thead>
+<tr>
+  <th>Enumerator</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td>Robust</td>
+  <td>The robust enumerator uses an internal key cursor and queries the tree using the <code>NextGreater()</code> method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key is inserted or removed and it comes <em>before</em> the enumerator’s current key in sorting order, it will have no affect on the enumerator. If a key is inserted or removed and it comes <em>after</em> the enumerator’s current key (i.e. in the portion of the collection the enumerator hasn’t visited yet), the enumerator will include the key if inserted or skip the key if removed. Because the enumerator queries the tree for each element it’s running time per element is O(lg N), or O(N lg N) to enumerate the entire tree.</td>
+</tr>
+<tr>
+  <td>Fast</td>
+  <td>The fast enumerator uses an internal stack of nodes to peform in-order traversal of the tree structure. Because it uses the tree structure, it is invalidated if the tree is modified by an insertion or deletion and will throw an <code>InvalidOperationException</code> when next advanced. For some types of trees (Red-Black), a failed insertion or deletion will still invalidate the enumerator, as failed operations may still have performed rotations in the tree. For the Splay tree, all operations modify the tree structure, include queries, and will invalidate the enumerator. The complexity of the fast enumerator is O(1) per element, or O(N) to enumerate the entire tree.</td>
+</tr>
+</tbody></table>
+
+
+<p><strong>A note about splay trees and enumeration</strong>: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the <em>robust</em> enumerator is recommended for splay trees. The drawback is robust’s O(N lg N) complexity.</p>
+
+<p>The default enumerators for the tree base types are listed below. These are the enumerators returned from the <code>IEnumerable&lt;&gt;</code> interface implemented by each tree:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Tree Type</th>
+  <th>Default Enumerator</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td>AVL</td>
+  <td>Fast</td>
+</tr>
+<tr>
+  <td>Red-Black</td>
+  <td>Fast</td>
+</tr>
+<tr>
+  <td>Splay</td>
+  <td>Robust</td>
+</tr>
+</tbody></table>
+
+
+<p>Each type of enumerator is explicitly available on the tree by calling either the <code>GetRobustEnumerable()</code> method or the <code>GetFastEnumerable()</code> method.</p>
+
+
+
+</body>
