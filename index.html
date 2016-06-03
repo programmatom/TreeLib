@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+Ôªø<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>TreeLib - Balanced Binary Trees, Rank Augmented</title>
@@ -15,12 +15,12 @@
 <p><div class="toc">
 <ul>
 <li><a href="#treelib-balanced-binary-trees-rank-augmented-for-net">TreeLib: Balanced Binary Trees - Rank Augmented, for .NET</a><ul>
-<li><a href="#whats-in-treelib">Whatís in TreeLib?</a></li>
+<li><a href="#whats-in-treelib">What‚Äôs in TreeLib?</a></li>
 <li><a href="#where-did-the-implementations-come-from">Where did the implementations come from?</a></li>
 <li><a href="#how-do-i-get-treelib">How do I get TreeLib?</a></li>
 <li><a href="#how-is-it-licensed">How is it licensed?</a></li>
 <li><a href="#how-do-i-use-it">How do I use it?</a></li>
-<li><a href="#whats-in-those-assemblies-how-do-i-actually-create-a-tree">Whatís in those assemblies? How do I actually create a tree?</a><ul>
+<li><a href="#whats-in-those-assemblies-how-do-i-actually-create-a-tree">What‚Äôs in those assemblies? How do I actually create a tree?</a><ul>
 <li><a href="#base-tree-type">Base Tree Type</a></li>
 <li><a href="#storage-mechanism">Storage Mechanism</a></li>
 <li><a href="#tree-specialization">Tree Specialization</a></li>
@@ -38,7 +38,7 @@
 </div>
 </p>
 
-<h2 id="whats-in-treelib">Whatís in TreeLib?</h2>
+<h2 id="whats-in-treelib">What‚Äôs in TreeLib?</h2>
 
 <p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings.</p>
 
@@ -87,7 +87,7 @@
 </tr>
 <tr>
   <td><em>TreeLib.dll</em></td>
-  <td>All implementations of all the trees in a ìstandardî form.</td>
+  <td>All implementations of all the trees in a ‚Äústandard‚Äù form.</td>
 </tr>
 <tr>
   <td><em>TreeLibLong.dll</em></td>
@@ -104,7 +104,7 @@
 
 
 
-<h2 id="whats-in-those-assemblies-how-do-i-actually-create-a-tree">Whatís in those assemblies? How do I actually create a tree?</h2>
+<h2 id="whats-in-those-assemblies-how-do-i-actually-create-a-tree">What‚Äôs in those assemblies? How do I actually create a tree?</h2>
 
 <p>The implementations of the trees exist as specializations that enable specific features. The tree classes are named using a hierarchical naming scheme that identifies what features the tree supports. To understand what specializations are available and how to select them, read through this sequence which describes how the classes are named, left to right.</p>
 
@@ -259,7 +259,7 @@
 <p>The mode typically used in most scenarios would be <code>DynamicDiscard</code>. The other modes are provided to allow control over timing of allocations. <code>PreallocatedFixed</code> is used when the size of the tree is known to be limited and allocations during use of the tree cannot be tolerated, such as in the case where the application must meet hard deadlines (e.g. real-time scenarios). This is also the only storage mode permitted for the <code>Array</code> storage mechanism. <code>DynamicRetainFreelist</code> can be used make a certain number of allocations occur up front during tree construction while permitting the tree to grow beyond the initial capacity.</p>
 
 <p>The following constructors are available: <br>
-- <strong><code>new Tree&lt;...&gt;</code></strong> - create an empty tree using <code>DynamicDiscard</code> as itís allocation mode (except for the <code>Array</code> storage mechanism, which must use <code>PreallocatedFixed</code>). Keys are compared using the default comparer (<code>Comparer&lt;TKey&gt;.Default</code>). <br>
+- <strong><code>new Tree&lt;...&gt;</code></strong> - create an empty tree using <code>DynamicDiscard</code> as it‚Äôs allocation mode (except for the <code>Array</code> storage mechanism, which must use <code>PreallocatedFixed</code>). Keys are compared using the default comparer (<code>Comparer&lt;TKey&gt;.Default</code>). <br>
 - <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer)</code></strong> - create an empty tree using the specified comparer for keys and the default allocation mode described above. <br>
 - <strong><code>new Tree&lt;&gt;(uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the default comparer. <br>
 - <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer, uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the specified comparer. <br>
@@ -367,7 +367,7 @@ Any type parameters for key or value (if applicable) are specified in the type n
 </thead>
 <tbody><tr>
   <td>Robust</td>
-  <td>The robust enumerator uses an internal key cursor and queries the tree using the <code>NextGreater()</code> method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key is inserted or removed and it comes <em>before</em> the enumeratorís current key in sorting order, it will have no affect on the enumerator. If a key is inserted or removed and it comes <em>after</em> the enumeratorís current key (i.e. in the portion of the collection the enumerator hasnít visited yet), the enumerator will include the key if inserted or skip the key if removed. Because the enumerator queries the tree for each element itís running time per element is O(lg N), or O(N lg N) to enumerate the entire tree.</td>
+  <td>The robust enumerator uses an internal key cursor and queries the tree using the <code>NextGreater()</code> method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key is inserted or removed and it comes <em>before</em> the enumerator‚Äôs current key in sorting order, it will have no affect on the enumerator. If a key is inserted or removed and it comes <em>after</em> the enumerator‚Äôs current key (i.e. in the portion of the collection the enumerator hasn‚Äôt visited yet), the enumerator will include the key if inserted or skip the key if removed. Because the enumerator queries the tree for each element it‚Äôs running time per element is O(lg N), or O(N lg N) to enumerate the entire tree.</td>
 </tr>
 <tr>
   <td>Fast</td>
@@ -376,7 +376,7 @@ Any type parameters for key or value (if applicable) are specified in the type n
 </tbody></table>
 
 
-<p><strong>A note about splay trees and enumeration</strong>: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the <em>robust</em> enumerator is recommended for splay trees. The drawback is robustís O(N lg N) complexity.</p>
+<p><strong>A note about splay trees and enumeration</strong>: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the <em>robust</em> enumerator is recommended for splay trees. The drawback is robust‚Äôs O(N lg N) complexity.</p>
 
 <p>The default enumerators for the tree base types are listed below. These are the enumerators returned from the <code>IEnumerable&lt;&gt;</code> interface implemented by each tree:</p>
 
