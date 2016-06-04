@@ -105,7 +105,8 @@
   <ItemGroup>
     <Compile Include="AttributeMatchUtil.cs" />
     <Compile Include="ConstSubstitutionRewriter.cs" />
-    <Compile Include="EnumEntryMeldRewriter.cs" />
+    <Compile Include="SyntaxNodeReplacementRewriter.cs" />
+    <Compile Include="MeldEntryRewriter.cs" />
     <Compile Include="NarrowCountWidthRewriter.cs" />
     <Compile Include="EliminateArrayIndirectionRewriter.cs" />
     <Compile Include="EliminateDeadBranchesRewriter.cs" />
@@ -113,6 +114,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemoveBrokenStatementsRewriter.cs" />
+    <Compile Include="RemoveEnumerableRewriter.cs" />
     <Compile Include="RemoveUnusedVariables.cs" />
     <Compile Include="SelectFacetRewriter.cs" />
     <Compile Include="SyntacticIdentifierRenamer.cs" />

@@ -20,6 +20,7 @@
  * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using TreeLib;
@@ -32,7 +33,8 @@ namespace TreeLibTest
     public class ReferenceMap<KeyType, ValueType> :
         IOrderedMap<KeyType, ValueType>,
         INonInvasiveTreeInspection,
-        ISimpleTreeInspection<KeyType, ValueType>
+        ISimpleTreeInspection<KeyType, ValueType>,
+        IEnumerable<EntryMap<KeyType, ValueType>>
         where KeyType : IComparable<KeyType>
     {
         private readonly List<KeyValuePair<KeyType, ValueType>> items = new List<KeyValuePair<KeyType, ValueType>>();
@@ -50,8 +52,6 @@ namespace TreeLibTest
         //
         // IOrderedMap
         //
-
-        // Query & Mutation
 
         public uint Count { get { return unchecked((uint)items.Count); } }
 
@@ -158,49 +158,72 @@ namespace TreeLibTest
             }
         }
 
-        // Ordered Query
-
-        public bool Least(out KeyType leastOut)
+        public bool Least(out KeyType leastOut, out ValueType valueOut)
         {
             if (items.Count != 0)
             {
                 leastOut = items[0].Key;
+                valueOut = items[0].Value;
                 return true;
             }
             leastOut = default(KeyType);
+            valueOut = default(ValueType);
+            return false;
+        }
+
+        public bool Least(out KeyType leastOut)
+        {
+            ValueType value;
+            return Least(out leastOut, out value);
+        }
+
+        public bool Greatest(out KeyType greatestOut, out ValueType valueOut)
+        {
+            if (items.Count != 0)
+            {
+                greatestOut = items[items.Count - 1].Key;
+                valueOut = items[items.Count - 1].Value;
+                return true;
+            }
+            greatestOut = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
         public bool Greatest(out KeyType greatestOut)
         {
-            if (items.Count != 0)
-            {
-                greatestOut = items[items.Count - 1].Key;
-                return true;
-            }
-            greatestOut = default(KeyType);
-            return false;
+            ValueType value;
+            return Greatest(out greatestOut, out value);
         }
 
-        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i >= 0)
             {
                 nearestKey = items[i].Key;
+                valueOut = items[i].Value;
                 return true;
             }
             i = ~i;
             if (i > 0)
             {
                 nearestKey = items[i - 1].Key;
+                valueOut = items[i - 1].Value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestLess(KeyType key, out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestLessOrEqual(key, out nearestKey, out value);
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i < 0)
@@ -210,31 +233,48 @@ namespace TreeLibTest
             if (i > 0)
             {
                 nearestKey = items[i - 1].Key;
+                valueOut = items[i - 1].Value;
                 return true;
             }
+            valueOut = default(ValueType);
             nearestKey = default(KeyType);
             return false;
         }
 
-        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestLess(key, out nearestKey, out value);
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i >= 0)
             {
                 nearestKey = items[i].Key;
+                valueOut = items[i].Value;
                 return true;
             }
             i = ~i;
             if (i < items.Count)
             {
                 nearestKey = items[i].Key;
+                valueOut = items[i].Value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestGreater(KeyType key, out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestGreaterOrEqual(key, out nearestKey, out value);
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i >= 0)
@@ -248,10 +288,18 @@ namespace TreeLibTest
             if (i < items.Count)
             {
                 nearestKey = items[i].Key;
+                valueOut = items[i].Value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestGreater(key, out nearestKey, out value);
         }
 
 
@@ -331,6 +379,21 @@ namespace TreeLibTest
 
         void INonInvasiveTreeInspection.Validate()
         {
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryMap<KeyType, ValueType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

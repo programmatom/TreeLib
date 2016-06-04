@@ -1,5 +1,11 @@
 # application compilation intermediate files
 
+# not publishing Util library until it is completed
+/TreeLib/TreeLibUtil
+
+/code-coverage/report
+/code-coverage/results
+
 /TreeLib/.vs
 /TreeLib/packages
 /TreeLib/BuildTool/bin
@@ -17,12 +23,15 @@
 /TreeLib/TreeLibLong/bin
 /TreeLib/TreeLibLong/obj
 /TreeLib/TreeLibLong/*.csproj.user
-/TreeLib/TreeLibInterfaces/bin
-/TreeLib/TreeLibInterfaces/obj
-/TreeLib/TreeLibInterfaces/*.csproj.user
+/TreeLib/TreeLibInterface/bin
+/TreeLib/TreeLibInterface/obj
+/TreeLib/TreeLibInterface/*.csproj.user
 /TreeLib/TreeLibTest/bin
 /TreeLib/TreeLibTest/obj
 /TreeLib/TreeLibTest/*.csproj.user
+/TreeLib/TreeLibUtil/bin
+/TreeLib/TreeLibUtil/obj
+/TreeLib/TreeLibUtil/*.csproj.user
 
 
 # local utility scripts, etc.

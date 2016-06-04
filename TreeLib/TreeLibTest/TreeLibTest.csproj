@@ -116,6 +116,10 @@
       <Project>{4b00cf37-a8f0-427b-9048-48aae1c2aa4f}</Project>
       <Name>TreeLibLong</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TreeLibUtil\TreeLibUtil.csproj">
+      <Project>{24a25146-60d1-4e71-b72a-2be85bb8c113}</Project>
+      <Name>TreeLibUtil</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TreeLib\TreeLib.csproj">
       <Project>{9f8074c9-ade0-4cbd-b507-2698b6ae98f8}</Project>
       <Name>TreeLib</Name>

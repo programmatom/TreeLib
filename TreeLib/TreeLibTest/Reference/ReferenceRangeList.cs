@@ -20,6 +20,8 @@
  * 
 */
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 using TreeLib;
 using TreeLib.Internal;
@@ -31,7 +33,8 @@ namespace TreeLibTest
     public class ReferenceRangeList :
         IRangeList,
         INonInvasiveTreeInspection,
-        INonInvasiveRange2MapInspection
+        INonInvasiveRange2MapInspection,
+        IEnumerable<EntryRangeList>
     {
         private readonly ReferenceRangeMap<object> inner;
 
@@ -194,6 +197,21 @@ namespace TreeLibTest
         void INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveRange2MapInspection)inner).Validate();
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryRangeList> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

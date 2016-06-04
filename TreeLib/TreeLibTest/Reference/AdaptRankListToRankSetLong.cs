@@ -20,13 +20,20 @@
  * 
 */
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 using TreeLib;
 using TreeLib.Internal;
 
 namespace TreeLibTest
 {
-    public class AdaptRankListToRankListLong<KeyType> : IRankList<KeyType>, INonInvasiveTreeInspection, INonInvasiveMultiRankMapInspection where KeyType : IComparable<KeyType>
+    public class AdaptRankListToRankListLong<KeyType> :
+        IRankList<KeyType>,
+        INonInvasiveTreeInspection,
+        INonInvasiveMultiRankMapInspection,
+        IEnumerable<EntryRankList<KeyType>>
+        where KeyType : IComparable<KeyType>
     {
         private readonly IRankListLong<KeyType> inner;
 
@@ -247,6 +254,21 @@ namespace TreeLibTest
         void INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveMultiRankMapInspectionLong)inner).Validate();
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryRankList<KeyType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }
