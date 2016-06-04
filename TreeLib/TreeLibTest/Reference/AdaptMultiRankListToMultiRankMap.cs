@@ -20,13 +20,20 @@
  * 
 */
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 using TreeLib;
 using TreeLib.Internal;
 
 namespace TreeLibTest
 {
-    public class AdaptMultiRankListToMultiRankMap<KeyType, ValueType> : IMultiRankMap<KeyType, ValueType>, INonInvasiveTreeInspection, INonInvasiveMultiRankMapInspection where KeyType : IComparable<KeyType>
+    public class AdaptMultiRankListToMultiRankMap<KeyType, ValueType> :
+        IMultiRankMap<KeyType, ValueType>,
+        INonInvasiveTreeInspection,
+        INonInvasiveMultiRankMapInspection,
+        IEnumerable<EntryMultiRankMap<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         private readonly IMultiRankList<KeyValue<KeyType, ValueType>> inner;
 
@@ -151,11 +158,29 @@ namespace TreeLibTest
             inner.AdjustCount(new KeyValue<KeyType, ValueType>(key), countAdjust);
         }
 
+        public bool Least(out KeyType leastOut, out ValueType valueOut)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.Least(out kv);
+            leastOut = kv.key;
+            valueOut = kv.value;
+            return f;
+        }
+
         public bool Least(out KeyType leastOut)
         {
             KeyValue<KeyType, ValueType> kv;
             bool f = inner.Least(out kv);
             leastOut = kv.key;
+            return f;
+        }
+
+        public bool Greatest(out KeyType greatestOut, out ValueType valueOut)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.Greatest(out kv);
+            greatestOut = kv.key;
+            valueOut = kv.value;
             return f;
         }
 
@@ -167,11 +192,29 @@ namespace TreeLibTest
             return f;
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestLessOrEqual(new KeyValue<KeyType, ValueType>(key), out kv);
+            nearestKey = kv.key;
+            valueOut = kv.value;
+            return f;
+        }
+
         public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
             KeyValue<KeyType, ValueType> kv;
             bool f = inner.NearestLessOrEqual(new KeyValue<KeyType, ValueType>(key), out kv);
             nearestKey = kv.key;
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestLess(new KeyValue<KeyType, ValueType>(key), out kv);
+            nearestKey = kv.key;
+            valueOut = kv.value;
             return f;
         }
 
@@ -183,11 +226,29 @@ namespace TreeLibTest
             return f;
         }
 
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestGreaterOrEqual(new KeyValue<KeyType, ValueType>(key), out kv);
+            nearestKey = kv.key;
+            valueOut = kv.value;
+            return f;
+        }
+
         public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
             KeyValue<KeyType, ValueType> kv;
             bool f = inner.NearestGreaterOrEqual(new KeyValue<KeyType, ValueType>(key), out kv);
             nearestKey = kv.key;
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestGreater(new KeyValue<KeyType, ValueType>(key), out kv);
+            nearestKey = kv.key;
+            valueOut = kv.value;
             return f;
         }
 
@@ -262,6 +323,21 @@ namespace TreeLibTest
         void INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveMultiRankMapInspection)inner).Validate();
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryMultiRankMap<KeyType, ValueType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

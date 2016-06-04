@@ -21,6 +21,8 @@
 */
 using System;
 
+#pragma warning disable CS1591
+
 namespace TreeLib.Internal
 {
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

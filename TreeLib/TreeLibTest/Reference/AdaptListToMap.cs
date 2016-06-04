@@ -20,13 +20,19 @@
  * 
 */
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 using TreeLib;
 using TreeLib.Internal;
 
 namespace TreeLibTest
 {
-    public class AdaptListToMap<KeyType, ValueType> : IOrderedMap<KeyType, ValueType>, INonInvasiveTreeInspection where KeyType : IComparable<KeyType>
+    public class AdaptListToMap<KeyType, ValueType> :
+        IOrderedMap<KeyType, ValueType>,
+        INonInvasiveTreeInspection,
+        IEnumerable<EntryMap<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         private readonly IOrderedList<KeyValue<KeyType, ValueType>> inner;
 
@@ -127,76 +133,124 @@ namespace TreeLibTest
             inner.SetKey(new KeyValue<KeyType, ValueType>(key, value));
         }
 
-        public bool Least(out KeyType leastOut)
+        public bool Least(out KeyType leastOut, out ValueType valueOut)
         {
             KeyValue<KeyType, ValueType> kv;
             if (inner.Least(out kv))
             {
                 leastOut = kv.key;
+                valueOut = kv.value;
                 return true;
             }
             leastOut = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool Greatest(out KeyType greatestOut)
+        public bool Least(out KeyType leastOut)
+        {
+            ValueType value;
+            return Least(out leastOut, out value);
+        }
+
+        public bool Greatest(out KeyType greatestOut, out ValueType valueOut)
         {
             KeyValue<KeyType, ValueType> kv;
             if (inner.Greatest(out kv))
             {
                 greatestOut = kv.key;
+                valueOut = kv.value;
                 return true;
             }
             greatestOut = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
+        public bool Greatest(out KeyType greatestOut)
+        {
+            ValueType value;
+            return Greatest(out greatestOut, out value);
+        }
+
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             KeyValue<KeyType, ValueType> kv;
             if (inner.NearestLessOrEqual(new KeyValue<KeyType, ValueType>(key), out kv))
             {
                 nearestKey = kv.key;
+                valueOut = kv.value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestLess(KeyType key, out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestLessOrEqual(key, out nearestKey, out value);
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             KeyValue<KeyType, ValueType> kv;
             if (inner.NearestLess(new KeyValue<KeyType, ValueType>(key), out kv))
             {
                 nearestKey = kv.key;
+                valueOut = kv.value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestLess(key, out nearestKey, out value);
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             KeyValue<KeyType, ValueType> kv;
             if (inner.NearestGreaterOrEqual(new KeyValue<KeyType, ValueType>(key), out kv))
             {
                 nearestKey = kv.key;
+                valueOut = kv.value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestGreater(KeyType key, out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestGreaterOrEqual(key, out nearestKey, out value);
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             KeyValue<KeyType, ValueType> kv;
             if (inner.NearestGreater(new KeyValue<KeyType, ValueType>(key), out kv))
             {
                 nearestKey = kv.key;
+                valueOut = kv.value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestGreater(key, out nearestKey, out value);
         }
 
 
@@ -238,6 +292,21 @@ namespace TreeLibTest
         void INonInvasiveTreeInspection.Validate()
         {
             ((INonInvasiveTreeInspection)inner).Validate();
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryMap<KeyType, ValueType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

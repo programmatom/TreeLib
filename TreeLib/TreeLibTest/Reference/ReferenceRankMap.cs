@@ -20,6 +20,7 @@
  * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -33,7 +34,8 @@ namespace TreeLibTest
     public class ReferenceRankMap<KeyType, ValueType> :
         IRankMap<KeyType, ValueType>,
         INonInvasiveTreeInspection,
-        INonInvasiveMultiRankMapInspection
+        INonInvasiveMultiRankMapInspection,
+        IEnumerable<EntryRankMap<KeyType, ValueType>>
         where KeyType : IComparable<KeyType>
     {
         private readonly List<Item> items = new List<Item>();
@@ -261,47 +263,72 @@ namespace TreeLibTest
             }
         }
 
-        public bool Least(out KeyType leastOut)
+        public bool Least(out KeyType leastOut, out ValueType valueOut)
         {
             if (items.Count != 0)
             {
                 leastOut = items[0].key;
+                valueOut = items[0].value;
                 return true;
             }
             leastOut = default(KeyType);
+            valueOut = default(ValueType);
+            return false;
+        }
+
+        public bool Least(out KeyType leastOut)
+        {
+            ValueType value;
+            return Least(out leastOut, out value);
+        }
+
+        public bool Greatest(out KeyType greatestOut, out ValueType valueOut)
+        {
+            if (items.Count != 0)
+            {
+                greatestOut = items[items.Count - 1].key;
+                valueOut = items[items.Count - 1].value;
+                return true;
+            }
+            greatestOut = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
         public bool Greatest(out KeyType greatestOut)
         {
-            if (items.Count != 0)
-            {
-                greatestOut = items[items.Count - 1].key;
-                return true;
-            }
-            greatestOut = default(KeyType);
-            return false;
+            ValueType value;
+            return Greatest(out greatestOut, out value);
         }
 
-        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i >= 0)
             {
                 nearestKey = items[i].key;
+                valueOut = items[i].value;
                 return true;
             }
             i = ~i;
             if (i > 0)
             {
                 nearestKey = items[i - 1].key;
+                valueOut = items[i - 1].value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestLess(KeyType key, out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestLessOrEqual(key, out nearestKey, out value);
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i < 0)
@@ -311,31 +338,48 @@ namespace TreeLibTest
             if (i > 0)
             {
                 nearestKey = items[i - 1].key;
+                valueOut = items[i - 1].value;
                 return true;
             }
+            valueOut = default(ValueType);
             nearestKey = default(KeyType);
             return false;
         }
 
-        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestLess(key, out nearestKey, out value);
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i >= 0)
             {
                 nearestKey = items[i].key;
+                valueOut = items[i].value;
                 return true;
             }
             i = ~i;
             if (i < items.Count)
             {
                 nearestKey = items[i].key;
+                valueOut = items[i].value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
-        public bool NearestGreater(KeyType key, out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestGreaterOrEqual(key, out nearestKey, out value);
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
             int i = BinarySearch(key);
             if (i >= 0)
@@ -349,10 +393,18 @@ namespace TreeLibTest
             if (i < items.Count)
             {
                 nearestKey = items[i].key;
+                valueOut = items[i].value;
                 return true;
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
+        {
+            ValueType value;
+            return NearestGreater(key, out nearestKey, out value);
         }
 
 
@@ -460,6 +512,21 @@ namespace TreeLibTest
                     }
                 }
             }
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryRankMap<KeyType, ValueType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

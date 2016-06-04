@@ -19,7 +19,7 @@
                 <facet>Dict</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
     </config>
     <config templateClassName="Entry" storageClass="" specialization="List">
         <facetAxes>
@@ -33,7 +33,7 @@
                 <facet>Dict</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
     </config>
     <config templateClassName="Entry" storageClass="" specialization="RankMap">
         <facetAxes>
@@ -47,7 +47,7 @@
                 <facet>Rank</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
         </syntacticRenames>
@@ -64,7 +64,7 @@
                 <facet>Rank</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
         </syntacticRenames>
@@ -84,7 +84,7 @@
                 <facet>Rank</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
         </syntacticRenames>
@@ -104,7 +104,7 @@
                 <facet>Rank</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
         </syntacticRenames>
@@ -121,7 +121,7 @@
                 <facet>RankMulti</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
             <rename from="XLength" to="Count" />
@@ -139,7 +139,7 @@
                 <facet>RankMulti</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
             <rename from="XLength" to="Count" />
@@ -160,7 +160,7 @@
                 <facet>RankMulti</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
             <rename from="XLength" to="Count" />
@@ -181,7 +181,7 @@
                 <facet>RankMulti</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Rank" />
             <rename from="XLength" to="Count" />
@@ -199,7 +199,7 @@
                 <facet>Range</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Start" />
             <rename from="XLength" to="Length" />
@@ -217,7 +217,7 @@
                 <facet>Range</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Start" />
             <rename from="XLength" to="Length" />
@@ -238,7 +238,7 @@
                 <facet>Range</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Start" />
             <rename from="XLength" to="Length" />
@@ -259,7 +259,7 @@
                 <facet>Range</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
         <syntacticRenames>
             <rename from="XStart" to="Start" />
             <rename from="XLength" to="Length" />
@@ -277,7 +277,7 @@
                 <facet>Range2</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
     </config>
     <config templateClassName="Entry" storageClass="" specialization="Range2List">
         <facetAxes>
@@ -291,7 +291,7 @@
                 <facet>Range2</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
     </config>
     <config templateClassName="Entry" storageClass="" specialization="Range2MapLong">
         <flags>
@@ -308,7 +308,7 @@
                 <facet>Range2</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
     </config>
     <config templateClassName="Entry" storageClass="" specialization="Range2ListLong">
         <flags>
@@ -325,6 +325,6 @@
                 <facet>Range2</facet>
             </facetAxis>
         </facetAxes>
-        <retainInCompilation>true</retainInCompilation>
+        <stripGenerated>true</stripGenerated>
     </config>
 </configs>

@@ -32,12 +32,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace BuildTool
 {
-    public class EnumEntryMeldRewriter : CSharpSyntaxRewriter
+    public class MeldEntryRewriter : CSharpSyntaxRewriter
     {
         private readonly string privateStructName;
         private readonly string targetStructName;
 
-        public EnumEntryMeldRewriter(string privateStructName, string targetStructName)
+        public MeldEntryRewriter(string privateStructName, string targetStructName)
         {
             this.privateStructName = privateStructName;
             this.targetStructName = targetStructName;

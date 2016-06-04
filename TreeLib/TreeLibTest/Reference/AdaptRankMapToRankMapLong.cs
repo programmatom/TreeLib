@@ -20,13 +20,20 @@
  * 
 */
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 using TreeLib;
 using TreeLib.Internal;
 
 namespace TreeLibTest
 {
-    public class AdaptRankMapToRankMapLong<KeyType, ValueType> : IRankMap<KeyType, ValueType>, INonInvasiveTreeInspection, INonInvasiveMultiRankMapInspection where KeyType : IComparable<KeyType>
+    public class AdaptRankMapToRankMapLong<KeyType, ValueType> :
+        IRankMap<KeyType, ValueType>,
+        INonInvasiveTreeInspection,
+        INonInvasiveMultiRankMapInspection,
+        IEnumerable<EntryRankMap<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         private readonly IRankMapLong<KeyType, ValueType> inner;
 
@@ -152,9 +159,19 @@ namespace TreeLibTest
             inner.AdjustCount(key, ToLong(countAdjust));
         }
 
+        public bool Least(out KeyType leastOut, out ValueType valueOut)
+        {
+            return inner.Least(out leastOut, out valueOut);
+        }
+
         public bool Least(out KeyType leastOut)
         {
             return inner.Least(out leastOut);
+        }
+
+        public bool Greatest(out KeyType greatestOut, out ValueType valueOut)
+        {
+            return inner.Greatest(out greatestOut, out valueOut);
         }
 
         public bool Greatest(out KeyType greatestOut)
@@ -162,9 +179,19 @@ namespace TreeLibTest
             return inner.Greatest(out greatestOut);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            return inner.NearestLessOrEqual(key, out nearestKey, out valueOut);
+        }
+
         public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
             return inner.NearestLessOrEqual(key, out nearestKey);
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            return inner.NearestLess(key, out nearestKey, out valueOut);
         }
 
         public bool NearestLess(KeyType key, out KeyType nearestKey)
@@ -172,9 +199,19 @@ namespace TreeLibTest
             return inner.NearestLess(key, out nearestKey);
         }
 
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            return inner.NearestGreaterOrEqual(key, out nearestKey, out valueOut);
+        }
+
         public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
             return inner.NearestGreaterOrEqual(key, out nearestKey);
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType valueOut)
+        {
+            return inner.NearestGreater(key, out nearestKey, out valueOut);
         }
 
         public bool NearestGreater(KeyType key, out KeyType nearestKey)
@@ -247,6 +284,21 @@ namespace TreeLibTest
         void INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveMultiRankMapInspectionLong)inner).Validate();
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryRankMap<KeyType, ValueType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

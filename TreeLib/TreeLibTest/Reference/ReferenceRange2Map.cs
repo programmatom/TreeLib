@@ -20,6 +20,7 @@
  * 
 */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 using TreeLib;
@@ -32,7 +33,8 @@ namespace TreeLibTest
     public class ReferenceRange2Map<ValueType> :
         IRange2Map<ValueType>,
         INonInvasiveTreeInspection,
-        INonInvasiveRange2MapInspection
+        INonInvasiveRange2MapInspection,
+        IEnumerable<EntryRange2Map<ValueType>>
     {
         private readonly List<Tuple<int, int, ValueType>> items = new List<Tuple<int, int, ValueType>>();
 
@@ -425,6 +427,21 @@ namespace TreeLibTest
                     throw new InvalidOperationException("length must be greater than zero");
                 }
             }
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        public IEnumerator<EntryRange2Map<ValueType>> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 }

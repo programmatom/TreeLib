@@ -25,19 +25,36 @@ using System;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1591
+
 namespace TreeLib
 {
+    /// <summary>
+    /// A type defining the struct returned for each item in a tree by an enumerator. The struct contains properties
+    /// for all relevant per-item data, including one or more of key, value, rank/count, and/or range start/length, as
+    /// appropriate for the type of collection.
+    /// </summary>
     public struct EntryMap<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType, [Payload(Payload.Value)] ValueType>
     {
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private readonly KeyType key;
+
+        /// <summary>
+        /// Returns the key associated with a key-value pair mapping, or the key associated with a key-only collection.
+        /// </summary>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public KeyType Key { get { return key; } }
 
+
         [Payload(Payload.Value)]
         private ValueType value;
+
+        /// <summary>
+        /// Returns the value associated with a key-value pair mapping.
+        /// </summary>
         [Payload(Payload.Value)]
         public ValueType Value { get { return value; } }
+
 
         public EntryMap(
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value)

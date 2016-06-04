@@ -25,26 +25,49 @@ using System;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1591
+
 namespace TreeLib
 {
+    /// <summary>
+    /// A type defining the struct returned for each item in a tree by an enumerator. The struct contains properties
+    /// for all relevant per-item data, including one or more of key, value, rank/count, and/or range start/length, as
+    /// appropriate for the type of collection.
+    /// </summary>
     public struct EntryRankMapLong<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType, [Payload(Payload.Value)] ValueType>
     {
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private readonly KeyType key;
+
+        /// <summary>
+        /// Returns the key associated with a key-value pair mapping, or the key associated with a key-only collection.
+        /// </summary>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public KeyType Key { get { return key; } }
 
+
         [Payload(Payload.Value)]
         private ValueType value;
+
+        /// <summary>
+        /// Returns the value associated with a key-value pair mapping.
+        /// </summary>
         [Payload(Payload.Value)]
         public ValueType Value { get { return value; } }
+
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
         private long xStart;
+
+        /// <summary>
+        /// Returns the rank of an item in a rank collection, or the start of a range in a range collection
+        /// (for range-to-range mapping, returns the X side start)
+        /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
         public long Rank { get { return xStart; } }
+
 
         public EntryRankMapLong(
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart)

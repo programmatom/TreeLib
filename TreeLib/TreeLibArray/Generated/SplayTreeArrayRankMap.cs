@@ -38,6 +38,16 @@ using TreeLib.Internal;
 namespace TreeLib
 {
 
+    /// <summary>
+    /// Implements a map, list or range collection using a splay tree. 
+    /// </summary>
+    
+    /// <summary>
+    /// Represents a ordered key-value mapping, augmented with rank information. The rank of a key-value pair is the index it would
+    /// be located in if all the key-value pairs in the tree were placed into a sorted array.
+    /// </summary>
+    /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
+    /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
     public class SplayTreeArrayRankMap<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType, [Payload(Payload.Value)] ValueType> :
 
         /*[Feature(Feature.Rank)]*//*[Payload(Payload.Value)]*//*[Widen]*/IRankMap<KeyType, ValueType>,
@@ -200,6 +210,19 @@ namespace TreeLib
 
         // Array
 
+        /// <summary>
+        /// Create a new collection using an array storage mechanism, based on a splay tree, explicitly configured.
+        /// </summary>
+        /// <param name="comparer">The comparer to use for sorting keys (present only for keyed collections)</param>
+        /// <param name="capacity">
+        /// For PreallocatedFixed mode, the maximum capacity of the tree, the memory for which is
+        /// preallocated at construction time; exceeding that capacity will result in an OutOfMemory exception.
+        /// For DynamicRetainFreelist, the number of nodes to pre-allocate at construction time (the collection
+        /// is permitted to exceed that capacity, in which case the internal array will be resized to increase the capacity).
+        /// DynamicDiscard is not permitted for array storage trees.
+        /// </param>
+        /// <param name="allocationMode">The allocation mode (see capacity)</param>
+        /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
         public SplayTreeArrayRankMap([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity,AllocationMode allocationMode)
         {
@@ -219,6 +242,19 @@ namespace TreeLib
             //#endif
         }
 
+        /// <summary>
+        /// Create a new collection using an array storage mechanism, based on a splay tree, with the specified capacity and allocation mode and using
+        /// the default comparer.
+        /// </summary>
+        /// <param name="capacity">
+        /// For PreallocatedFixed mode, the maximum capacity of the tree, the memory for which is
+        /// preallocated at construction time; exceeding that capacity will result in an OutOfMemory exception.
+        /// For DynamicRetainFreelist, the number of nodes to pre-allocate at construction time (the collection
+        /// is permitted to exceed that capacity, in which case the internal array will be resized to increase the capacity).
+        /// DynamicDiscard is not permitted for array storage trees.
+        /// </param>
+        /// <param name="allocationMode">The allocation mode (see capacity)</param>
+        /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public SplayTreeArrayRankMap(uint capacity,AllocationMode allocationMode)
@@ -226,12 +262,25 @@ namespace TreeLib
         {
         }
 
+        /// <summary>
+        /// Create a new collection using an array storage mechanism, based on a splay tree, with the specified capacity and using
+        /// the default comparer (applicable only for keyed collections). The allocation mode is DynamicRetainFreelist.
+        /// </summary>
+        /// <param name="capacity">
+        /// The initial capacity of the tree, the memory for which is preallocated at construction time;
+        /// if the capacity is exceeded, the internal array will be resized to make more nodes available.
+        /// </param>
         [Storage(Storage.Array)]
         public SplayTreeArrayRankMap(uint capacity)
             : this(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/Comparer<KeyType>.Default, capacity, AllocationMode.DynamicRetainFreelist)
         {
         }
 
+        /// <summary>
+        /// Create a new collection using an array storage mechanism, based on a splay tree, using
+        /// the specified comparer. The allocation mode is DynamicRetainFreelist.
+        /// </summary>
+        /// <param name="comparer">The comparer to use for sorting keys</param>
         [Storage(Storage.Array)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public SplayTreeArrayRankMap(IComparer<KeyType> comparer)
@@ -239,12 +288,21 @@ namespace TreeLib
         {
         }
 
+        /// <summary>
+        /// Create a new collection using an array storage mechanism, based on a splay tree, using
+        /// the default comparer. The allocation mode is DynamicRetainFreelist.
+        /// </summary>
         [Storage(Storage.Array)]
         public SplayTreeArrayRankMap()
             : this(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/Comparer<KeyType>.Default, 0, AllocationMode.DynamicRetainFreelist)
         {
         }
 
+        /// <summary>
+        /// Create a new collection based on a splay tree that is an exact clone of the provided collection, including in
+        /// allocation mode, content, structure, capacity and free list state, and comparer.
+        /// </summary>
+        /// <param name="original">the tree to copy</param>
         [Storage(Storage.Array)]
         public SplayTreeArrayRankMap(SplayTreeArrayRankMap<KeyType, ValueType> original)
         {
@@ -261,10 +319,23 @@ namespace TreeLib
         // IOrderedMap, IOrderedList
         //
 
+        
+        /// <summary>
+        /// Returns the number of key-value pairs in the collection as an unsigned int.
+        /// </summary>
+        /// <exception cref="OverflowException">The collection contains more than UInt32.MaxValue key-value pairs.</exception>
         public uint Count { get { return checked((uint)this.count); } }
 
+        
+        /// <summary>
+        /// Returns the number of key-value pairs in the collection.
+        /// </summary>
         public long LongCount { get { return unchecked((long)this.count); } }
 
+        
+        /// <summary>
+        /// Removes all key-value pairs from the collection.
+        /// </summary>
         public void Clear()
         {
             // no need to do any work for DynamicDiscard mode
@@ -302,6 +373,12 @@ namespace TreeLib
             this.xExtent = 0;
         }
 
+        
+        /// <summary>
+        /// Determines whether the key is present in the collection.
+        /// </summary>
+        /// <param name="key">Key to search for</param>
+        /// <returns>true if the key is present in the collection</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool ContainsKey(KeyType key)
         {
@@ -313,6 +390,12 @@ namespace TreeLib
             return false;
         }
 
+        
+        /// <summary>
+        /// Attempts to remove a key-value pair from the collection. If the key is not present, no change is made to the collection.
+        /// </summary>
+        /// <param name="key">the key to search for and possibly remove</param>
+        /// <returns>true if the key-value pair was found and removed</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool TryRemove(KeyType key)
         {
@@ -368,6 +451,13 @@ namespace TreeLib
             }
         }
 
+        
+        /// <summary>
+        /// Attempts to get the value associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">out parameter that returns the value associated with the key</param>
+        /// <returns>true if they key was found</returns>
         [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool TryGetValue(KeyType key,out ValueType value)
@@ -385,6 +475,13 @@ namespace TreeLib
             return false;
         }
 
+        
+        /// <summary>
+        /// Attempts to set the value associated with a key in the collection. If the key is not present, no change is made to the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">replacement value to associate with the key</param>
+        /// <returns>true if the key-value pair was found and the value was updated</returns>
         [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool TrySetValue(KeyType key,ValueType value)
@@ -401,6 +498,12 @@ namespace TreeLib
             return false;
         }
 
+        
+        /// <summary>
+        /// Removes a key-value pair from the collection.
+        /// </summary>
+        /// <param name="key">key of the key-value pair to remove</param>
+        /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public void Remove(KeyType key)
         {
@@ -410,6 +513,13 @@ namespace TreeLib
             }
         }
 
+        
+        /// <summary>
+        /// Retrieves the value associated with a key in the collection
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <returns>the value associated with the key</returns>
+        /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public ValueType GetValue(KeyType key)
@@ -422,6 +532,13 @@ namespace TreeLib
             return value;
         }
 
+        
+        /// <summary>
+        /// Updates the value associated with a key in the collection
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">replacement value to associate with the key</param>
+        /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public void SetValue(KeyType key,ValueType value)
@@ -433,7 +550,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Least(out KeyType leastOut) // slow; use NearestLessOrEqual() if KeyType.MinValue is available
+        private bool LeastInternal(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
         {
             if (root != Nil)
             {
@@ -445,15 +562,44 @@ namespace TreeLib
                     least = nodes[node].key;
                 }
                 Splay(ref root, least);
-                leastOut = least;
+                keyOut = least;
+                valueOut = nodes[root].value;
                 return true;
             }
-            leastOut = default(KeyType);
+            keyOut = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
+        
+        /// <summary>
+        /// Retrieves the lowest in the collection (in sort order) and the value associated with it.
+        /// </summary>
+        /// <param name="leastOut">out parameter receiving the key</param>
+        /// <param name="value">out parameter receiving the value associated with the key</param>
+        /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
+        [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Greatest(out KeyType greatestOut) // slow; use NearestGreaterOrEqual() if KeyType.MaxValue is available
+        public bool Least(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        {
+            return LeastInternal(out keyOut, /*[Payload(Payload.Value)]*/out valueOut);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection (in sort order)
+        /// </summary>
+        /// <param name="leastOut">out parameter receiving the key</param>
+        /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public bool Least(out KeyType keyOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        {
+            ValueType value;
+            return LeastInternal(out keyOut, /*[Payload(Payload.Value)]*/out value);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private  bool GreatestInternal(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
         {
             if (root != Nil)
             {
@@ -465,15 +611,44 @@ namespace TreeLib
                     greatest = nodes[node].key;
                 }
                 Splay(ref root, greatest);
-                greatestOut = greatest;
+                keyOut = greatest;
+                valueOut = nodes[root].value;
                 return true;
             }
-            greatestOut = default(KeyType);
+            keyOut = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection (in sort order) and the value associated with it.
+        /// </summary>
+        /// <param name="greatestOut">out parameter receiving the key</param>
+        /// <param name="value">out parameter receiving the value associated with the key</param>
+        /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
+        [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool NearestLess(KeyType key,out KeyType nearestKey,bool orEqual)
+        public bool Greatest(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        {
+            return GreatestInternal(out keyOut, /*[Payload(Payload.Value)]*/out valueOut);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection (in sort order)
+        /// </summary>
+        /// <param name="greatestOut">out parameter receiving the key</param>
+        /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public bool Greatest(out KeyType keyOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        {
+            ValueType value;
+            return GreatestInternal(out keyOut, /*[Payload(Payload.Value)]*/out value);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private bool NearestLess(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut,bool orEqual)
         {
             if (root != Nil)
             {
@@ -482,6 +657,7 @@ namespace TreeLib
                 if ((rootComparison > 0) || (orEqual && (rootComparison == 0)))
                 {
                     nearestKey = nodes[root].key;
+                    valueOut = nodes[root].value;
                     return true;
                 }
                 else if (nodes[root].left != Nil)
@@ -489,27 +665,77 @@ namespace TreeLib
                     KeyType rootKey = nodes[root].key;
                     Splay(ref nodes[root].left, rootKey);
                     nearestKey = nodes[nodes[root].left].key;
+                    valueOut = nodes[nodes[root].left].value;
                     return true;
                 }
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key and
+        /// the value associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        [Payload(Payload.Value)]
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut)
+        {
+            return NearestLess(key, out nearestKey, /*[Payload(Payload.Value)]*/out valueOut, true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey)
         {
-            return NearestLess(key, out nearestKey, true/*orEqual*/);
+            ValueType value;
+            return NearestLess(key, out nearestKey, /*[Payload(Payload.Value)]*/out value, true/*orEqual*/);
         }
 
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key and
+        /// the value associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        [Payload(Payload.Value)]
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public bool NearestLess(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut)
+        {
+            return NearestLess(key, out nearestKey, /*[Payload(Payload.Value)]*/out valueOut, false/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool NearestLess(KeyType key,out KeyType nearestKey)
         {
-            return NearestLess(key, out nearestKey, false/*orEqual*/);
+            ValueType value;
+            return NearestLess(key, out nearestKey, /*[Payload(Payload.Value)]*/out value, false/*orEqual*/);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool NearestGreater(KeyType key,out KeyType nearestKey,bool orEqual)
+        private bool NearestGreater(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut,bool orEqual)
         {
             if (root != Nil)
             {
@@ -518,6 +744,7 @@ namespace TreeLib
                 if ((rootComparison < 0) || (orEqual && (rootComparison == 0)))
                 {
                     nearestKey = nodes[root].key;
+                    valueOut = nodes[root].value;
                     return true;
                 }
                 else if (nodes[root].right != Nil)
@@ -525,23 +752,73 @@ namespace TreeLib
                     KeyType rootKey = nodes[root].key;
                     Splay(ref nodes[root].right, rootKey);
                     nearestKey = nodes[nodes[root].right].key;
+                    valueOut = nodes[nodes[root].right].value;
                     return true;
                 }
             }
             nearestKey = default(KeyType);
+            valueOut = default(ValueType);
             return false;
         }
 
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key and
+        /// the value associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        [Payload(Payload.Value)]
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut)
+        {
+            return NearestGreater(key, out nearestKey, /*[Payload(Payload.Value)]*/out valueOut, true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey)
         {
-            return NearestGreater(key, out nearestKey, true/*orEqual*/);
+            ValueType value;
+            return NearestGreater(key, out nearestKey, /*[Payload(Payload.Value)]*/out value, true/*orEqual*/);
         }
 
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key and
+        /// the value associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        [Payload(Payload.Value)]
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut)
+        {
+            return NearestGreater(key, out nearestKey, /*[Payload(Payload.Value)]*/out valueOut, false/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool NearestGreater(KeyType key,out KeyType nearestKey)
         {
-            return NearestGreater(key, out nearestKey, false/*orEqual*/);
+            ValueType value;
+            return NearestGreater(key, out nearestKey, /*[Payload(Payload.Value)]*/out value, false/*orEqual*/);
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -564,6 +841,13 @@ namespace TreeLib
 
         // ContainsKey() - reuses Feature.Dict implementation
 
+        
+        /// <summary>
+        /// Attempts to add a key-value pair to the collection. If the key is already present, no change is made to the collection.
+        /// </summary>
+        /// <param name="key">key to search for and possibly insert</param>
+        /// <param name="value">value to associate with the key</param>
+        /// <returns>true if the key-value pair was added; false if the key was already present</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public bool TryAdd(KeyType key,[Payload(Payload.Value)] ValueType value)
         {
@@ -645,6 +929,14 @@ uint countNew = checked(this.count + 1);
 
         // TrySetValue() - reuses Feature.Dict implementation
 
+        
+        /// <summary>
+        /// Attempts to get the value and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">out parameter that returns the value associated with the key</param>
+        /// <param name="rank">out pararmeter that returns the rank index associated with the key-value pair</param>
+        /// <returns>true if they key was found</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public bool TryGet(KeyType key,[Payload(Payload.Value)] out ValueType value,[Widen] out int rank)
         {
@@ -666,6 +958,14 @@ uint countNew = checked(this.count + 1);
             }
         }
 
+        
+        /// <summary>
+        /// Attempts to return the key of a key-value pair at the specified rank index.
+        /// If all key-value pairs in the collection were converted to a sorted array, this would be the equivalent of array[rank].Key.
+        /// </summary>
+        /// <param name="rank">the rank index to query</param>
+        /// <param name="key">the key located at that index</param>
+        /// <returns>true if there is an element at the the specified index</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public bool TryGetKeyByRank([Widen] int rank,out KeyType key)
         {
@@ -704,6 +1004,13 @@ uint countNew = checked(this.count + 1);
             }
         }
 
+        
+        /// <summary>
+        /// Adds a key-value pair to the collection.
+        /// </summary>
+        /// <param name="key">key to insert</param>
+        /// <param name="value">value to associate with the key</param>
+        /// <exception cref="ArgumentException">key is already present in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public void Add(KeyType key,[Payload(Payload.Value)] ValueType value)
         {
@@ -719,6 +1026,14 @@ uint countNew = checked(this.count + 1);
 
         // SetValue() - reuses Feature.Dict implementation
 
+        
+        /// <summary>
+        /// Retrieves the value and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">out parameter that returns the value associated with the key</param>
+        /// <param name="rank">out pararmeter that returns the rank index associated with the key-value pair</param>
+        /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public void Get(KeyType key,[Payload(Payload.Value)] out ValueType value,[Widen] out int rank)
         {
@@ -728,6 +1043,14 @@ uint countNew = checked(this.count + 1);
             }
         }
 
+        
+        /// <summary>
+        /// Retrieves the key of a key-value pair at the specified rank index.
+        /// If all key-value pairs in the collection were converted to a sorted array, this would be the equivalent of array[rank].Key.
+        /// </summary>
+        /// <param name="rank">the rank index to query</param>
+        /// <returns>the key located at that index</returns>
+        /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public KeyType GetKeyByRank([Widen] int rank)
         {
@@ -739,6 +1062,14 @@ uint countNew = checked(this.count + 1);
             return key;
         }
 
+        
+        /// <summary>
+        /// Adjusts the rank count associated with the key-value pair. The countAdjust added to the existing count.
+        /// For a RankMap, the only valid values are 0 (which does nothing) and -1 (which removes the key-value pair).
+        /// </summary>
+        /// <param name="key">key identifying the key-value pair to update</param>
+        /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         public void AdjustCount(KeyType key,[Widen] int countAdjust)
         {
@@ -1449,6 +1780,10 @@ uint countNew = checked(this.count + 1);
         // Enumeration
         //
 
+            /// <summary>
+            /// Get the default enumerator, which is the robust enumerator for splay trees.
+            /// </summary>
+            /// <returns></returns>
         public IEnumerator<EntryRankMap<KeyType, ValueType>> GetEnumerator()
         {
             // For splay trees, the default enumerator is Robust because the Fast enumerator is fragile
@@ -1462,7 +1797,17 @@ uint countNew = checked(this.count + 1);
             return this.GetEnumerator();
         }
 
-        public RobustEnumerableSurrogate GetRobustEnumerable()
+        /// <summary>
+        /// Get the robust enumerator. The robust enumerator uses an internal key cursor and queries the tree using the NextGreater()
+        /// method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key
+        /// is inserted or removed and it comes before the enumerator�s current key in sorting order, it will have no affect on the
+        /// enumerator. If a key is inserted or removed and it comes after the enumerator�s current key (i.e. in the portion of the
+        /// collection the enumerator hasn�t visited yet), the enumerator will include the key if inserted or skip the key if removed.
+        /// Because the enumerator queries the tree for each element it�s running time per element is O(lg N), or O(N lg N) to
+        /// enumerate the entire tree.
+        /// </summary>
+        /// <returns>An IEnumerable which can be used in a foreach statement</returns>
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetRobustEnumerable()
         {
             return new RobustEnumerableSurrogate(this);
         }
@@ -1487,7 +1832,23 @@ uint countNew = checked(this.count + 1);
             }
         }
 
-        public FastEnumerableSurrogate GetFastEnumerable()
+        /// <summary>
+        /// Get the fast enumerator. The fast enumerator uses an internal stack of nodes to peform in-order traversal of the
+        /// tree structure. Because it uses the tree structure, it is invalidated if the tree is modified by an insertion or
+        /// deletion and will throw an InvalidOperationException when next advanced. For the Splay tree, all operations modify
+        /// the tree structure, include queries, and will invalidate the enumerator. The complexity of the fast enumerator
+        /// is O(1) per element, or O(N) to enumerate the entire tree.
+        /// 
+        /// A note about splay trees and enumeration: Enumeration of splay trees is generally problematic, for two reasons.
+        /// First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees
+        /// may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than
+        /// approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and
+        /// the second property means fast enumeration may consume up to memory proportional to N for the internal stack used
+        /// for traversal. Therefore, the robust enumerator is recommended for splay trees. The drawback is the
+        /// robust enumerator�s O(N lg N) complexity.
+        /// </summary>
+        /// <returns>An IEnumerable which can be used in a foreach statement</returns>
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetFastEnumerable()
         {
             return new FastEnumerableSurrogate(this);
         }

@@ -25,23 +25,43 @@ using System;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1591
+
 namespace TreeLib
 {
+    /// <summary>
+    /// A type defining the struct returned for each item in a tree by an enumerator. The struct contains properties
+    /// for all relevant per-item data, including one or more of key, value, rank/count, and/or range start/length, as
+    /// appropriate for the type of collection.
+    /// </summary>
     public struct EntryRangeList    {
+
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
         private int xStart;
+
+        /// <summary>
+        /// Returns the rank of an item in a rank collection, or the start of a range in a range collection
+        /// (for range-to-range mapping, returns the X side start)
+        /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
         public int Start { get { return xStart; } }
 
+
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
         private int xLength;
+
+        /// <summary>
+        /// Returns the count of an item in a multi-rank collection, or the length of a range in a range collection
+        /// (for range-to-range mapping, returns the X side length)
+        /// </summary>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
         public int Length { get { return xLength; } }
+
 
         public EntryRangeList(
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
