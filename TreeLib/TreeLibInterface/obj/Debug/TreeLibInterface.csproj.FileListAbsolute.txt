@@ -1,4 +1,0 @@
-D:\Tom\Programming\TreeLib\TreeLib\TreeLibInterface\bin\Debug\TreeLibInterface.dll
-D:\Tom\Programming\TreeLib\TreeLib\TreeLibInterface\bin\Debug\TreeLibInterface.pdb
-D:\Tom\Programming\TreeLib\TreeLib\TreeLibInterface\obj\Debug\TreeLibInterface.dll
-D:\Tom\Programming\TreeLib\TreeLib\TreeLibInterface\obj\Debug\TreeLibInterface.pdb
