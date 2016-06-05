@@ -38,13 +38,15 @@
 </div>
 </p>
 
+
+
 <h2 id="whats-in-treelib">What’s in TreeLib?</h2>
 
 <p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings.</p>
 
+<p>The linked articles discuss the properties of these tree types in detail, and that discussion will not be repeated here. Here is the crucial summary: All trees have O(lg N) per-operation complexity, over a large number of operations. AVL and Red-Black trees have O(lg N) worst case time for individual operations whereas Splay trees have O(N) worst case time, so their overall O(lg N) is only in an amortized sense. (For scenarios with hard deadlines, Red-Black and AVL are fine, but Splay is inappropriate.) Red-Black is a good general-purpose tree. For access patterns that include many more queries than writes, AVL trees may be faster due to a tighter bound on depth (thus search path length), but they rotate more on insert/delete so may be more expensive in modification-heavy scenarios. Splay trees move recently accessed nodes near the root, so may have better than O(lg N) performance on access patterns with strong referential locality.</p>
+
 <p>The source code is written in C# and the assemblies will work with any .NET language.</p>
-
-
 
 <h2 id="where-did-the-implementations-come-from">Where did the implementations come from?</h2>
 
@@ -55,6 +57,8 @@
 <p>The AVL tree comes from the Glib library maintained by GNOME project, at <a href="https://github.com/GNOME/glib/blob/master/glib/gtree.c">https://github.com/GNOME/glib/blob/master/glib/gtree.c</a></p>
 
 <p>The rank-augmentation code was written by <a href="https://github.com/programmatom">Thomas R. Lawrence</a>.</p>
+
+
 
 <h2 id="how-do-i-get-treelib">How do I get TreeLib?</h2>
 
@@ -132,6 +136,8 @@
 </tbody></table>
 
 
+
+
 <h3 id="storage-mechanism">Storage Mechanism</h3>
 
 <p>The next step indicates the storage mechanism for the underlying tree. The standard mechanism (heap-allocated nodes) does not add anything to the name.</p>
@@ -145,14 +151,19 @@
 </thead>
 <tbody><tr>
   <td></td>
-  <td>Heap-allocated nodes.</td>
+  <td>Heap-allocated node objects.</td>
 </tr>
 <tr>
   <td><code>Array</code></td>
-  <td>Nodes embedded as structs in a single array with an embedded free list.</td>
+  <td>Nodes embedded as structs within a single array, and using an embedded free list.</td>
 </tr>
 </tbody></table>
 
+
+<blockquote>
+  <p><strong>A note about the <code>Array</code> storage mechanism:</strong> <br>
+  In general, it is not recommended to use the <code>Array</code> storage mechanism. It may be appropriate under certain specific conditions: 1) the size of the collection is bounded and relatively constant, 2) memory allocations during use cannot be tolerated, and 3) memory is at a premium. Since the array mechanism uses integer indexes for the left and right pointers it saves 8 bytes per node on a 64-bit system, and it avoids the overhead of individual heap allocations for each node, so it may use rather less memory. However, it is slower due to unavoidable array index bounds checks.</p>
+</blockquote>
 
 <h3 id="tree-specialization">Tree Specialization</h3>
 
@@ -208,6 +219,8 @@
 </tbody></table>
 
 
+
+
 <h1 id="width-of-rankrange-numbers">Width of Rank/Range numbers</h1>
 
 <p>The rank or range index values can be either an integer or a long. The integer case is specified by no additional qualifier.</p>
@@ -228,6 +241,8 @@
   <td>Signed 64-bit integer (<code>long</code>)</td>
 </tr>
 </tbody></table>
+
+
 
 
 <h2 id="how-do-i-create-a-tree">How do I create a tree?</h2>
@@ -265,6 +280,8 @@
 - <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer, uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the specified comparer. <br>
 - <strong><code>new Tree&lt;&gt;(Tree&lt;&gt; original)</code></strong> - create a tree that is an exact clone of the provided tree. <br>
 Any type parameters for key or value (if applicable) are specified in the type name of the construction. Constructors taking an explicit comparer are not available for the range collections, as they do not have keys.</p>
+
+
 
 <h2 id="how-do-the-interfaces-work">How do the interfaces work?</h2>
 
@@ -354,6 +371,8 @@ Any type parameters for key or value (if applicable) are specified in the type n
 
 <p>The interfaces exist to allow consumers of the collections to be decoupled from the specific base type (AVL, Red-Black, or Splay) being used. The interfaces are not required - the tree type may be used directly, if desired.</p>
 
+
+
 <h2 id="what-about-enumeration">What about enumeration?</h2>
 
 <p>Each basic tree type provides two enumerators, the <em>robust</em> enumerator and the <em>fast</em> enumerator.</p>
@@ -403,6 +422,8 @@ Any type parameters for key or value (if applicable) are specified in the type n
 
 
 <p>Each type of enumerator is explicitly available on the tree by calling either the <code>GetRobustEnumerable()</code> method or the <code>GetFastEnumerable()</code> method.</p>
+
+<p>Last updated June 2016. Authored using <a href="https://stackedit.io/editor">stackedit</a>.</p>
 
 
 
