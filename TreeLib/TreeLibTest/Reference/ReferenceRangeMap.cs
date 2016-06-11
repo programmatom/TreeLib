@@ -112,6 +112,11 @@ namespace TreeLibTest
             return inner.TryGet(start, Side.X, out otherStart, out xLength, out yLength, out value);
         }
 
+        public bool TrySet(int start, int length, ValueType value)
+        {
+            return inner.TrySet(start, Side.X, length, 1, value);
+        }
+
         public void Insert(int start, int xLength, ValueType value)
         {
             inner.Insert(start, Side.X, xLength, 1, value);
@@ -148,6 +153,11 @@ namespace TreeLibTest
             inner.Get(start, Side.X, out otherStart, out xLength, out yLength, out value);
         }
 
+        public void Set(int start, int length, ValueType value)
+        {
+            inner.Set(start, Side.X, length, 1, value);
+        }
+
         public int GetExtent()
         {
             return inner.GetExtent(Side.X);
@@ -171,6 +181,30 @@ namespace TreeLibTest
         public bool NearestGreater(int position, out int nearestStart)
         {
             return inner.NearestGreater(position, Side.X, out nearestStart);
+        }
+
+        public bool NearestLessOrEqual(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            int otherStart, yLength;
+            return inner.NearestLessOrEqual(position, Side.X, out nearestStart, out otherStart, out length, out yLength, out value);
+        }
+
+        public bool NearestLess(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            int otherStart, yLength;
+            return inner.NearestLess(position, Side.X, out nearestStart, out otherStart, out length, out yLength, out value);
+        }
+
+        public bool NearestGreaterOrEqual(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            int otherStart, yLength;
+            return inner.NearestGreaterOrEqual(position, Side.X, out nearestStart, out otherStart, out length, out yLength, out value);
+        }
+
+        public bool NearestGreater(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            int otherStart, yLength;
+            return inner.NearestGreater(position, Side.X, out nearestStart, out otherStart, out length, out yLength, out value);
         }
 
 

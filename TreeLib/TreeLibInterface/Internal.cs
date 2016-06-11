@@ -21,7 +21,7 @@
 */
 using System;
 
-#pragma warning disable CS1591
+#pragma warning disable CS1591 // silence warning about missing Xml documentation
 
 namespace TreeLib.Internal
 {
@@ -86,6 +86,14 @@ namespace TreeLib.Internal
             this.Item2 = item2;
             this.Item3 = item3;
             this.Item4 = item4;
+        }
+    }
+
+
+    public class ExcludeFromCodeCoverageAttribute : Attribute
+    {
+        public ExcludeFromCodeCoverageAttribute()
+        {
         }
     }
 }

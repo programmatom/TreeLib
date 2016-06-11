@@ -21,7 +21,7 @@
 */
 using System;
 
-#pragma warning disable CS1591
+#pragma warning disable CS1591 // silence warning about missing Xml documentation
 
 namespace TreeLib.Internal
 {
@@ -35,31 +35,21 @@ namespace TreeLib.Internal
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class StorageAttribute : Attribute
     {
-        //private readonly Storage[] facets;
-
         public StorageAttribute(params Storage[] facets)
         {
-            //this.facets = facets;
         }
-
-        //public Storage[] Facets { get { return facets; } }
     }
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class ArrayIndexingAttribute : Attribute
     {
-        //private readonly string substitution;
-
         public ArrayIndexingAttribute()
         {
         }
 
         public ArrayIndexingAttribute(string substitution)
         {
-            //this.substitution = substitution;
         }
-
-        //public string Substitution { get { return substitution; } }
     }
 
 
@@ -73,14 +63,9 @@ namespace TreeLib.Internal
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class PayloadAttribute : Attribute
     {
-        //private readonly Payload[] facets;
-
         public PayloadAttribute(params Payload[] facets)
         {
-            //this.facets = facets;
         }
-
-        //public Payload[] Facets { get { return facets; } }
     }
 
 
@@ -97,60 +82,34 @@ namespace TreeLib.Internal
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class FeatureAttribute : Attribute
     {
-        //private readonly Feature[] facets;
-
         public FeatureAttribute(params Feature[] facets)
         {
-            //this.facets = facets;
         }
-
-        //public Feature[] Facets { get { return facets; } }
     }
 
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class ConstAttribute : Attribute
     {
-        //private readonly Feature[] facets;
-        //private readonly object value;
-
         public ConstAttribute(object value, params Feature[] facets)
         {
-            //this.facets = facets;
-            //this.value = value;
         }
-
-        //public Feature[] Facents { get { return facets; } }
-        //public object Value { get { return value; } }
     }
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class Const2Attribute : Attribute
     {
-        //private readonly Feature[] facets;
-        //private readonly object value;
-
         public Const2Attribute(object value, params Feature[] facets)
         {
-            //this.facets = facets;
-            //this.value = value;
         }
-
-        //public Feature[] Facents { get { return facets; } }
-        //public object Value { get { return value; } }
     }
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class SuppressConstAttribute : Attribute
     {
-        //private readonly Feature[] facets;
-
         public SuppressConstAttribute(params Feature[] facets)
         {
-            //this.facets = facets;
         }
-
-        //public Feature[] Facets { get { return facets; } }
     }
 
 
@@ -168,5 +127,14 @@ namespace TreeLib.Internal
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class WidenAttribute : Attribute
     {
+    }
+
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public class RenameAttribute : Attribute
+    {
+        public RenameAttribute(string newName, params Feature[] facets)
+        {
+        }
     }
 }

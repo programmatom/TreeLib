@@ -93,6 +93,12 @@ namespace TreeLibTest
             WriteText(String.Format(line, args));
         }
 
+        // TODO:
+        public void WriteLine(ConsoleColor color, string line, params object[] args)
+        {
+            WriteText(String.Format(line, args));
+        }
+
         public void WriteText(string text)
         {
             lock (this)
@@ -188,32 +194,57 @@ namespace TreeLibTest
             }
         }
 
-        private delegate TestBase MakeTestBase(long[] breakIterations, long startIteration);
+        private readonly static string[] UnitTestTokens = new string[]
+        {
+            "map", "range2map", "rangemap", "range2list", "rangelist", "multirankmap", "multiranklist", "alloc", "enum", "clone", "hugelist"
+        };
+        private delegate TestBase MakeTestBase(long startIteration);
         private static void UnitTestsKernel(Options options)
         {
-            long iteration = 0;
-
-            MakeTestBase[] unitTests = new MakeTestBase[]
+            Tuple<string, MakeTestBase>[] unitTests = new Tuple<string, MakeTestBase>[]
             {
-                // TODO: move down
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestEnumeration(options.breakIterations, iteration); },
-
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestMap(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestRange2Map(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestRangeMap(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestRange2List(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestRangeList(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestMultiRankMap(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestRankMap(options.breakIterations, iteration); },
-                delegate (long[] breakIterations, long startIteration) { return new UnitTestAllocation(options.breakIterations, iteration); },
+                new Tuple<string, MakeTestBase>("map",              delegate (long startIter) { return new UnitTestMap(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("range2map",        delegate (long startIter) { return new UnitTestRange2Map(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("rangemap",         delegate (long startIter) { return new UnitTestRangeMap(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("range2list",       delegate (long startIter) { return new UnitTestRange2List(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("rangelist",        delegate (long startIter) { return new UnitTestRangeList(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("multirankmap",     delegate (long startIter) { return new UnitTestMultiRankMap(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("multiranklist",    delegate (long startIter) { return new UnitTestRankMap(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("alloc",            delegate (long startIter) { return new UnitTestAllocation(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("enum",             delegate (long startIter) { return new UnitTestEnumeration(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("clone",            delegate (long startIter) { return new UnitTestClone(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("hugelist",         delegate (long startIter) { return new UnitTestHugeList(options.breakIterations, startIter); }),
             };
 
+            long iteration = 0;
             for (int i = 0; i < unitTests.Length; i++)
             {
-                TestBase unitTest = unitTests[i](options.breakIterations, iteration);
-                unitTest.Do();
-                iteration = unitTest.iteration;
+                Debug.Assert(String.Equals(unitTests[i].Item1, UnitTestTokens[i]));
+                if (Array.Find(options.unitEnables, x => String.Equals(x.Key, unitTests[i].Item1)).Value)
+                {
+                    Console.WriteLine("Unit test: {0}", unitTests[i].Item1);
+                    TestBase unitTest = unitTests[i].Item2(iteration);
+                    unitTest.Do();
+                    iteration = unitTest.iteration;
+                }
             }
+        }
+
+        public static void WritePassFail(string message, bool success, string pass, string fail)
+        {
+            Console.Write("{0}: ", message);
+            ConsoleColor savedForeColor = Console.ForegroundColor;
+            ConsoleColor savedBackColor = Console.BackgroundColor;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = success ? ConsoleColor.DarkGreen : ConsoleColor.DarkRed;
+            Console.WriteLine(success ? pass : fail);
+            Console.ForegroundColor = savedForeColor;
+            Console.BackgroundColor = savedBackColor;
+        }
+
+        public static void WritePassFail(string message, bool success)
+        {
+            WritePassFail(message, success, "PASSED", "FAILED");
         }
 
         private static bool UnitTests(Options options)
@@ -239,8 +270,7 @@ namespace TreeLibTest
                 }
             }
 
-            Console.WriteLine("Unit Tests - Finished: {0}", success ? "PASSED" : "FAILED");
-
+            WritePassFail("Unit Tests - Finished", success);
             return success;
         }
 
@@ -313,18 +343,23 @@ namespace TreeLibTest
             }
         }
 
-        private const int StochasticTestCount = 7;
+        private const int StochasticTestCount = 8;
 
         private readonly static string[] StochasticTokens = new string[StochasticTestCount]
         {
-            "map", "range", "range2", "rangelist", "range2list", "rank", "multirank",
+            "map", "range", "range2", "rangelist", "range2list", "rank", "multirank", "hugelist"
         };
 
         private readonly static int[] ReportingIntervals = new int[] { 100, 250, 500, 1000, 1250, 2500, 5000, 10000, 12500, 25000 };
 
         private static bool StochasticTests(Options options)
         {
-            Console.WriteLine("Stochastic Tests - Started [Seed {0}]", options.seed);
+            Console.Write("Stochastic Tests - Started [Seed ");
+            ConsoleColor savedColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("{0}", options.seed);
+            Console.ForegroundColor = savedColor;
+            Console.WriteLine("]");
 
             StochasticControls control = new StochasticControls();
 
@@ -365,6 +400,11 @@ namespace TreeLibTest
                     StochasticTokens[Array.IndexOf(StochasticTokens, "multirank")],
                     new StochasticTestMultiRankMap(options.breakIterations, 0),
                     new ConsoleBuffer("MultiRank Map Stochastic Test:", Console.BufferWidth, bufferHeight1),
+                    options.seed, control),
+                new StochasticTestEntry(
+                    StochasticTokens[Array.IndexOf(StochasticTokens, "hugelist")],
+                    new StochasticTestHugeList(options.breakIterations, 0),
+                    new ConsoleBuffer("HugeList Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
             };
             for (int i = 0; i < tests.Length; i++)
@@ -437,8 +477,10 @@ namespace TreeLibTest
             RefreshConsoles(tests);
 
             Console.WriteLine();
-            Console.WriteLine("Stochastic Tests - Finished");
-            return !control.Failed;
+
+            bool success = !control.Failed;
+            WritePassFail("Stochastic Tests - Finished", success);
+            return success;
         }
 
         private delegate bool TestMethod(Options options);
@@ -457,6 +499,7 @@ namespace TreeLibTest
             public bool failHard;
             public long[] breakIterations;
             public KeyValuePair<string, bool>[] stochasticEnables;
+            public KeyValuePair<string, bool>[] unitEnables;
         }
 
         public static int Main(string[] args)
@@ -469,6 +512,11 @@ namespace TreeLibTest
             foreach (string token in StochasticTokens)
             {
                 stochasticEnables.Add(token, true);
+            }
+            Dictionary<string, bool> unitEnables = new Dictionary<string, bool>();
+            foreach (string token in UnitTestTokens)
+            {
+                unitEnables.Add(token, true);
             }
             options.seed = Environment.TickCount;
             bool[] disables = new bool[Tests.Length];
@@ -521,6 +569,26 @@ namespace TreeLibTest
                 {
                     breakIterations.Add(Int64.Parse(arg.Substring(6)));
                 }
+                else if (arg.StartsWith("+unit:") || arg.StartsWith("-unit:"))
+                {
+                    bool enable = arg[0] == '+';
+                    arg = arg.Substring(6);
+                    if (String.Equals(arg, "all"))
+                    {
+                        foreach (string key in UnitTestTokens)
+                        {
+                            unitEnables[key] = enable;
+                        }
+                    }
+                    else
+                    {
+                        if (!unitEnables.ContainsKey(arg))
+                        {
+                            throw new ArgumentException(String.Format("Unit test \"{0}\" does not exist", arg));
+                        }
+                        unitEnables[arg] = enable;
+                    }
+                }
                 else if (arg.StartsWith("+random:") || arg.StartsWith("-random:"))
                 {
                     bool enable = arg[0] == '+';
@@ -568,6 +636,7 @@ namespace TreeLibTest
             }
             options.breakIterations = breakIterations.ToArray();
             options.stochasticEnables = new List<KeyValuePair<string, bool>>(stochasticEnables).ToArray();
+            options.unitEnables = new List<KeyValuePair<string, bool>>(unitEnables).ToArray();
 
             int exitCode = 0;
 
@@ -579,6 +648,7 @@ namespace TreeLibTest
                     {
                         exitCode = 1;
                     }
+                    Console.WriteLine();
                 }
             }
 

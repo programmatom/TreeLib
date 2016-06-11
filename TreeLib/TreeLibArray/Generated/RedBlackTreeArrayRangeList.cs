@@ -36,10 +36,17 @@ using System.Runtime.InteropServices;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1572 // silence warning: XML comment has a param tag for '...', but there is no parameter by that name
+#pragma warning disable CS1573 // silence warning: Parameter '...' has no matching param tag in the XML comment
+#pragma warning disable CS1587 // silence warning: XML comment is not placed on a valid language element
+#pragma warning disable CS1591 // silence warning: Missing XML comment for publicly visible type or member
+
+//
 // Based on the .NET Framework Base Class Libarary implementation of red-black trees from here:
 // https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs
-
+//
 // An overview of red-black trees can be found here: https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
+//
 
 namespace TreeLib
 {
@@ -63,7 +70,9 @@ namespace TreeLib
         /*[Feature(Feature.Range, Feature.Range2)]*//*[Widen]*/INonInvasiveRange2MapInspection,
 
         IEnumerable<EntryRangeList>,
-        IEnumerable
+        IEnumerable,
+
+        ICloneable
     {
 
         //
@@ -218,7 +227,15 @@ namespace TreeLib
         [Storage(Storage.Array)]
         public RedBlackTreeArrayRangeList(RedBlackTreeArrayRangeList original)
         {
-            throw new NotImplementedException(); // TODO: clone
+
+            this.nodes = (Node[])original.nodes.Clone();
+            this.root = original.root;
+
+            this.freelist = original.freelist;
+            this.allocationMode = original.allocationMode;
+
+            this.count = original.count;
+            this.xExtent = original.xExtent;
         }
 
 
@@ -340,7 +357,7 @@ namespace TreeLib
         
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
@@ -354,7 +371,7 @@ namespace TreeLib
         
         /// <summary>
         /// Attempt to query the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
@@ -378,7 +395,7 @@ namespace TreeLib
         
         /// <summary>
         /// Attempt to change the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -415,7 +432,7 @@ namespace TreeLib
             return false;
         }
 
-        [Feature(Feature.Range, Feature.Range2)]
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         public bool TryGet([Widen] int start,[Widen] out int xLength)
         {
             NodeRef node;
@@ -427,6 +444,32 @@ namespace TreeLib
                 return true;
             }
             xLength = 0;
+            return false;
+        }
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public bool TrySet([Widen] int start,[Widen] int xLength)
+        {
+            if (xLength < 0)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            NodeRef node;
+            /*[Widen]*/
+            int xPosition, xLengthOld;
+            if (FindPosition(start, out node, out xPosition, out xLengthOld)
+                && (start == (xPosition)))
+            {
+                /*[Widen]*/
+                int xAdjust = xLength != 0 ? xLength - xLengthOld : 0;
+
+                this.xExtent = checked(this.xExtent + xAdjust);
+
+                ShiftRightOfPath(start + 1, xAdjust);
+
+                return true;
+            }
             return false;
         }
 
@@ -454,7 +497,7 @@ namespace TreeLib
         
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
@@ -471,7 +514,7 @@ namespace TreeLib
         
         /// <summary>
         /// Retrieves the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the length of the range found at the specified start index</returns>
@@ -492,7 +535,7 @@ namespace TreeLib
         
         /// <summary>
         /// Changes the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -516,12 +559,21 @@ namespace TreeLib
             }
         }
 
+        [Feature(Feature.Range, Feature.Range2)]
+        public void Set([Widen] int start,[Widen] int xLength)
+        {
+            if (!TrySet(start, xLength))
+            {
+                throw new ArgumentException("item not in tree");
+            }
+        }
+
         
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
         /// </summary>
         /// <returns>the extent of the ranges</returns>
-        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Feature(Feature.Range, Feature.Range2)]
         [Widen]
         public int GetExtent()
         {
@@ -531,7 +583,7 @@ namespace TreeLib
         
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
@@ -541,15 +593,49 @@ namespace TreeLib
         /// If there are no ranges in the collection or position is less than 0, no range will be found.
         /// </param>
         /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
-        [Feature(Feature.Range, Feature.Range2)]
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
         public bool NearestLessOrEqual([Widen] int position,[Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestLess(
                 out nearestNode,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ position,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
+        public bool NearestLessOrEqual([Widen] int position,[Widen] out int nearestStart,[Widen] out int xLength)
+        {
+            xLength = 0;
+            NodeRef nearestNode;
+            bool f = NearestLess(
+                out nearestNode,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                true/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         
@@ -564,15 +650,48 @@ namespace TreeLib
         /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
         /// </param>
         /// <returns>true if a range was found with a starting index less than the specified index</returns>
-        [Feature(Feature.Range, Feature.Range2)]
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessByRank", Feature.RankMulti)]
         public bool NearestLess([Widen] int position,[Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestLess(
                 out nearestNode,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ position,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessByRank", Feature.RankMulti)]
+        public bool NearestLess([Widen] int position,[Widen] out int nearestStart,[Widen] out int xLength)
+        {
+            xLength = 0;
+            NodeRef nearestNode;
+            bool f = NearestLess(
+                out nearestNode,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                false/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         
@@ -587,15 +706,48 @@ namespace TreeLib
         /// If the index is greater than the start of the last range, no range will be found.
         /// </param>
         /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
-        [Feature(Feature.Range, Feature.Range2)]
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
         public bool NearestGreaterOrEqual([Widen] int position,[Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestGreater(
                 out nearestNode,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ position,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
+        public bool NearestGreaterOrEqual([Widen] int position,[Widen] out int nearestStart,[Widen] out int xLength)
+        {
+            xLength = 0;
+            NodeRef nearestNode;
+            bool f = NearestGreater(
+                out nearestNode,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                true/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         
@@ -610,15 +762,48 @@ namespace TreeLib
         /// If the index is greater than or equal to the start of the last range, no range will be found.
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
-        [Feature(Feature.Range, Feature.Range2)]
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterByRank", Feature.RankMulti)]
         public bool NearestGreater([Widen] int position,[Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestGreater(
                 out nearestNode,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ position,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterByRank", Feature.RankMulti)]
+        public bool NearestGreater([Widen] int position,[Widen] out int nearestStart,[Widen] out int xLength)
+        {
+            xLength = 0;
+            NodeRef nearestNode;
+            bool f = NearestGreater(
+                out nearestNode,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/position,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                false/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         // Array allocation
@@ -687,8 +872,7 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(
-            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestLess(            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             NodeRef lastLess = Null;
             /*[Widen]*/
@@ -711,7 +895,6 @@ namespace TreeLib
 
                     int c;
                     {
-                        Debug.Assert(CompareKeyMode.Position == CompareKeyMode.Position);
                         c = position.CompareTo(xPosition);
                     }
                     if (orEqual && (c == 0))
@@ -750,8 +933,7 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(
-            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestGreater(            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             NodeRef lastGreater = Null;
             /*[Widen]*/
@@ -774,7 +956,6 @@ namespace TreeLib
 
                     int c;
                     {
-                        Debug.Assert(CompareKeyMode.Position == CompareKeyMode.Position);
                         c = position.CompareTo(xPosition);
                     }
                     if (orEqual && (c == 0))
@@ -818,10 +999,9 @@ namespace TreeLib
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
+        private bool InsertUpdateInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
         {
-            Debug.Assert((CompareKeyMode.Position == CompareKeyMode.Key) || (add != update));
+            Debug.Assert(add != update);
 
             if (root == Null)
             {
@@ -829,7 +1009,6 @@ namespace TreeLib
                 {
                     return false;
                 }
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 {
                     if (position != 0)
                     {
@@ -881,7 +1060,6 @@ namespace TreeLib
                 }
 
                 {
-                    Debug.Assert(CompareKeyMode.Position == CompareKeyMode.Position);
                     order = position.CompareTo(xPositionCurrent);
                     if (add && (order == 0))
                     {
@@ -952,8 +1130,7 @@ namespace TreeLib
                 }
 
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                if ((CompareKeyMode.Position == CompareKeyMode.Position)
-                    && (position != unchecked(xPositionParent + xLengthParent)))
+                if (position != unchecked(xPositionParent + xLengthParent))
                 {
                     nodes[root].isRed = false;
                     return false;
@@ -1043,8 +1220,7 @@ uint countNew;
 
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void ShiftRightOfPath(
-            [Widen] int position,            [Widen] int xAdjust)
+        private void ShiftRightOfPath(            [Widen] int position,            [Widen] int xAdjust)
         {
             unchecked
             {
@@ -1080,8 +1256,7 @@ uint countNew;
             }
         }
 
-        private bool DeleteInternal(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position)
+        private bool DeleteInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position)
         {
             unchecked
             {
@@ -1254,12 +1429,9 @@ uint countNew;
                         order = -1; // we don't need to compare any more once we found the match
                     }
                     else
-                    {
                         {
-                            Debug.Assert(CompareKeyMode.Position == CompareKeyMode.Position);
                             order = position.CompareTo(xPositionCurrent);
                         }
-                    }
 
                     if (order == 0)
                     {
@@ -1318,7 +1490,7 @@ uint countNew;
                         match,
                         parentOfMatch,
                         parent/*successor*/,
-                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ xPositionParent - xPositionMatch,
+                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPositionParent - xPositionMatch,
                         grandParent/*parentOfSuccessor*/);
 
                     ShiftRightOfPath(xPositionMatch + 1, -xLength);
@@ -1338,8 +1510,7 @@ uint countNew;
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(
-            NodeRef match,            NodeRef parentOfMatch,            NodeRef successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            NodeRef parentOfsuccessor)
+        private void ReplaceNode(            NodeRef match,            NodeRef parentOfMatch,            NodeRef successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            NodeRef parentOfsuccessor)
         {
             unchecked
             {
@@ -1494,8 +1665,7 @@ uint countNew;
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool FindPosition(
-            [Widen] int position,            out NodeRef lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength)
+        private bool FindPosition(            [Widen] int position,            out NodeRef lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength)
         {
             unchecked
             {
@@ -1710,6 +1880,7 @@ uint countNew;
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [ExcludeFromCodeCoverage]
         private void ValidateRanges()
         {
             if (root != Null)
@@ -1759,38 +1930,45 @@ uint countNew;
 
         // INonInvasiveTreeInspection
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Null ? (object)root : null; } }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
             NodeRef n = (NodeRef)node;
             return nodes[n].left != Null ? (object)nodes[n].left : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
             NodeRef n = (NodeRef)node;
             return nodes[n].right != Null ? (object)nodes[n].right : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
             object key = null;
             return key;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
             object value = null;
             return value;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
             NodeRef n = (NodeRef)node;
             return nodes[n].isRed ? "red" : "black";
         }
 
+        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Null)
@@ -1825,6 +2003,7 @@ uint countNew;
             ValidateDepthInvariant();
         }
 
+        [ExcludeFromCodeCoverage]
         private void ValidateDepthInvariant()
         {
             int min = Int32.MaxValue;
@@ -1839,11 +2018,13 @@ uint countNew;
             }
         }
 
+        [ExcludeFromCodeCoverage]
         private int MaxDepth(NodeRef root)
         {
             return (root == Null) ? 0 : (1 + Math.Max(MaxDepth(nodes[root].left), MaxDepth(nodes[root].right)));
         }
 
+        [ExcludeFromCodeCoverage]
         private void MinDepth(NodeRef root,int depth,ref int min)
         {
             if (root == Null)
@@ -1866,6 +2047,7 @@ uint countNew;
         // INonInvasiveRange2MapInspection
 
         [Feature(Feature.Range, Feature.Range2)]
+        [ExcludeFromCodeCoverage]
         [Widen]
         Range2MapEntry[] INonInvasiveRange2MapInspection.GetRanges()
         {
@@ -1932,6 +2114,7 @@ uint countNew;
         }
 
         [Feature(Feature.Range, Feature.Range2)]
+        [ExcludeFromCodeCoverage]
         void INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
@@ -2058,7 +2241,6 @@ uint countNew;
                     }
 
                     if (valid)
-                    {
 
                         // OR
 
@@ -2076,7 +2258,6 @@ uint countNew;
                                 /*[Feature(Feature.Range, Feature.Range2)]*/xStart,
                                 /*[Feature(Feature.Range, Feature.Range2)]*/xLength);
                         }
-                    }
                     return new EntryRangeList();
                 }
             }
@@ -2208,8 +2389,7 @@ uint countNew;
                 Advance();
             }
 
-            private void PushSuccessor(
-                NodeRef node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xPosition)
+            private void PushSuccessor(                NodeRef node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xPosition)
             {
                 while (node != tree.Null)
                 {
@@ -2251,6 +2431,16 @@ uint countNew;
                     tree.nodes[nextNode].right,
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart);
             }
+        }
+
+
+        //
+        // Cloning
+        //
+
+        public object Clone()
+        {
+            return new RedBlackTreeArrayRangeList(this);
         }
     }
 }

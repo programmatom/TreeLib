@@ -74,10 +74,10 @@ namespace TreeLibTest
         {
             for (int i = 0; i < count; i++)
             {
-                int start = random.Random() % Math.Max(1, tree.GetExtent());
+                int start = random.Next() % Math.Max(1, tree.GetExtent());
                 tree.NearestLessOrEqual(start, out start);
-                int xLength = random.Random() % 100 + 1;
-                tree.Insert(start, xLength, random.Random());
+                int xLength = random.Next() % 100 + 1;
+                tree.Insert(start, xLength, random.Next());
             }
         }
 
@@ -87,7 +87,7 @@ namespace TreeLibTest
             int i = 0;
             while ((count.HasValue && (i < count.Value)) || (!count.HasValue && (tree.Count != 0)))
             {
-                int start = random.Random() % tree.GetExtent();
+                int start = random.Next() % tree.GetExtent();
                 tree.NearestLessOrEqual(start, out start);
                 tree.Delete(start);
                 i++;

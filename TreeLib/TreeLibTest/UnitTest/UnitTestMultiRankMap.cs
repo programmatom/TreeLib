@@ -144,11 +144,13 @@ namespace TreeLibTest
             IMultiRankMap<KeyType, ValueType> tree,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
         {
+            ValidateTree(tree);
             foreach (Op<KeyType, ValueType> op in sequence)
             {
                 IncrementIteration();
 
                 op.Do(tree);
+                ValidateTree(tree);
 
                 MultiRankMapEntry[] ranks = ((INonInvasiveMultiRankMapInspection)tree).GetRanks();
                 ValidateRanks<KeyType, ValueType>(ranks);
@@ -160,11 +162,13 @@ namespace TreeLibTest
             IMultiRankMap<KeyType, ValueType> treeAnalog,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
         {
+            ValidateTree(tree);
             foreach (Op<KeyType, ValueType> op in sequence)
             {
                 IncrementIteration();
 
                 op.Do(tree, treeAnalog);
+                ValidateTree(tree);
             }
 
             ValidateRanksEqual(tree, treeAnalog);
@@ -485,6 +489,9 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " Count", delegate () { return ranks.Length == unchecked((int)tree.Count); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " LongCount", delegate () { return ranks.Length == unchecked((int)tree.LongCount); });
 
                 p = 0;
                 for (int j = 0; j < ranks.Length; j++)
@@ -584,6 +591,24 @@ namespace TreeLibTest
                 TestTrue(label + " TryGet.6", delegate () { float value; int rank; int count; tree.TryGet(p, out value, out rank, out count); return value == default(float); });
                 TestTrue(label + " TryGet.7", delegate () { float value; int rank; int count; tree.TryGet(p, out value, out rank, out count); return rank == 0; });
                 TestTrue(label + " TryGet.8", delegate () { float value; int rank; int count; tree.TryGet(p, out value, out rank, out count); return count == 0; });
+
+                reference2 = reference.Clone();
+                TestTrue("prereq", delegate () { return reference2.TrySet((int)ranks[i].key, Value, Count); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " TrySet.1", delegate () { return tree.TrySet((int)ranks[i].key, Value, Count); });
+                ValidateRanksEqual(reference2, tree);
+                //
+                p = (i > 0) ? (((int)ranks[i - 1].key + (int)ranks[i].key) / 2) : ((int)ranks[i].key - 1);
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestFalse(label + " TrySet.2", delegate () { return tree.TrySet(p, Value, Count); });
+                ValidateRanksEqual(reference, tree);
+                //
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestFalse(label + " TrySet.3", delegate () { return tree.TrySet((int)ranks[i].key, Value, 0); });
+                ValidateRanksEqual(reference, tree);
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -704,6 +729,24 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestThrow(label + " Get.5", typeof(ArgumentException), delegate () { float value; int rank; int count; tree.Get(p, out value, out rank, out count); });
+
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.Set((int)ranks[i].key, Value, Count); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + "Set.1", delegate () {  tree.Set((int)ranks[i].key, Value, Count); });
+                ValidateRanksEqual(reference2, tree);
+                //
+                p = (i > 0) ? (((int)ranks[i - 1].key + (int)ranks[i].key) / 2) : ((int)ranks[i].key - 1);
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestThrow(label + " Set.2",typeof(ArgumentException), delegate () { tree.Set(p, Value, Count); });
+                ValidateRanksEqual(reference, tree);
+                //
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestThrow(label + " Set.3", typeof(ArgumentException), delegate () {  tree.Set((int)ranks[i].key, Value, 0); });
+                ValidateRanksEqual(reference, tree);
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -879,6 +922,638 @@ namespace TreeLibTest
                 TestTrue(label + " AdjustCount-overflow.3c", delegate () { return tree.RankCount == reference2.RankCount; });
                 ValidateRanksEqual(reference2, tree);
             }
+
+            TestOrderedAccessors(
+                label,
+                makeTree,
+                sequence,
+                delegate (int k) { return k - 1; },
+                delegate (int k) { return k + 1; });
+        }
+
+        private delegate KeyType NextMethod<KeyType>(KeyType current);
+        private delegate KeyType PrevMethod<KeyType>(KeyType current);
+        private void TestOrderedAccessors<KeyType, ValueType>(
+            string label,
+            MakeTree<KeyType, ValueType> makeTree,
+            IEnumerable<Op<KeyType, ValueType>> sequence,
+            NextMethod<KeyType> getPrevKey,
+            PrevMethod<KeyType> getNextKey) where KeyType : IComparable<KeyType>
+        {
+            label = label + " ordered-accessors";
+
+            IMultiRankMap<KeyType, ValueType> tree;
+            ReferenceMultiRankMap<KeyType, ValueType> treeAnalog1 = new ReferenceMultiRankMap<KeyType, ValueType>();
+
+            tree = makeTree();
+            BuildTree(tree, treeAnalog1, sequence);
+            MultiRankMapEntry[] ranks = ((INonInvasiveMultiRankMapInspection)treeAnalog1).GetRanks();
+            MultiRankInfo<KeyType, ValueType>[] treeAnalog = FlattenAnyRankTree<KeyType, ValueType>(treeAnalog1, true/*multi*/);
+            int count = treeAnalog.Length;
+            bool empty = (count == 0);
+
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Count", delegate () { return count == tree.Count; }); });
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " LongCount", delegate () { return count == tree.LongCount; }); });
+
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Least-1", delegate () { KeyType key; return tree.Least(out key) == !empty; }); });
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Least-2", delegate () { KeyType key; tree.Least(out key); return 0 == Comparer<KeyType>.Default.Compare(key, !empty ? treeAnalog[0].Key : default(KeyType)); }); });
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Least-3", delegate () { KeyType key; ValueType value; tree.Least(out key, out value); return (0 == Comparer<KeyType>.Default.Compare(key, !empty ? treeAnalog[0].Key : default(KeyType))) && (0 == Comparer<ValueType>.Default.Compare(value, !empty ? treeAnalog[0].Value : default(ValueType))); }); });
+
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Greatest-1", delegate () { KeyType key; return tree.Greatest(out key) == !empty; }); });
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Greatest-2", delegate () { KeyType key; tree.Greatest(out key); return 0 == Comparer<KeyType>.Default.Compare(key, !empty ? treeAnalog[count - 1].Key : default(KeyType)); }); });
+            tree = makeTree();
+            TestTree(
+                label,
+                tree,
+                sequence,
+                delegate () { TestTrue(label + " Greatest-2", delegate () { KeyType key; ValueType value; tree.Greatest(out key, out value); return (0 == Comparer<KeyType>.Default.Compare(key, !empty ? treeAnalog[count - 1].Key : default(KeyType))) && (0 == Comparer<ValueType>.Default.Compare(value, !empty ? treeAnalog[count - 1].Value : default(ValueType))); }); });
+
+            if (count == 0)
+            {
+                KeyType currKey = getNextKey(default(KeyType));
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.1", delegate () { KeyType key; return !tree.NearestLessOrEqual(currKey, out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.2", delegate () { KeyType key; tree.NearestLessOrEqual(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(default(KeyType), key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestLessOrEqual(currKey, out key, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestLessOrEqual(currKey, out key, out value, out rank, out rankCount); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)) && (rank == 0) && (rankCount == 0); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.1", delegate () { KeyType key; return !tree.NearestLessOrEqual(getPrevKey(currKey), out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.2", delegate () { KeyType key; tree.NearestLessOrEqual(getPrevKey(currKey), out key); return 0 == Comparer<KeyType>.Default.Compare(default(KeyType), key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestLessOrEqual(getPrevKey(currKey), out key, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestLessOrEqual(getPrevKey(currKey), out key, out value, out rank, out rankCount); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)) && (rank == 0) && (rankCount == 0); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.1", delegate () { KeyType key; return !tree.NearestGreaterOrEqual(currKey, out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.2", delegate () { KeyType key; tree.NearestGreaterOrEqual(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(default(KeyType), key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestGreaterOrEqual(currKey, out key, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestGreaterOrEqual(currKey, out key, out value, out rank, out rankCount); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)) && (rank == 0) && (rankCount == 0); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.1", delegate () { KeyType key; return !tree.NearestGreaterOrEqual(getNextKey(currKey), out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.2", delegate () { KeyType key; tree.NearestGreaterOrEqual(getNextKey(currKey), out key); return 0 == Comparer<KeyType>.Default.Compare(default(KeyType), key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestGreaterOrEqual(getNextKey(currKey), out key, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestGreaterOrEqual(getNextKey(currKey), out key, out value, out rank, out rankCount); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)) && (rank == 0) && (rankCount == 0); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.1", delegate () { KeyType key; return !tree.NearestLess(currKey, out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.2", delegate () { KeyType key; tree.NearestLess(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(default(KeyType), key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestLess(currKey, out key, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestLess(currKey, out key, out value, out rank, out rankCount); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)) && (rank == 0) && (rankCount == 0); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.1", delegate () { KeyType key; return !tree.NearestGreater(currKey, out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.2", delegate () { KeyType key; tree.NearestGreater(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(default(KeyType), key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestGreater(currKey, out key, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestGreater(currKey, out key, out value, out rank, out rankCount); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), key)) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)) && (rank == 0) && (rankCount == 0); }); });
+
+                for (int currPosition = -1; currPosition <= 1; currPosition++)
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessOrEqualByRank.1", delegate () { int nearestStart; bool f = tree.NearestLessOrEqualByRank(currPosition, out nearestStart); return !f && (nearestStart == 0); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessOrEqualByRank.2", delegate () { KeyType nearestKey; int nearestStart; int rankCount; ValueType value; bool f = tree.NearestLessOrEqualByRank(currPosition, out nearestKey, out nearestStart, out rankCount, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), nearestKey)) && (nearestStart == 0) && (rankCount == 0) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { int nearestStart; bool f = tree.NearestLessByRank(currPosition, out nearestStart); return !f && (nearestStart == 0); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessByRank.2", delegate () { KeyType nearestKey; int nearestStart; int rankCount; ValueType value; bool f = tree.NearestLessByRank(currPosition, out nearestKey, out nearestStart, out rankCount, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), nearestKey)) && (nearestStart == 0) && (rankCount == 0) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.1", delegate () { int nearestStart; bool f = tree.NearestGreaterOrEqualByRank(currPosition, out nearestStart); return !f && (nearestStart == 0); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.2", delegate () { KeyType nearestKey; int nearestStart; int rankCount; ValueType value; bool f = tree.NearestGreaterOrEqualByRank(currPosition, out nearestKey, out nearestStart, out rankCount, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), nearestKey)) && (nearestStart == 0) && (rankCount == 0) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { int nearestStart; bool f = tree.NearestGreaterByRank(currPosition, out nearestStart); return !f && (nearestStart == 0); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterByRank.2", delegate () { KeyType nearestKey; int nearestStart; int rankCount; ValueType value; bool f = tree.NearestGreaterByRank(currPosition, out nearestKey, out nearestStart, out rankCount, out value); return !f && (0 == Comparer<KeyType>.Default.Compare(default(KeyType), nearestKey)) && (nearestStart == 0) && (rankCount == 0) && (0 == Comparer<ValueType>.Default.Compare(default(ValueType), value)); }); });
+                }
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                KeyType currKey = treeAnalog[i].Key;
+                ValueType currValue = treeAnalog[i].Value;
+                int currRank = treeAnalog[i].Start;
+                int currRankCount = treeAnalog[i].Length;
+                bool prevKeyExists = i > 0;
+                KeyType prevKey = prevKeyExists ? treeAnalog[i - 1].Key : default(KeyType);
+                ValueType prevValue = prevKeyExists ? treeAnalog[i - 1].Value : default(ValueType);
+                int prevRank = prevKeyExists ? treeAnalog[i - 1].Start : 0;
+                int prevRankCount = prevKeyExists ? treeAnalog[i - 1].Length : 0;
+                bool nextKeyExists = i < count - 1;
+                KeyType nextKey = nextKeyExists ? treeAnalog[i + 1].Key : default(KeyType);
+                ValueType nextValue = nextKeyExists ? treeAnalog[i + 1].Value : default(ValueType);
+                int nextRank = nextKeyExists ? treeAnalog[i + 1].Start : treeAnalog[tree.Count - 1].Start + treeAnalog[tree.Count - 1].Length;
+                int nextRankCount = nextKeyExists ? treeAnalog[i + 1].Length : 0;
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.1", delegate () { KeyType key; return tree.NearestLessOrEqual(currKey, out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.2", delegate () { KeyType key; tree.NearestLessOrEqual(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(currKey, key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestLessOrEqual(currKey, out key, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, key)) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual+0.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestLessOrEqual(currKey, out key, out value, out rank, out rankCount); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, key)) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rank == currRank) && (rankCount == currRankCount); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.1", delegate () { KeyType key; return tree.NearestLessOrEqual(getPrevKey(currKey), out key) == prevKeyExists; }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.2", delegate () { KeyType key; tree.NearestLessOrEqual(getPrevKey(currKey), out key); return 0 == Comparer<KeyType>.Default.Compare(prevKey, key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestLessOrEqual(getPrevKey(currKey), out key, out value); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, key)) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqual-1.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestLessOrEqual(getPrevKey(currKey), out key, out value, out rank, out rankCount); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, key)) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)) && (rank == prevRank) && (rankCount == prevRankCount); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.1", delegate () { KeyType key; return tree.NearestGreaterOrEqual(currKey, out key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.2", delegate () { KeyType key; tree.NearestGreaterOrEqual(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(currKey, key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestGreaterOrEqual(currKey, out key, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, key)) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+0.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestGreaterOrEqual(currKey, out key, out value, out rank, out rankCount); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, key)) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rank == currRank) && (rankCount == currRankCount); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.1", delegate () { KeyType key; return tree.NearestGreaterOrEqual(getNextKey(currKey), out key) == nextKeyExists; }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.2", delegate () { KeyType key; tree.NearestGreaterOrEqual(getNextKey(currKey), out key); return 0 == Comparer<KeyType>.Default.Compare(nextKey, key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestGreaterOrEqual(getNextKey(currKey), out key, out value); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, key)) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqual+1.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestGreaterOrEqual(getNextKey(currKey), out key, out value, out rank, out rankCount); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, key)) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)) && (rank == nextRank) && (rankCount == nextRankCount); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.1", delegate () { KeyType key; return tree.NearestLess(currKey, out key) == prevKeyExists; }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.2", delegate () { KeyType key; tree.NearestLess(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(prevKey, key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestLess(currKey, out key, out value); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, key)) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLess.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestLess(currKey, out key, out value, out rank, out rankCount); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, key)) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)) && (rank == prevRank) && (rankCount == prevRankCount); }); });
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.1", delegate () { KeyType key; return tree.NearestGreater(currKey, out key) == nextKeyExists; }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.2", delegate () { KeyType key; tree.NearestGreater(currKey, out key); return 0 == Comparer<KeyType>.Default.Compare(nextKey, key); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.3", delegate () { KeyType key; ValueType value; bool f = tree.NearestGreater(currKey, out key, out value); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, key)) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreater.4", delegate () { KeyType key; ValueType value; int rank, rankCount; bool f = tree.NearestGreater(currKey, out key, out value, out rank, out rankCount); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, key)) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)) && (rank == nextRank) && (rankCount == nextRankCount); }); });
+
+                //
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqualByRank.1", delegate () { int nearestStart; bool f = tree.NearestLessOrEqualByRank(currRank, out nearestStart); return f && (nearestStart == currRank); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessOrEqualByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestLessOrEqualByRank(currRank, out nearestKey, out nearestStart, out rankCount, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, nearestKey)) && (nearestStart == currRank) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rankCount == currRankCount); }); });
+                if (currRankCount > 1)
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessOrEqualByRank.3", delegate () { int nearestStart; bool f = tree.NearestLessOrEqualByRank(currRank + 1, out nearestStart); return f && (nearestStart == currRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessOrEqualByRank.4", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestLessOrEqualByRank(currRank + 1, out nearestKey, out nearestStart, out rankCount, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, nearestKey)) && (nearestStart == currRank) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rankCount == currRankCount); }); });
+                }
+                if (!prevKeyExists || (prevRankCount > 1))
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessOrEqualByRank.5", delegate () { int nearestStart; bool f = tree.NearestLessOrEqualByRank(currRank - 1, out nearestStart); return (f == prevKeyExists) && (nearestStart == prevRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessOrEqualByRank.6", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestLessOrEqualByRank(currRank - 1, out nearestKey, out nearestStart, out rankCount, out value); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, nearestKey)) && (nearestStart == prevRank) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)) && (rankCount == prevRankCount); }); });
+                }
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { int nearestStart; bool f = tree.NearestLessByRank(currRank, out nearestStart); return (f == prevKeyExists) && (nearestStart == prevRank); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestLessByRank(currRank, out nearestKey, out nearestStart, out rankCount, out value); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, nearestKey)) && (nearestStart == prevRank) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)) && (rankCount == prevRankCount); }); });
+                if (currRankCount > 1)
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { int nearestStart; bool f = tree.NearestLessByRank(currRank + 1, out nearestStart); return f && (nearestStart == currRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestLessByRank(currRank + 1, out nearestKey, out nearestStart, out rankCount, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, nearestKey)) && (nearestStart == currRank) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rankCount == currRankCount); }); });
+                }
+                if (!prevKeyExists || (prevRankCount > 1))
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { int nearestStart; bool f = tree.NearestLessByRank(currRank - 1, out nearestStart); return (f == prevKeyExists) && (nearestStart == prevRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestLessByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestLessByRank(currRank - 1, out nearestKey, out nearestStart, out rankCount, out value); return (f == prevKeyExists) && (0 == Comparer<KeyType>.Default.Compare(prevKey, nearestKey)) && (nearestStart == prevRank) && (0 == Comparer<ValueType>.Default.Compare(prevValue, value)) && (rankCount == prevRankCount); }); });
+                }
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.1", delegate () { int nearestStart; bool f = tree.NearestGreaterOrEqualByRank(currRank, out nearestStart); return f && (nearestStart == currRank); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestGreaterOrEqualByRank(currRank, out nearestKey, out nearestStart, out rankCount, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, nearestKey)) && (nearestStart == currRank) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rankCount == currRankCount); }); });
+                if (currRankCount > 1)
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.3", delegate () { int nearestStart; bool f = tree.NearestGreaterOrEqualByRank(currRank + 1, out nearestStart); return (f == nextKeyExists) && (nearestStart == nextRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.4", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestGreaterOrEqualByRank(currRank + 1, out nearestKey, out nearestStart, out rankCount, out value); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, nearestKey)) && (nearestStart == nextRank) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)) && (rankCount == nextRankCount); }); });
+                }
+                if (!prevKeyExists || (prevRankCount > 1))
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.5", delegate () { int nearestStart; bool f = tree.NearestGreaterOrEqualByRank(currRank - 1, out nearestStart); return f && (nearestStart == currRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterOrEqualByRank.6", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestGreaterOrEqualByRank(currRank - 1, out nearestKey, out nearestStart, out rankCount, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, nearestKey)) && (nearestStart == currRank) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rankCount == currRankCount); }); });
+                }
+
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { int nearestStart; bool f = tree.NearestGreaterByRank(currRank, out nearestStart); return (f == nextKeyExists) && (nearestStart == nextRank); }); });
+                tree = makeTree();
+                TestTree(
+                    label,
+                    tree,
+                    sequence,
+                    delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestGreaterByRank(currRank, out nearestKey, out nearestStart, out rankCount, out value); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, nearestKey)) && (nearestStart == nextRank) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)) && (rankCount == nextRankCount); }); });
+                if (!nextKeyExists || (currRankCount > 1))
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { int nearestStart; bool f = tree.NearestGreaterByRank(currRank + 1, out nearestStart); return (f == nextKeyExists) && (nearestStart == nextRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestGreaterByRank(currRank + 1, out nearestKey, out nearestStart, out rankCount, out value); return (f == nextKeyExists) && (0 == Comparer<KeyType>.Default.Compare(nextKey, nearestKey)) && (nearestStart == nextRank) && (0 == Comparer<ValueType>.Default.Compare(nextValue, value)) && (rankCount == nextRankCount); }); });
+                }
+                if (currRankCount > 1)
+                {
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { int nearestStart; bool f = tree.NearestGreaterByRank(currRank - 1, out nearestStart); return f && (nearestStart == currRank); }); });
+                    tree = makeTree();
+                    TestTree(
+                        label,
+                        tree,
+                        sequence,
+                        delegate () { TestTrue(label + " NearestGreaterByRank.1", delegate () { KeyType nearestKey; int nearestStart; ValueType value; int rankCount; bool f = tree.NearestGreaterByRank(currRank - 1, out nearestKey, out nearestStart, out rankCount, out value); return f && (0 == Comparer<KeyType>.Default.Compare(currKey, nearestKey)) && (nearestStart == currRank) && (0 == Comparer<ValueType>.Default.Compare(currValue, value)) && (rankCount == currRankCount); }); });
+                }
+            }
         }
 
         public override bool Do()
@@ -890,7 +1565,7 @@ namespace TreeLibTest
             }
             catch (Exception)
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 throw;
             }
         }

@@ -276,6 +276,62 @@ namespace TreeLibTest
             return NearestGreater(key, out nearestKey, out value);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            if (inner.NearestLessOrEqual(new KeyValue<KeyType, ValueType>(key), out kv, out rank))
+            {
+                nearestKey = kv.key;
+                value = kv.value;
+                return true;
+            }
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            return false;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            if (inner.NearestLess(new KeyValue<KeyType, ValueType>(key), out kv, out rank))
+            {
+                nearestKey = kv.key;
+                value = kv.value;
+                return true;
+            }
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            return false;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            if (inner.NearestGreaterOrEqual(new KeyValue<KeyType, ValueType>(key), out kv, out rank))
+            {
+                nearestKey = kv.key;
+                value = kv.value;
+                return true;
+            }
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            return false;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            if (inner.NearestGreater(new KeyValue<KeyType, ValueType>(key), out kv, out rank))
+            {
+                nearestKey = kv.key;
+                value = kv.value;
+                return true;
+            }
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            return false;
+        }
+
 
         //
         // INonInvasiveTreeInspection

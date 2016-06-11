@@ -597,6 +597,47 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the returned key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key and
+        /// the value and rank associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank);
     }
 
     /// <summary>
@@ -771,6 +812,39 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out int rank);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out int rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out int rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out int rank);
     }
 
     /// <summary>
@@ -993,6 +1067,47 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the returned key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key and
+        /// the value and rank associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out long rank);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out long rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out long rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out long rank);
     }
 
     /// <summary>
@@ -1167,6 +1282,39 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out long rank);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out long rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out long rank);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out long rank);
     }
 
 
@@ -1254,6 +1402,15 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         bool TryGet(KeyType key, out ValueType value, out int rank, out int count);
         /// <summary>
+        /// Attempts to update the value and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">the new value to set</param>
+        /// <param name="rank">the new rank count</param>
+        /// <returns>true if they key was found and the rank was a valid value or false if the rank count was not at least 1
+        /// or the sum of counts would have exceeded Int32.MaxValue</returns>
+        bool TrySet(KeyType key, ValueType value, int rank);
+        /// <summary>
         /// Attempts to return the key of a key-value pair at the specified rank index. If all key-value pairs in the collection were
         /// converted to a sorted array of key-value pairs, this would be the equivalent of array[rank].Key, subject to the
         /// constraint that only the first occurrence of each key can be indexed.
@@ -1306,6 +1463,15 @@ namespace TreeLib
         /// this key-value pair if the collection were converted to a sorted array</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         void Get(KeyType key, out ValueType value, out int rank, out int count);
+        /// <summary>
+        /// Updates the value and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">the new value to set</param>
+        /// <param name="rank">the new rank count</param>
+        /// <exception cref="ArgumentException">the rank count was not at least 1</exception>
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
+        void Set(KeyType key, ValueType value, int rank);
         /// <summary>
         /// Retrieves the key of a key-value pair at the specified rank index. If all key-value pairs in the collection were
         /// converted to a sorted array of key-value pairs, this would be the equivalent of array[rank].Key, subject to the
@@ -1420,6 +1586,159 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the returned key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key and
+        /// the value, rank and count associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key and
+        /// the value, rank and count  associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key and
+        /// the value, rank and count  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key and
+        /// the value, rank and count  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(int position, out int nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(int position, out int nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(int position, out int nearestStart);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(int position, out int nearestStart);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value);
     }
 
     /// <summary>
@@ -1503,6 +1822,14 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         bool TryGet(KeyType key, out KeyType keyOut, out int rank, out int count);
         /// <summary>
+        /// Attempts to update the key data and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for and also update</param>
+        /// <param name="rank">the new rank count</param>
+        /// <returns>true if they key was found and the rank was a valid value or false if the rank count was not at least 1
+        /// or the sum of counts would have exceeded Int32.MaxValue</returns>
+        bool TrySet(KeyType key, int rank);
+        /// <summary>
         /// Attempts to return the key at the specified rank index. If all keys in the collection were
         /// converted to a sorted array of keys, this would be the equivalent of array[rank]s, subject to the
         /// constraint that only the first occurrence of each key can be indexed.
@@ -1557,6 +1884,14 @@ namespace TreeLib
         /// this key if the collection were converted to a sorted array</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         void Get(KeyType key, out KeyType keyOut, out int rank, out int count);
+        /// <summary>
+        /// Updates the key and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for and also update</param>
+        /// <param name="rank">the new rank count</param>
+        /// <exception cref="ArgumentException">the rank count was not at least 1</exception>
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
+        void Set(KeyType key, int rank);
         /// <summary>
         /// Retrieves the key at the specified rank index. If all keys in the collection were
         /// converted to a sorted array of keys, this would be the equivalent of array[rank], subject to the
@@ -1619,6 +1954,147 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out int rank, out int count);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out int rank, out int count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out int rank, out int count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out int rank, out int count);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(int position, out int nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(int position, out int nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(int position, out int nearestStart);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(int position, out int nearestStart);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(int position, out KeyType nearestKey, out int nearestStart, out int count);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(int position, out KeyType nearestKey, out int nearestStart, out int count);
     }
 
     /// <summary>
@@ -1701,6 +2177,15 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         bool TryGet(KeyType key, out ValueType value, out long rank, out long count);
         /// <summary>
+        /// Attempts to update the value and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">the new value to set</param>
+        /// <param name="rank">the new rank count</param>
+        /// <returns>true if they key was found and the rank was a valid value or false if the rank count was not at least 1
+        /// or the sum of counts would have exceeded Int64.MaxValue</returns>
+        bool TrySet(KeyType key, ValueType value, long rank);
+        /// <summary>
         /// Attempts to return the key of a key-value pair at the specified rank index. If all key-value pairs in the collection were
         /// converted to a sorted array of key-value pairs, this would be the equivalent of array[rank].Key, subject to the
         /// constraint that only the first occurrence of each key can be indexed.
@@ -1753,6 +2238,15 @@ namespace TreeLib
         /// this key-value pair if the collection were converted to a sorted array</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         void Get(KeyType key, out ValueType value, out long rank, out long count);
+        /// <summary>
+        /// Updates the value and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for</param>
+        /// <param name="value">the new value to set</param>
+        /// <param name="rank">the new rank count</param>
+        /// <exception cref="ArgumentException">the rank count was not at least 1</exception>
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int64.MaxValue</exception>
+        void Set(KeyType key, ValueType value, long rank);
         /// <summary>
         /// Retrieves the key of a key-value pair at the specified rank index. If all key-value pairs in the collection were
         /// converted to a sorted array of key-value pairs, this would be the equivalent of array[rank].Key, subject to the
@@ -1867,6 +2361,159 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the returned key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key and
+        /// the value, rank and count associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out long rank, out long count);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key and
+        /// the value, rank and count  associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out long rank, out long count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key and
+        /// the value, rank and count  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out long rank, out long count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key and
+        /// the value, rank and count  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out long rank, out long count);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(long position, out long nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(long position, out long nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(long position, out long nearestStart);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(long position, out long nearestStart);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(long position, out KeyType nearestKey, out long nearestStart, out long count, out ValueType value);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(long position, out KeyType nearestKey, out long nearestStart, out long count, out ValueType value);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(long position, out KeyType nearestKey, out long nearestStart, out long count, out ValueType value);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <param name="value">the value associated with the key</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(long position, out KeyType nearestKey, out long nearestStart, out long count, out ValueType value);
     }
 
     /// <summary>
@@ -1950,6 +2597,14 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         bool TryGet(KeyType key, out KeyType keyOut, out long rank, out long count);
         /// <summary>
+        /// Attempts to update the key data and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for and also update</param>
+        /// <param name="rank">the new rank count</param>
+        /// <returns>true if they key was found and the rank was a valid value or false if the rank count was not at least 1
+        /// or the sum of counts would have exceeded Int64.MaxValue</returns>
+        bool TrySet(KeyType key, long rank);
+        /// <summary>
         /// Attempts to return the key at the specified rank index. If all keys in the collection were
         /// converted to a sorted array of keys, this would be the equivalent of array[rank]s, subject to the
         /// constraint that only the first occurrence of each key can be indexed.
@@ -2005,6 +2660,14 @@ namespace TreeLib
         /// this key if the collection were converted to a sorted array</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         void Get(KeyType key, out KeyType keyOut, out long rank, out long count);
+        /// <summary>
+        /// Updates the key and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for and also update</param>
+        /// <param name="rank">the new rank count</param>
+        /// <exception cref="ArgumentException">the rank count was not at least 1</exception>
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int64.MaxValue</exception>
+        void Set(KeyType key, long rank);
         /// <summary>
         /// Retrieves the key at the specified rank index. If all keys in the collection were
         /// converted to a sorted array of keys, this would be the equivalent of array[rank], subject to the
@@ -2067,6 +2730,147 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         bool NearestGreater(KeyType key, out KeyType nearestKey);
+
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out long rank, out long count);
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        bool NearestLess(KeyType key, out KeyType nearestKey, out long rank, out long count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out long rank, out long count);
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        bool NearestGreater(KeyType key, out KeyType nearestKey, out long rank, out long count);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(long position, out long nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(long position, out long nearestStart);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(long position, out long nearestStart);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(long position, out long nearestStart);
+
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqualByRank(long position, out KeyType nearestKey, out long nearestStart, out long count);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLessByRank(long position, out KeyType nearestKey, out long nearestStart, out long count);
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqualByRank(long position, out KeyType nearestKey, out long nearestStart, out long count);
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreaterByRank(long position, out KeyType nearestKey, out long nearestStart, out long count);
     }
 
 
@@ -2122,14 +2926,14 @@ namespace TreeLib
         bool TryInsert(int start, int length, ValueType value);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
         bool TryDelete(int start);
         /// <summary>
         /// Attempt to query the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
@@ -2137,7 +2941,7 @@ namespace TreeLib
         bool TryGetLength(int start, out int length);
         /// <summary>
         /// Attempt to change the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2146,7 +2950,7 @@ namespace TreeLib
         bool TrySetLength(int start, int length);
         /// <summary>
         /// Attempt to query the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="value">value associated with the range</param>
@@ -2154,7 +2958,7 @@ namespace TreeLib
         bool TryGetValue(int start, out ValueType value);
         /// <summary>
         /// Attempt to update the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="value">new value that replaces the old value associated with the range</param>
@@ -2162,13 +2966,23 @@ namespace TreeLib
         bool TrySetValue(int start, ValueType value);
         /// <summary>
         /// Attempt to get the value and length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <returns>true if a range was found starting at the specified index</returns>
         bool TryGet(int start, out int length, out ValueType value);
+        /// <summary>
+        /// Attempt to change the length and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="length">new length for the range. The length must be at least 1.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        bool TrySet(int start, int length, ValueType value);
 
         /// <summary>
         /// Inserts a range of a given length at the specified start index and with an associated value.
@@ -2185,7 +2999,7 @@ namespace TreeLib
         void Insert(int start, int length, ValueType value);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
@@ -2193,7 +3007,7 @@ namespace TreeLib
         void Delete(int start);
         /// <summary>
         /// Retrieves the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the length of the range found at the specified start index</returns>
@@ -2201,7 +3015,7 @@ namespace TreeLib
         int GetLength(int start);
         /// <summary>
         /// Changes the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2210,7 +3024,7 @@ namespace TreeLib
         void SetLength(int start, int length);
         /// <summary>
         /// Retrieves the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the value associated with the range</returns>
@@ -2218,7 +3032,7 @@ namespace TreeLib
         ValueType GetValue(int start);
         /// <summary>
         /// Updates the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="value">new value that replaces the old value associated with the range</param>
@@ -2226,13 +3040,23 @@ namespace TreeLib
         void SetValue(int start, ValueType value);
         /// <summary>
         /// Retrieves the value and length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index</exception>
         void Get(int start, out int length, out ValueType value);
+        /// <summary>
+        /// Changes the length and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="length">new length for the range. The length must be at least 1.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <exception cref="ArgumentException">the start was not the beginning of a range</exception>
+        /// <exception cref="OverflowException">sum of lengths would have exceeded Int32.MaxValue</exception>
+        void Set(int start, int length, ValueType value);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -2242,7 +3066,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
@@ -2289,6 +3113,64 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(int position, out int nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(int position, out int nearestStart, out int length, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(int position, out int nearestStart, out int length, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(int position, out int nearestStart, out int length, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(int position, out int nearestStart, out int length, out ValueType value);
     }
 
     /// <summary>
@@ -2337,14 +3219,14 @@ namespace TreeLib
         bool TryInsert(int start, int length);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
         bool TryDelete(int start);
         /// <summary>
         /// Attempt to query the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
@@ -2352,7 +3234,7 @@ namespace TreeLib
         bool TryGetLength(int start, out int length);
         /// <summary>
         /// Attempt to change the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2374,7 +3256,7 @@ namespace TreeLib
         void Insert(int start, int length);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
@@ -2382,7 +3264,7 @@ namespace TreeLib
         void Delete(int start);
         /// <summary>
         /// Retrieves the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the length of the range found at the specified start index</returns>
@@ -2390,7 +3272,7 @@ namespace TreeLib
         int GetLength(int start);
         /// <summary>
         /// Changes the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2406,7 +3288,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
@@ -2453,6 +3335,60 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(int position, out int nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(int position, out int nearestStart, out int length);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(int position, out int nearestStart, out int length);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(int position, out int nearestStart, out int length);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(int position, out int nearestStart, out int length);
     }
 
     /// <summary>
@@ -2503,14 +3439,14 @@ namespace TreeLib
         bool TryInsert(long start, long length, ValueType value);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
         bool TryDelete(long start);
         /// <summary>
         /// Attempt to query the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
@@ -2518,7 +3454,7 @@ namespace TreeLib
         bool TryGetLength(long start, out long length);
         /// <summary>
         /// Attempt to change the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2527,7 +3463,7 @@ namespace TreeLib
         bool TrySetLength(long start, long length);
         /// <summary>
         /// Attempt to query the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="value">value associated with the range</param>
@@ -2535,7 +3471,7 @@ namespace TreeLib
         bool TryGetValue(long start, out ValueType value);
         /// <summary>
         /// Attempt to update the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="value">new value that replaces the old value associated with the range</param>
@@ -2543,13 +3479,23 @@ namespace TreeLib
         bool TrySetValue(long start, ValueType value);
         /// <summary>
         /// Attempt to get the value and length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <returns>true if a range was found starting at the specified index</returns>
         bool TryGet(long start, out long length, out ValueType value);
+        /// <summary>
+        /// Attempt to change the length and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="length">new length for the range. The length must be at least 1.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int64.MaxValue</returns>
+        bool TrySet(long start, long length, ValueType value);
 
         /// <summary>
         /// Inserts a range of a given length at the specified start index and with an associated value.
@@ -2566,7 +3512,7 @@ namespace TreeLib
         void Insert(long start, long length, ValueType value);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
@@ -2574,7 +3520,7 @@ namespace TreeLib
         void Delete(long start);
         /// <summary>
         /// Retrieves the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the length of the range found at the specified start index</returns>
@@ -2582,7 +3528,7 @@ namespace TreeLib
         long GetLength(long start);
         /// <summary>
         /// Changes the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2591,7 +3537,7 @@ namespace TreeLib
         void SetLength(long start, long length);
         /// <summary>
         /// Retrieves the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the value associated with the range</returns>
@@ -2599,7 +3545,7 @@ namespace TreeLib
         ValueType GetValue(long start);
         /// <summary>
         /// Updates the value associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="value">new value that replaces the old value associated with the range</param>
@@ -2607,13 +3553,23 @@ namespace TreeLib
         void SetValue(long start, ValueType value);
         /// <summary>
         /// Retrieves the value and length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index</exception>
         void Get(long start, out long length, out ValueType value);
+        /// <summary>
+        /// Changes the length and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="length">new length for the range. The length must be at least 1.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <exception cref="ArgumentException">the start was not the beginning of a range</exception>
+        /// <exception cref="OverflowException">sum of lengths would have exceeded Int64.MaxValue</exception>
+        void Set(long start, long length, ValueType value);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -2623,7 +3579,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
@@ -2670,6 +3626,64 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(long position, out long nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(long position, out long nearestStart, out long length, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(long position, out long nearestStart, out long length, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(long position, out long nearestStart, out long length, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(long position, out long nearestStart, out long length, out ValueType value);
     }
 
     /// <summary>
@@ -2718,14 +3732,14 @@ namespace TreeLib
         bool TryInsert(long start, long length);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
         bool TryDelete(long start);
         /// <summary>
         /// Attempt to query the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">out parameter receiving the length of the range</param>
@@ -2733,7 +3747,7 @@ namespace TreeLib
         bool TryGetLength(long start, out long length);
         /// <summary>
         /// Attempt to change the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2755,7 +3769,7 @@ namespace TreeLib
         void Insert(long start, long length);
         /// <summary>
         /// Attempt to delete the range starting at the specified index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of a range to attempt to delete</param>
         /// <returns>true if a range was successfully deleted</returns>
@@ -2763,7 +3777,7 @@ namespace TreeLib
         void Delete(long start);
         /// <summary>
         /// Retrieves the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <returns>the length of the range found at the specified start index</returns>
@@ -2771,7 +3785,7 @@ namespace TreeLib
         long GetLength(long start);
         /// <summary>
         /// Changes the length associated with the range starting at the specified start index.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">start of the range to query</param>
         /// <param name="length">new length for the range. The length must be at least 1.</param>
@@ -2787,7 +3801,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
@@ -2834,6 +3848,60 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(long position, out long nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(long position, out long nearestStart, out long length);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(long position, out long nearestStart, out long length);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(long position, out long nearestStart, out long length);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="length">an out parameter receiving the length of the range that was found</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(long position, out long nearestStart, out long length);
     }
 
 
@@ -2913,7 +3981,7 @@ namespace TreeLib
         bool TryInsert(int start, Side side, int xLength, int yLength, ValueType value);
         /// <summary>
         /// Attempt to delete the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -2921,7 +3989,7 @@ namespace TreeLib
         bool TryDelete(int start, Side side);
         /// <summary>
         /// Attempt to query the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -2930,7 +3998,7 @@ namespace TreeLib
         bool TryGetLength(int start, Side side, out int length);
         /// <summary>
         /// Attempt to change the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -2940,7 +4008,7 @@ namespace TreeLib
         bool TrySetLength(int start, Side side, int length);
         /// <summary>
         /// Attempt to query the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -2949,7 +4017,7 @@ namespace TreeLib
         bool TryGetValue(int start, Side side, out ValueType value);
         /// <summary>
         /// Attempt to update the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to update</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -2958,7 +4026,7 @@ namespace TreeLib
         bool TrySetValue(int start, Side side, ValueType value);
         /// <summary>
         /// Attempt to get the value and lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -2968,6 +4036,20 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         bool TryGet(int start, Side side, out int otherStart, out int xLength, out int yLength, out ValueType value);
+        /// <summary>
+        /// Attempt to change the lengths and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        bool TrySet(int start, Side side, int xLength, int yLength, ValueType value);
 
         /// <summary>
         /// Insert a range pair defined by the given pair of lengths at the specified start index with respect to
@@ -2989,7 +4071,7 @@ namespace TreeLib
         void Insert(int start, Side side, int xLength, int yLength, ValueType value);
         /// <summary>
         /// Deletes the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -2997,7 +4079,7 @@ namespace TreeLib
         void Delete(int start, Side side);
         /// <summary>
         /// Retrieves the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3006,7 +4088,7 @@ namespace TreeLib
         int GetLength(int start, Side side);
         /// <summary>
         /// Changes the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3017,7 +4099,7 @@ namespace TreeLib
         void SetLength(int start, Side side, int length);
         /// <summary>
         /// Retrieves the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3026,7 +4108,7 @@ namespace TreeLib
         ValueType GetValue(int start, Side side);
         /// <summary>
         /// Updates the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to update</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3035,7 +4117,7 @@ namespace TreeLib
         void SetValue(int start, Side side, ValueType value);
         /// <summary>
         /// Attempt to get the value and lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3045,6 +4127,20 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         void Get(int start, Side side, out int otherStart, out int xLength, out int yLength, out ValueType value);
+        /// <summary>
+        /// Changes the lengths and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
+        /// <exception cref="OverflowException">sum of lengths would have exceeded Int32.MaxValue</exception>
+        void Set(int start, Side side, int xLength, int yLength, ValueType value);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -3055,7 +4151,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="side">the side (X or Y) to which the specified index applies.</param>
@@ -3106,6 +4202,76 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(int position, Side side, out int nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value);
     }
 
     /// <summary>
@@ -3163,7 +4329,7 @@ namespace TreeLib
         bool TryInsert(int start, Side side, int xLength, int yLength);
         /// <summary>
         /// Attempt to delete the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -3171,7 +4337,7 @@ namespace TreeLib
         bool TryDelete(int start, Side side);
         /// <summary>
         /// Attempt to query the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3180,7 +4346,7 @@ namespace TreeLib
         bool TryGetLength(int start, Side side, out int length);
         /// <summary>
         /// Attempt to change the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3190,7 +4356,7 @@ namespace TreeLib
         bool TrySetLength(int start, Side side, int length);
         /// <summary>
         /// Attempt to get the lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3199,6 +4365,19 @@ namespace TreeLib
         /// <param name="yLength">out parameter receiving the length f the range on the Y side</param>
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         bool TryGet(int start, Side side, out int otherStart, out int xLength, out int yLength);
+        /// <summary>
+        /// Attempt to change the lengths associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        bool TrySet(int start, Side side, int xLength, int yLength);
 
         /// <summary>
         /// Insert a range pair defined by the given pair of lengths at the specified start index with respect to
@@ -3219,7 +4398,7 @@ namespace TreeLib
         void Insert(int start, Side side, int xLength, int yLength);
         /// <summary>
         /// Deletes the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -3227,7 +4406,7 @@ namespace TreeLib
         void Delete(int start, Side side);
         /// <summary>
         /// Retrieves the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3236,7 +4415,7 @@ namespace TreeLib
         int GetLength(int start, Side side);
         /// <summary>
         /// Changes the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3247,7 +4426,7 @@ namespace TreeLib
         void SetLength(int start, Side side, int length);
         /// <summary>
         /// Attempt to get the lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3256,6 +4435,19 @@ namespace TreeLib
         /// <param name="yLength">out parameter receiving the length f the range on the Y side</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         void Get(int start, Side side, out int otherStart, out int xLength, out int yLength);
+        /// <summary>
+        /// Changes the lengths associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        void Set(int start, Side side, int xLength, int yLength);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -3266,7 +4458,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="side">the side (X or Y) to which the specified index applies.</param>
@@ -3317,6 +4509,72 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(int position, Side side, out int nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength);
     }
 
     /// <summary>
@@ -3376,7 +4634,7 @@ namespace TreeLib
         bool TryInsert(long start, Side side, long xLength, long yLength, ValueType value);
         /// <summary>
         /// Attempt to delete the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -3384,7 +4642,7 @@ namespace TreeLib
         bool TryDelete(long start, Side side);
         /// <summary>
         /// Attempt to query the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3393,7 +4651,7 @@ namespace TreeLib
         bool TryGetLength(long start, Side side, out long length);
         /// <summary>
         /// Attempt to change the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3403,7 +4661,7 @@ namespace TreeLib
         bool TrySetLength(long start, Side side, long length);
         /// <summary>
         /// Attempt to query the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3412,7 +4670,7 @@ namespace TreeLib
         bool TryGetValue(long start, Side side, out ValueType value);
         /// <summary>
         /// Attempt to update the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to update</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3421,7 +4679,7 @@ namespace TreeLib
         bool TrySetValue(long start, Side side, ValueType value);
         /// <summary>
         /// Attempt to get the value and lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3431,6 +4689,20 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         bool TryGet(long start, Side side, out long otherStart, out long xLength, out long yLength, out ValueType value);
+        /// <summary>
+        /// Attempt to change the lengths and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int64.MaxValue</returns>
+        bool TrySet(long start, Side side, long xLength, long yLength, ValueType value);
 
         /// <summary>
         /// Insert a range pair defined by the given pair of lengths at the specified start index with respect to
@@ -3452,7 +4724,7 @@ namespace TreeLib
         void Insert(long start, Side side, long xLength, long yLength, ValueType value);
         /// <summary>
         /// Deletes the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -3460,7 +4732,7 @@ namespace TreeLib
         void Delete(long start, Side side);
         /// <summary>
         /// Retrieves the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3469,7 +4741,7 @@ namespace TreeLib
         long GetLength(long start, Side side);
         /// <summary>
         /// Changes the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3480,7 +4752,7 @@ namespace TreeLib
         void SetLength(long start, Side side, long length);
         /// <summary>
         /// Retrieves the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3489,7 +4761,7 @@ namespace TreeLib
         ValueType GetValue(long start, Side side);
         /// <summary>
         /// Updates the value associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to update</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3498,7 +4770,7 @@ namespace TreeLib
         void SetValue(long start, Side side, ValueType value);
         /// <summary>
         /// Attempt to get the value and lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3508,6 +4780,20 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         void Get(long start, Side side, out long otherStart, out long xLength, out long yLength, out ValueType value);
+        /// <summary>
+        /// Changes the lengths and value associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="value">the value to replace the old value associated with the range</param>
+        /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
+        /// <exception cref="OverflowException">sum of lengths would have exceeded Int64.MaxValue</exception>
+        void Set(long start, Side side, long xLength, long yLength, ValueType value);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -3518,7 +4804,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="side">the side (X or Y) to which the specified index applies.</param>
@@ -3569,6 +4855,76 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(long position, Side side, out long nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength, out ValueType value);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="value">an out parameter receiving the value associated with the range that was found</param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength, out ValueType value);
     }
 
     /// <summary>
@@ -3626,7 +4982,7 @@ namespace TreeLib
         bool TryInsert(long start, Side side, long xLength, long yLength);
         /// <summary>
         /// Attempt to delete the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -3634,7 +4990,7 @@ namespace TreeLib
         bool TryDelete(long start, Side side);
         /// <summary>
         /// Attempt to query the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3643,7 +4999,7 @@ namespace TreeLib
         bool TryGetLength(long start, Side side, out long length);
         /// <summary>
         /// Attempt to change the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3653,7 +5009,7 @@ namespace TreeLib
         bool TrySetLength(long start, Side side, long length);
         /// <summary>
         /// Attempt to get the lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3662,6 +5018,19 @@ namespace TreeLib
         /// <param name="yLength">out parameter receiving the length f the range on the Y side</param>
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         bool TryGet(long start, Side side, out long otherStart, out long xLength, out long yLength);
+        /// <summary>
+        /// Attempt to change the lengths associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        bool TrySet(long start, Side side, long xLength, long yLength);
 
         /// <summary>
         /// Insert a range pair defined by the given pair of lengths at the specified start index with respect to
@@ -3682,7 +5051,7 @@ namespace TreeLib
         void Insert(long start, Side side, long xLength, long yLength);
         /// <summary>
         /// Deletes the range pair starting at the specified index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to delete</param>
         /// <param name="side">the side (X or Y) to which the start index applies</param>
@@ -3690,7 +5059,7 @@ namespace TreeLib
         void Delete(long start, Side side);
         /// <summary>
         /// Retrieves the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies. The side also determines which length is returned</param>
@@ -3699,7 +5068,7 @@ namespace TreeLib
         long GetLength(long start, Side side);
         /// <summary>
         /// Changes the length associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to modify</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3710,7 +5079,7 @@ namespace TreeLib
         void SetLength(long start, Side side, long length);
         /// <summary>
         /// Attempt to get the lengths associated with the range pair starting at the specified start index with respect to the specified side.
-        /// The index must refer to the start of a range; indexes to the interior of a range are not permitted.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
         /// </summary>
         /// <param name="start">the start index of the range to query</param>
         /// <param name="side">the side (X or Y) to which the start index applies.</param>
@@ -3719,6 +5088,19 @@ namespace TreeLib
         /// <param name="yLength">out parameter receiving the length f the range on the Y side</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         void Get(long start, Side side, out long otherStart, out long xLength, out long yLength);
+        /// <summary>
+        /// Changes the lengths associated with the range starting at the specified start index.
+        /// The index must refer to the start of a range; an index to the interior of a range is not permitted.
+        /// </summary>
+        /// <param name="start">start of the range to update</param>
+        /// <param name="side">the side with which the start parameter applies</param>
+        /// <param name="xLength">new X-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <param name="yLength">new Y-side length for the range. The length must be at least 0. If equal to 0, no change is made
+        /// to this side.</param>
+        /// <returns>true if a range was found starting at the specified index and updated; false if the
+        /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        void Set(long start, Side side, long xLength, long yLength);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -3729,7 +5111,7 @@ namespace TreeLib
 
         /// <summary>
         /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
-        /// Use this method to convert indexes to the interior of a range into the start index of a range.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
         /// </summary>
         /// <param name="position">the index to begin searching at</param>
         /// <param name="side">the side (X or Y) to which the specified index applies.</param>
@@ -3780,5 +5162,71 @@ namespace TreeLib
         /// </param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(long position, Side side, out long nearestStart);
+
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than or equal to the specified index with respect to the specified side.
+        /// Use this method to convert an index to the interior of a range into the start index of a range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// This may be a range starting at the specified index or the range containing the index if the index refers
+        /// to the interior of a range.
+        /// If the value is greater than or equal to the extent it will return the start of the last range of the collection.
+        /// If there are no ranges in the collection or position is less than 0, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
+        bool NearestLessOrEqual(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength);
+        /// <summary>
+        /// Search for the nearest range that starts at an index less than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a range, the start of the previous range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no ranges in the collection or position is less than or equal to 0, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        bool NearestLess(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than or equal to the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range, that index will be returned.
+        /// If the index refers to the interior index for a range, the start of the next range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        bool NearestGreaterOrEqual(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength);
+        /// <summary>
+        /// Search for the nearest range that starts at an index greater than the specified index with respect to the specified side.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="side">the side (X or Y) to which the specified index applies.</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the index refers to the start of a range or is an interior index for a range, the next range in the
+        /// sequence will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first range.
+        /// If the index is greater than or equal to the start of the last range, no range will be found.
+        /// </param>
+        /// <param name="otherStart">an out parameter receiving start of the range pair on the other side of the mapping</param>
+        /// <param name="xLength">an out parameter receiving the length of the range on side X</param>
+        /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        bool NearestGreater(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength);
     }
 }

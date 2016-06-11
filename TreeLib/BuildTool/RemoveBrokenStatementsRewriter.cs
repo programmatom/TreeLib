@@ -52,6 +52,7 @@ namespace BuildTool
                 if ((loc.SourceSpan.Start <= error.Location.SourceSpan.Start)
                     && (loc.SourceSpan.End >= error.Location.SourceSpan.End))
                 {
+#pragma warning disable CS0162 // unreachable
                     if (trace)
                     {
                         if (!wroteHeader)
@@ -61,6 +62,7 @@ namespace BuildTool
                         }
                         Console.WriteLine("  ERROR: {0}: {1}", error.Id, error.GetMessage());
                     }
+#pragma warning restore CS0162
                     suppress = true;
                     break;
                 }

@@ -56,15 +56,22 @@ namespace BuildTool
             return dict;
         }
 
-        private static TypeSyntax WidenIntegerType(TypeSyntax type)
+        private static TypeSyntax WidenType(TypeSyntax type)
         {
-            if ((type.Kind() == SyntaxKind.PredefinedType) && (((PredefinedTypeSyntax)type).Keyword.Kind() == SyntaxKind.IntKeyword))
+            if (type.IsKind(SyntaxKind.PredefinedType) && (((PredefinedTypeSyntax)type).Keyword.Kind() == SyntaxKind.IntKeyword))
             {
                 type = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword)).WithTrailingTrivia(SyntaxFactory.Space);
             }
-            else if ((type.Kind() == SyntaxKind.PredefinedType) && (((PredefinedTypeSyntax)type).Keyword.Kind() == SyntaxKind.UIntKeyword))
+            else if (type.IsKind(SyntaxKind.PredefinedType) && (((PredefinedTypeSyntax)type).Keyword.Kind() == SyntaxKind.UIntKeyword))
             {
                 type = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword)).WithTrailingTrivia(SyntaxFactory.Space);
+            }
+            else if (type.IsKind(SyntaxKind.GenericName))
+            {
+                GenericNameSyntax genericType = (GenericNameSyntax)type;
+                type = genericType.WithIdentifier(
+                    SyntaxFactory.Identifier(genericType.Identifier.Text + "Long")
+                        .WithTriviaFrom(genericType.Identifier));
             }
             else
             {
@@ -141,7 +148,7 @@ namespace BuildTool
 
             if (AttributeMatchUtil.HasAttributeSimple(node.AttributeLists, WidenAttributeName))
             {
-                node = node.WithDeclaration(node.Declaration.WithType(WidenIntegerType(node.Declaration.Type)));
+                node = node.WithDeclaration(node.Declaration.WithType(WidenType(node.Declaration.Type)));
             }
 
             return node;
@@ -157,7 +164,7 @@ namespace BuildTool
                 {
                     node = node.WithDeclaration(
                         node.Declaration.WithType(
-                            WidenIntegerType(node.Declaration.Type)).WithTriviaFrom(node.Declaration.Type));
+                            WidenType(node.Declaration.Type)).WithTriviaFrom(node.Declaration.Type));
                 }
             }
 
@@ -196,11 +203,19 @@ namespace BuildTool
         {
             node = (ParameterSyntax)base.VisitParameter(node);
 
-            if (AttributeMatchUtil.HasAttributeSimple(node.AttributeLists, WidenAttributeName))
+            if (AttributeMatchUtil.HasAttributeSimple(node.AttributeLists, WidenAttributeName)
+                || AttributeMatchUtil.HasTriviaAnnotationSimple(node.GetLeadingTrivia(), WidenAttributeName))
             {
-                node = node.WithType(WidenIntegerType(node.Type));
+                node = node.WithType(WidenType(node.Type));
             }
 
+            return node;
+        }
+
+        public override SyntaxNode VisitParameterList(ParameterListSyntax node)
+        {
+            node = NormalizeArgumentListUtil.NormalizeParameterList(node);
+            node = (ParameterListSyntax)base.VisitParameterList(node);
             return node;
         }
 
@@ -219,7 +234,7 @@ namespace BuildTool
                     if ((type = type1 as PredefinedTypeSyntax) != null)
                     {
                         node = node.WithArguments(
-                            node.Arguments.RemoveAt(i).Insert(i, WidenIntegerType(type).WithTriviaFrom(type)));
+                            node.Arguments.RemoveAt(i).Insert(i, WidenType(type).WithTriviaFrom(type)));
                     }
                 }
                 i++;
@@ -236,7 +251,7 @@ namespace BuildTool
             {
                 if (node.ReturnType.IsKind(SyntaxKind.PredefinedType))
                 {
-                    node = node.WithReturnType(WidenIntegerType(node.ReturnType));
+                    node = node.WithReturnType(WidenType(node.ReturnType));
                 }
                 else
                 {
@@ -267,11 +282,55 @@ namespace BuildTool
             {
                 if (node.Type.IsKind(SyntaxKind.PredefinedType))
                 {
-                    node = node.WithType(WidenIntegerType(node.Type));
+                    node = node.WithType(WidenType(node.Type));
                 }
             }
 
             return node;
         }
+
+        public override SyntaxNode VisitCastExpression(CastExpressionSyntax node)
+        {
+            node = (CastExpressionSyntax)base.VisitCastExpression(node);
+
+            if (AttributeMatchUtil.HasTriviaAnnotationSimple(node.Type.GetLeadingTrivia(), WidenAttributeName)
+                || AttributeMatchUtil.HasTriviaAnnotationSimple(node.OpenParenToken.TrailingTrivia, WidenAttributeName))
+            {
+                node = node.WithType(WidenType(node.Type));
+            }
+
+            return node;
+        }
+
+        public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
+        {
+            node = (BinaryExpressionSyntax)base.VisitBinaryExpression(node);
+
+            if (node.IsKind(SyntaxKind.AsExpression))
+            {
+                if (AttributeMatchUtil.HasTriviaAnnotationSimple(node.Right.GetLeadingTrivia(), WidenAttributeName)
+                    || AttributeMatchUtil.HasTriviaAnnotationSimple(node.OperatorToken.TrailingTrivia, WidenAttributeName))
+                {
+                    node = node.WithRight(WidenType((TypeSyntax)node.Right));
+                }
+            }
+
+            return node;
+        }
+
+        public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
+        {
+            node = (ForEachStatementSyntax)base.VisitForEachStatement(node);
+
+            if (AttributeMatchUtil.HasTriviaAnnotationSimple(node.Type.GetLeadingTrivia(), WidenAttributeName)
+                || AttributeMatchUtil.HasTriviaAnnotationSimple(node.OpenParenToken.TrailingTrivia, WidenAttributeName))
+            {
+                node = node.WithType(WidenType(node.Type));
+            }
+
+            return node;
+        }
+
+        // INCOMPLETE -- add more as needed
     }
 }

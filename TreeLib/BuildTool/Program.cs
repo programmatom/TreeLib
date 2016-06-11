@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using System.Xml.XPath;
@@ -74,41 +75,43 @@ namespace BuildTool
         public readonly FacetList[] facetAxes;
         public readonly bool stripGenerated;
         public readonly KeyValuePair<string, string>[] syntacticRenames = new KeyValuePair<string, string>[0];
+        public readonly string targetBaseName;
+        public readonly bool keepIEnumerable;
 
         // this is also used as the output filename
-        public string targetClassName { get { return String.Concat(templateClassName, storageClass, specialization); } } // for naming
-
-        public Config(string templateClassName, string storageClass, string specialization, CFlags flags, FacetList[] facetAxes)
+        public string targetClassName // for naming
         {
-            this.templateClassName = templateClassName;
-            this.storageClass = storageClass;
-            this.specialization = specialization;
-            this.flags = flags;
-            this.facetAxes = facetAxes;
+            get
+            {
+                return String.Concat(
+                    String.IsNullOrEmpty(targetBaseName) ? templateClassName : targetBaseName,
+                    storageClass,
+                    specialization);
+            }
         }
 
-        public Config(string templateClassName, string storageClass, string specialization, CFlags flags, bool stripGenerated, FacetList[] facetAxes)
-            : this(templateClassName, storageClass, specialization, flags, facetAxes)
+        private Config()
         {
-            this.stripGenerated = stripGenerated;
         }
 
-        public Config(string templateClassName, string storageClass, string specialization, CFlags flags, bool stripGenerated, FacetList[] facetAxes, KeyValuePair<string, string>[] syntacticRenames)
-            : this(templateClassName, storageClass, specialization, flags, stripGenerated, facetAxes)
-        {
-            this.syntacticRenames = syntacticRenames;
-        }
-
-        public Config(XPathNavigator configNode)
+        protected Config(XPathNavigator configNode)
         {
             this.templateClassName = configNode.SelectSingleNode("@templateClassName").Value;
             this.storageClass = configNode.SelectSingleNode("@storageClass").Value;
             this.specialization = configNode.SelectSingleNode("@specialization").Value;
+
+            XPathNavigator navTargetBaseName = configNode.SelectSingleNode("@targetBaseName");
+            if (navTargetBaseName != null)
+            {
+                this.targetBaseName = navTargetBaseName.Value;
+            }
+
             foreach (XPathNavigator flagsNode in configNode.Select("flags/flag"))
             {
                 CFlags flag = (CFlags)Enum.Parse(typeof(CFlags), flagsNode.Value);
                 this.flags |= flag;
             }
+
             List<FacetList> facetsList = new List<FacetList>();
             foreach (XPathNavigator facetAxisNode in configNode.Select("facetAxes/facetAxis"))
             {
@@ -121,105 +124,27 @@ namespace BuildTool
                 facetsList.Add(new FacetList(tag, facets.ToArray()));
             }
             this.facetAxes = facetsList.ToArray();
+
             if (configNode.SelectSingleNode("stripGenerated") != null)
             {
                 this.stripGenerated = configNode.SelectSingleNode("stripGenerated").ValueAsBoolean;
             }
+
             List<KeyValuePair<string, string>> syntacticRenamesList = new List<KeyValuePair<string, string>>();
             foreach (XPathNavigator syntacticRenameNode in configNode.Select("syntacticRenames/rename"))
             {
                 syntacticRenamesList.Add(new KeyValuePair<string, string>(syntacticRenameNode.SelectSingleNode("@from").Value, syntacticRenameNode.SelectSingleNode("@to").Value));
             }
             this.syntacticRenames = syntacticRenamesList.ToArray();
+
+            XPathNavigator navKeepEnumerable = configNode.SelectSingleNode("keepIEnumerable");
+            if (navKeepEnumerable != null)
+            {
+                this.keepIEnumerable = navKeepEnumerable.ValueAsBoolean;
+            }
         }
 
-#if false // TODO: remove
-        public void Write(XmlWriter writer)
-        {
-            writer.WriteStartElement("config");
-
-            writer.WriteStartAttribute("templateClassName");
-            writer.WriteValue(this.templateClassName);
-            writer.WriteEndAttribute(); // templateClassName
-
-            writer.WriteStartAttribute("storageClass");
-            writer.WriteValue(this.storageClass);
-            writer.WriteEndAttribute(); // storageClass
-
-            writer.WriteStartAttribute("specialization");
-            writer.WriteValue(this.specialization);
-            writer.WriteEndAttribute(); // specialization
-
-            if (this.flags != (CFlags)0)
-            {
-                writer.WriteStartElement("flags");
-                if ((this.flags & CFlags.DowngradeCountToUint) != 0)
-                {
-                    writer.WriteStartElement("flag");
-                    writer.WriteValue(CFlags.DowngradeCountToUint.ToString());
-                    writer.WriteEndElement(); // flag
-                }
-                if ((this.flags & CFlags.WidenInt) != 0)
-                {
-                    writer.WriteStartElement("flag");
-                    writer.WriteValue(CFlags.WidenInt.ToString());
-                    writer.WriteEndElement(); // flag
-                }
-                writer.WriteEndElement(); // flags
-            }
-
-            writer.WriteStartElement("facetAxes");
-            foreach (FacetList facetList in this.facetAxes)
-            {
-                writer.WriteStartElement("facetAxis");
-
-                writer.WriteStartAttribute("tag");
-                writer.WriteValue(facetList.axisTag);
-                writer.WriteEndAttribute(); // tag
-
-                foreach (string facet in facetList.facets)
-                {
-                    writer.WriteStartElement("facet");
-                    writer.WriteValue(facet);
-                    writer.WriteEndElement(); // facet
-                }
-
-                writer.WriteEndElement(); // facetAxis
-            }
-            writer.WriteEndElement(); // facetAxes
-
-            if (this.stripGenerated)
-            {
-                writer.WriteStartElement("stripGenerated");
-                writer.WriteValue(this.stripGenerated);
-                writer.WriteEndElement(); // stripGenerated
-            }
-
-            if (this.syntacticRenames.Length != 0)
-            {
-                writer.WriteStartElement("syntacticRenames");
-                foreach (KeyValuePair<string, string> rename in this.syntacticRenames)
-                {
-                    writer.WriteStartElement("rename");
-
-                    writer.WriteStartAttribute("from");
-                    writer.WriteValue(rename.Key);
-                    writer.WriteEndAttribute(); // from
-
-                    writer.WriteStartAttribute("to");
-                    writer.WriteValue(rename.Value);
-                    writer.WriteEndAttribute(); // to
-
-                    writer.WriteEndElement(); // rename
-                }
-                writer.WriteEndElement(); // syntacticRenames
-            }
-
-            writer.WriteEndElement(); // config
-        }
-#endif
-
-        public static Config[] ReadConfigs(string path, out string[] unloadExceptions)
+        public static Config[] LoadConfigs(string path, out string[] unloadExceptions, out string[] imports)
         {
             XmlDocument doc = new XmlDocument();
             doc.Load(path);
@@ -231,6 +156,13 @@ namespace BuildTool
             }
             unloadExceptions = unloadExceptionsList.ToArray();
 
+            List<string> importsList = new List<string>();
+            foreach (XPathNavigator importNode in doc.CreateNavigator().Select("/configs/imports/import"))
+            {
+                importsList.Add(importNode.Value);
+            }
+            imports = importsList.ToArray();
+
             List<Config> configList = new List<Config>();
             foreach (XPathNavigator configNode in doc.CreateNavigator().Select("/configs/config"))
             {
@@ -240,29 +172,6 @@ namespace BuildTool
 
             return configList.ToArray();
         }
-
-#if false // TODO: remove
-        public static void WriteConfigs(string path, Config[][] configsSets)
-        {
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.Indent = true;
-            settings.IndentChars = new string(' ', 4);
-            using (XmlWriter writer = XmlWriter.Create(path, settings))
-            {
-                writer.WriteStartElement("configs");
-
-                foreach (Config[] configs in configsSets)
-                {
-                    foreach (Config config in configs)
-                    {
-                        config.Write(writer);
-                    }
-                }
-
-                writer.WriteEndElement(); // configs
-            }
-        }
-#endif
     }
 
     public class Program
@@ -347,18 +256,25 @@ namespace BuildTool
             }
 
             // collect all interfaces and the methods/properties they declare
-            SyntaxTree interfaceTree = compilation.SyntaxTrees.First(delegate (SyntaxTree candidate) { return String.Equals(Path.GetFileName(candidate.FilePath), "Interfaces.cs"); });
             Dictionary<InterfaceDeclarationSyntax, List<MemberDeclarationSyntax>> interfaces = new Dictionary<InterfaceDeclarationSyntax, List<MemberDeclarationSyntax>>();
-            foreach (SyntaxNode node in interfaceTree.GetRoot().DescendantNodesAndSelf().Where(delegate (SyntaxNode candidate)
-            { return candidate.IsKind(SyntaxKind.InterfaceDeclaration); }))
-            {
-                List<MemberDeclarationSyntax> members = new List<MemberDeclarationSyntax>();
-                foreach (SyntaxNode decl in node.DescendantNodesAndSelf().Where(delegate (SyntaxNode candidate)
-                { return candidate.IsKind(SyntaxKind.MethodDeclaration) || candidate.IsKind(SyntaxKind.PropertyDeclaration); }))
+            foreach (SyntaxTree interfaceTree in compilation.SyntaxTrees.Where(
+                delegate (SyntaxTree candidate)
                 {
-                    members.Add((MemberDeclarationSyntax)decl);
+                    return String.Equals(Path.GetFileName(candidate.FilePath), "Interfaces.cs")
+                        || String.Equals(Path.GetFileName(candidate.FilePath), "local-Interfaces.cs");
+                }))
+            {
+                foreach (SyntaxNode node in interfaceTree.GetRoot().DescendantNodesAndSelf().Where(
+                    delegate (SyntaxNode candidate) { return candidate.IsKind(SyntaxKind.InterfaceDeclaration); }))
+                {
+                    List<MemberDeclarationSyntax> members = new List<MemberDeclarationSyntax>();
+                    foreach (SyntaxNode decl in node.DescendantNodesAndSelf().Where(delegate (SyntaxNode candidate)
+                    { return candidate.IsKind(SyntaxKind.MethodDeclaration) || candidate.IsKind(SyntaxKind.PropertyDeclaration); }))
+                    {
+                        members.Add((MemberDeclarationSyntax)decl);
+                    }
+                    interfaces.Add((InterfaceDeclarationSyntax)node, members);
                 }
-                interfaces.Add((InterfaceDeclarationSyntax)node, members);
             }
 
             // enumrate base types of generated class
@@ -469,12 +385,15 @@ namespace BuildTool
                     if (String.Equals(baseType.Type.ToString(), String.Concat(interfaceDeclaration.Identifier.Text, interfaceDeclaration.TypeParameterList != null ? interfaceDeclaration.TypeParameterList.ToString() : null)))
                     {
                         // propagate interface comment to class
-                        replacements.Add(
-                            targetTypeDeclaration,
-                            targetTypeDeclaration.WithLeadingTrivia(
-                                targetTypeDeclaration.GetLeadingTrivia()
-                                    .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
-                                    .AddRange(CookDocumentationTrivia(interfaceDeclaration.GetLeadingTrivia()))));
+                        if (!replacements.ContainsKey(targetTypeDeclaration))
+                        {
+                            replacements.Add(
+                                targetTypeDeclaration,
+                                targetTypeDeclaration.WithLeadingTrivia(
+                                    targetTypeDeclaration.GetLeadingTrivia()
+                                        .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
+                                        .AddRange(CookDocumentationTrivia(interfaceDeclaration.GetLeadingTrivia()))));
+                        }
 
                         break;
                     }
@@ -484,6 +403,43 @@ namespace BuildTool
             root = syntaxNodeReplacementRewriter.Visit(root);
 
             return root;
+        }
+
+        private static Random random = new Random();
+        private static string MakeTempFileForErrors(SyntaxNode root)
+        {
+            string content = root.ToFullString();
+            string path;
+            while (true)
+            {
+                path = Path.Combine(Path.GetTempPath(), String.Format("tmp{0}.cs", random.Next().ToString()));
+                try
+                {
+                    using (Stream stream = new FileStream(path, FileMode.CreateNew))
+                    {
+                    }
+                    File.WriteAllText(path, content);
+                    break;
+                }
+                catch (IOException exception) when (Marshal.GetHRForException(exception) == -2147024816)
+                {
+                }
+            }
+            return path;
+        }
+
+        private static void WriteErrorLine(string path, Diagnostic diagnostic)
+        {
+            Console.WriteLine(
+                "{0}({1},{2},{3},{4}): {5} {6}: {7}",
+                path,
+                diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
+                diagnostic.Location.GetLineSpan().StartLinePosition.Character,
+                diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
+                diagnostic.Location.GetLineSpan().EndLinePosition.Character,
+                diagnostic.Severity,
+                diagnostic.Id,
+                diagnostic.ToString());
         }
 
         private static void Generate(Config config, Compilation compilation, string sourceFilePath, string targetFilePath)
@@ -500,7 +456,10 @@ namespace BuildTool
                 }
             }
 
-            compilation = RemoveIEnumerable(compilation);
+            if (!config.keepIEnumerable)
+            {
+                compilation = RemoveIEnumerable(compilation);
+            }
 
             // always enable DEBUG for code manipulation purposes (this does imply we can't have !DEBUG sections)
             CSharpParseOptions parseOptions = new CSharpParseOptions().WithPreprocessorSymbols("DEBUG");
@@ -565,19 +524,21 @@ namespace BuildTool
                         string[] linesForErrors = root.ToFullString().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
                         if (errors.Count != 0)
                         {
+                            string errorFilePath = MakeTempFileForErrors(root);
                             foreach (Diagnostic error in errors)
                             {
-                                Console.WriteLine("ERROR: {0}", error);
-                                Console.WriteLine(linesForErrors[error.Location.GetLineSpan().StartLinePosition.Line]);
+                                WriteErrorLine(errorFilePath, error);
+                                if (Debugger.IsAttached)
+                                {
+                                    Console.WriteLine(linesForErrors[error.Location.GetLineSpan().StartLinePosition.Line]);
+                                }
                             }
-                            string temp = Path.GetTempFileName();
-                            File.WriteAllText(temp, root.ToFullString());
-                            string message = String.Format("Errors after storage reduction; these will prevent subsequent reductions from working properly (see output in \"{0}\")", temp);
+                            string message = String.Format("Errors after storage reduction; these will prevent subsequent reductions from working properly (see output in \"{0}\")", errorFilePath);
                             Console.WriteLine(message);
-                            if (!notepaded && ShowNotepadForErrors)
+                            if (!notepaded && ShowNotepadForErrors && Debugger.IsAttached)
                             {
                                 notepaded = true;
-                                Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), "notepad.exe"), temp);
+                                Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.SystemX86), "notepad.exe"), errorFilePath);
                             }
                             throw new ArgumentException(message);
                         }
@@ -604,10 +565,12 @@ namespace BuildTool
 
                         List<Diagnostic> errors = new List<Diagnostic>();
                         string[] linesForErrors = null;
+#pragma warning disable CS0162 // unreachable
                         if (ShowMessages)
                         {
                             linesForErrors = root.ToFullString().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
                         }
+#pragma warning restore CS0162
                         string[] codes = new string[]
                         {
                             // CS103 occurs due to stripping of inappropriate fields after template reduction
@@ -626,6 +589,7 @@ namespace BuildTool
                             {
                                 errors.Add(diagnostic);
                             }
+#pragma warning disable CS0162 // unreachable
                             if (ShowMessages)
                             {
                                 Console.WriteLine("{0}{1}({2}): {3}",
@@ -634,11 +598,14 @@ namespace BuildTool
                                     diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
                                     linesForErrors[diagnostic.Location.GetLineSpan().StartLinePosition.Line]);
                             }
+#pragma warning restore CS0162
                         }
+#pragma warning disable CS0162 // unreachable
                         if (ShowMessages)
                         {
                             Console.WriteLine("---");
                         }
+#pragma warning restore CS0162
 
                         // remove statements containing references to missing variables
                         root = new RemoveBrokenStatementsRewriter(errors).Visit(root);
@@ -699,26 +666,24 @@ namespace BuildTool
                         List<Diagnostic> errors = new List<Diagnostic>(semanticModel.GetDiagnostics().Where(delegate (Diagnostic candidate) { return candidate.Severity >= DiagnosticSeverity.Error; }));
                         if (errors.Count != 0)
                         {
+                            string errorFilePath = MakeTempFileForErrors(root);
                             string[] linesForErrors = root.ToFullString().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-                            foreach (Diagnostic diagnostic in errors)
+                            foreach (Diagnostic error in errors)
                             {
-                                Console.WriteLine("{0}({1}): {2}",
-                                    // list final errors
-                                    diagnostic.Id,
-                                    diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
-                                    diagnostic);
-                                Console.WriteLine(linesForErrors[diagnostic.Location.GetLineSpan().StartLinePosition.Line]);
+                                WriteErrorLine(errorFilePath, error);
+                                if (Debugger.IsAttached)
+                                {
+                                    Console.WriteLine(linesForErrors[error.Location.GetLineSpan().StartLinePosition.Line]);
+                                }
                             }
-                            string temp = Path.GetTempFileName();
-                            File.WriteAllText(temp, root.ToFullString());
-                            string message = String.Format("See output in: \"{0}\"", temp);
+                            string message = String.Format("See output in: \"{0}\"", errorFilePath);
                             Console.WriteLine(message);
-                            if (!notepaded && ShowNotepadForErrors)
+                            if (!notepaded && ShowNotepadForErrors && Debugger.IsAttached)
                             {
                                 notepaded = true;
                                 using (Process scriptCmd = new Process())
                                 {
-                                    scriptCmd.StartInfo.Arguments = String.Format(" \"{0}\"", temp);
+                                    scriptCmd.StartInfo.Arguments = String.Format(" \"{0}\"", errorFilePath);
                                     scriptCmd.StartInfo.CreateNoWindow = true;
                                     scriptCmd.StartInfo.FileName = "notepad.exe";
                                     scriptCmd.StartInfo.RedirectStandardOutput = true;
@@ -744,13 +709,6 @@ namespace BuildTool
                     File.WriteAllText(targetFilePath, root.ToFullString());
                 }
             }
-        }
-
-        private static void UpdateFile(string path, string className, SyntaxNode tree)
-        {
-            string newText = tree.ToFullString();
-            string filePath = Path.Combine(path, String.Format("{0}.cs", className));
-            File.WriteAllText(filePath, newText);
         }
 
         private static bool NeedsUpdate(
@@ -809,110 +767,136 @@ namespace BuildTool
             throw new ArgumentException();
         }
 
-        public static int Main(string[] args)
+        private static int MainInner(string[] args)
         {
-            try
+            while (args.Length != 0)
             {
-                while (args.Length != 0)
-                {
-                    const int NumArgs = 3;
+                const int NumArgs = 3;
 
-                    if (args.Length < NumArgs)
+                if (args.Length < NumArgs)
+                {
+                    throw new ArgumentException();
+                }
+
+                string solutionBasePath = args[0];
+                string interfacesProjectBasePath = args[1];
+                string targetProjectName = args[2];
+
+                Array.Copy(args, NumArgs, args, 0, args.Length - NumArgs);
+                Array.Resize(ref args, args.Length - NumArgs);
+
+                string targetSolutionFilePath = FindFirstFile(solutionBasePath, ".sln");
+
+                string interfacesProjectName = Path.GetFileName(interfacesProjectBasePath);
+                string interfacesSolutionFilePath = FindFirstFile(Path.GetDirectoryName(interfacesProjectBasePath), ".sln");
+
+                string templateProjectBasePath = Path.Combine(solutionBasePath, "Template"); // TODO: hardcoded
+
+                string[] doNotUnload;
+                string[] imports;
+                Config[] configs = Config.LoadConfigs(Path.Combine(solutionBasePath, targetProjectName, "transform.xml"), out doNotUnload, out imports);
+
+
+
+                Solution interfacesSolution, targetSolution;
+                Project interfacesProject, targetProject;
+                Stopwatch loadTime = Stopwatch.StartNew();
+                {
+                    Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create();
+
+                    // load interface project
+                    interfacesSolution = workspace.OpenSolutionAsync(interfacesSolutionFilePath).Result;
+                    interfacesProject = interfacesSolution.Projects.First(delegate (Project p) { return String.Equals(p.Name, interfacesProjectName); });
+
+                    // load target project
+                    targetSolution = workspace.OpenSolutionAsync(targetSolutionFilePath).Result;
+                    targetProject = targetSolution.Projects.First(delegate (Project p) { return String.Equals(p.Name, targetProjectName); });
+                    // remove all preexisting specializations since we'll be regenerating them and don't want multiply-defined errors
+                    foreach (DocumentId documentId in targetProject.DocumentIds)
                     {
-                        throw new ArgumentException();
+                        if (Array.IndexOf(doNotUnload, targetProject.GetDocument(documentId).Name) < 0)
+                        {
+                            targetProject = targetProject.RemoveDocument(documentId);
+                        }
                     }
 
-                    string solutionBasePath = args[0];
-                    string interfacesProjectBasePath = args[1];
-                    string targetProjectName = args[2];
-
-                    Array.Copy(args, NumArgs, args, 0, args.Length - NumArgs);
-                    Array.Resize(ref args, args.Length - NumArgs);
-
-                    string targetSolutionFilePath = FindFirstFile(solutionBasePath, ".sln");
-
-                    string interfacesProjectName = Path.GetFileName(interfacesProjectBasePath);
-                    string interfacesSolutionFilePath = FindFirstFile(Path.GetDirectoryName(interfacesProjectBasePath), ".sln");
-
-                    string templateProjectBasePath = Path.Combine(solutionBasePath, "Template"); // TODO: hardcoded
-
-                    string[] doNotUnload;
-                    Config[] configs = Config.ReadConfigs(Path.Combine(solutionBasePath, targetProjectName, "transform.xml"), out doNotUnload);
-
-
-
-                    Solution interfacesSolution, targetSolution;
-                    Project interfacesProject, targetProject;
-                    Stopwatch loadTime = Stopwatch.StartNew();
+                    // import local interfaces/types
+                    foreach (string import in imports)
                     {
-                        Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create();
-
-                        // load interface project (required for checking source time stamps)
-                        interfacesSolution = workspace.OpenSolutionAsync(interfacesSolutionFilePath).Result;
-                        interfacesProject = interfacesSolution.Projects.First(delegate (Project p) { return String.Equals(p.Name, interfacesProjectName); });
-
-                        // load target project
-                        targetSolution = workspace.OpenSolutionAsync(targetSolutionFilePath).Result;
-                        targetProject = targetSolution.Projects.First(delegate (Project p) { return String.Equals(p.Name, targetProjectName); });
-                        // remove all preexisting specializations since we'll be regenerating them and don't want multiply-defined errors
                         foreach (DocumentId documentId in targetProject.DocumentIds)
                         {
-                            if (Array.IndexOf(doNotUnload, targetProject.GetDocument(documentId).Name) < 0)
+                            Document document = targetProject.GetDocument(documentId);
+                            if (String.Equals(document.Name, import))
                             {
-                                targetProject = targetProject.RemoveDocument(documentId);
+                                interfacesProject = interfacesProject.AddDocument("local-" + import, document.GetTextAsync().Result, null, document.FilePath).Project;
                             }
-                        }
-                    }
-                    loadTime.Stop();
-                    Console.WriteLine("Initialization time: {0:F1} seconds", loadTime.ElapsedMilliseconds / 1000d);
-
-
-
-                    Compilation interfacesCompilation = null;
-
-                    foreach (Config config in configs)
-                    {
-                        string templateSourceFilePath = Path.Combine(templateProjectBasePath, Path.ChangeExtension(config.templateClassName, ".cs"));
-                        string targetFilePath = Path.Combine(solutionBasePath, targetProjectName, "Generated", Path.ChangeExtension(config.targetClassName, ".cs"));
-
-                        bool needsUpdate = NeedsUpdate(config, interfacesProject, targetProject, templateSourceFilePath, targetFilePath);
-
-                        ConsoleColor oldColor = Console.ForegroundColor;
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write(config.targetClassName);
-                        Console.ForegroundColor = oldColor;
-                        if (!needsUpdate)
-                        {
-                            Console.Write(" - skipped (up to date)");
-                        }
-                        Console.WriteLine();
-
-                        if (needsUpdate)
-                        {
-                            // lazy init
-                            if (interfacesCompilation == null)
-                            {
-                                interfacesCompilation = interfacesProject.GetCompilationAsync().Result;
-                            }
-
-                            Generate(config, interfacesCompilation, templateSourceFilePath, targetFilePath);
                         }
                     }
                 }
+                loadTime.Stop();
+                Console.WriteLine("Initialization time: {0:F1} seconds", loadTime.ElapsedMilliseconds / 1000d);
 
 
 
-                Console.WriteLine("Finished");
-                if (Debugger.IsAttached)
+                Compilation interfacesCompilation = null;
+
+                foreach (Config config in configs)
                 {
-                    Console.ReadLine();
+                    string templateSourceFilePath = Path.Combine(templateProjectBasePath, Path.ChangeExtension(config.templateClassName, ".cs"));
+                    string targetFilePath = Path.Combine(solutionBasePath, targetProjectName, "Generated", Path.ChangeExtension(config.targetClassName, ".cs"));
+
+                    bool needsUpdate = NeedsUpdate(config, interfacesProject, targetProject, templateSourceFilePath, targetFilePath);
+
+                    ConsoleColor oldColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(config.targetClassName);
+                    Console.ForegroundColor = oldColor;
+                    if (!needsUpdate)
+                    {
+                        Console.Write(" - skipped (up to date)");
+                    }
+                    Console.WriteLine();
+
+                    if (needsUpdate)
+                    {
+                        // lazy init
+                        if (interfacesCompilation == null)
+                        {
+                            interfacesCompilation = interfacesProject.GetCompilationAsync().Result;
+                        }
+
+                        Generate(config, interfacesCompilation, templateSourceFilePath, targetFilePath);
+                    }
                 }
-                return 0;
             }
-            catch (Exception exception)
+
+
+
+            Console.WriteLine("Finished");
+            if (Debugger.IsAttached)
             {
-                Console.WriteLine(exception);
-                throw;
+                Console.ReadLine();
+            }
+            return 0;
+        }
+
+        public static int Main(string[] args)
+        {
+            if (Debugger.IsAttached)
+            {
+                return MainInner(args);
+            }
+            else
+            {
+                try
+                {
+                    return MainInner(args);
+                }
+                catch (Exception exception)
+                {
+                    Console.WriteLine(exception);
+                    throw;
+                }
             }
         }
     }

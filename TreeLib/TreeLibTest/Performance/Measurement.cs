@@ -92,12 +92,12 @@ namespace TreeLibTest
                     new string[]
                     {
                         label,
-                        median.ToString(NumberFormat ),
-                        average.ToString(NumberFormat ),
-                        stability.ToString(NumberFormat ),
+                        median.ToString(NumberFormat),
+                        average.ToString(NumberFormat),
+                        stability.ToString(NumberFormat),
                         iterations.ToString(),
-                        sum.ToString(),
-                        variance.ToString(NumberFormat ),
+                        sum.ToString(NumberFormat),
+                        variance.ToString(NumberFormat),
                     },
                     dataText);
             }

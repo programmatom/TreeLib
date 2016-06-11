@@ -30,10 +30,17 @@ using System.Runtime.InteropServices;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1572 // silence warning: XML comment has a param tag for '...', but there is no parameter by that name
+#pragma warning disable CS1573 // silence warning: Parameter '...' has no matching param tag in the XML comment
+#pragma warning disable CS1587 // silence warning: XML comment is not placed on a valid language element
+#pragma warning disable CS1591 // silence warning: Missing XML comment for publicly visible type or member
+
+//
 // Implementation of top-down splay tree written by Daniel Sleator <sleator@cs.cmu.edu>.
 // Taken from http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c
-
+//
 // An overview of splay trees can be found here: https://en.wikipedia.org/wiki/Splay_tree
+//
 
 namespace TreeLib
 {
@@ -54,7 +61,9 @@ namespace TreeLib
         INonInvasiveTreeInspection,
 
         IEnumerable<EntryMap<KeyType, ValueType>>,
-        IEnumerable
+        IEnumerable,
+
+        ICloneable
 
         where KeyType : IComparable<KeyType>
     {
@@ -297,10 +306,13 @@ namespace TreeLib
         public SplayTreeArrayMap(SplayTreeArrayMap<KeyType, ValueType> original)
         {
             this.comparer = original.comparer;
+
             this.nodes = (Node[])original.nodes.Clone();
             this.root = original.root;
+
             this.freelist = original.freelist;
             this.allocationMode = original.allocationMode;
+
             this.count = original.count;
         }
 
@@ -373,7 +385,7 @@ namespace TreeLib
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 return 0 == comparer.Compare(key, nodes[root].key);
             }
             return false;
@@ -382,7 +394,7 @@ namespace TreeLib
         [Feature(Feature.Dict)]
         private bool SetOrAddValue(KeyType key,[Payload(Payload.Value)] ValueType value,bool add)
         {
-            Splay(ref root, key);
+            Splay(ref root, key, comparer);
             int c;
             if ((root == Nil) || ((c = comparer.Compare(key, nodes[root].key)) < 0))
             {
@@ -473,7 +485,7 @@ uint countNew = checked(this.count + 1);
             {
                 if (root != Nil)
                 {
-                    Splay(ref root, key);
+                    Splay(ref root, key, comparer);
                     int c = comparer.Compare(key, nodes[root].key);
                     if (c == 0)
                     {
@@ -488,7 +500,7 @@ uint countNew = checked(this.count + 1);
                         else
                         {
                             x = nodes[root].left;
-                            Splay(ref x, key);
+                            Splay(ref x, key, comparer);
                             Debug.Assert(nodes[x].right == Nil);
                             nodes[x].right = nodes[root].right;
                         }
@@ -517,7 +529,7 @@ uint countNew = checked(this.count + 1);
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 if (0 == comparer.Compare(key, nodes[root].key))
                 {
                     value = nodes[root].value;
@@ -541,7 +553,7 @@ uint countNew = checked(this.count + 1);
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 if (0 == comparer.Compare(key, nodes[root].key))
                 {
                     nodes[root].value = value;
@@ -619,19 +631,12 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool LeastInternal(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        private bool LeastInternal(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut)
         {
             if (root != Nil)
             {
-                NodeRef node = root;
-                KeyType least = nodes[node].key;
-                while (nodes[node].left != Nil)
-                {
-                    node = nodes[node].left;
-                    least = nodes[node].key;
-                }
-                Splay(ref root, least);
-                keyOut = least;
+                Splay(ref root, default(KeyType), FixedComparer.Minimum);
+                keyOut = nodes[root].key;
                 valueOut = nodes[root].value;
                 return true;
             }
@@ -649,7 +654,7 @@ uint countNew = checked(this.count + 1);
         /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
         [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Least(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        public bool Least(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut)
         {
             return LeastInternal(out keyOut, /*[Payload(Payload.Value)]*/out valueOut);
         }
@@ -661,26 +666,19 @@ uint countNew = checked(this.count + 1);
         /// <param name="leastOut">out parameter receiving the key</param>
         /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Least(out KeyType keyOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        public bool Least(out KeyType keyOut)
         {
             ValueType value;
             return LeastInternal(out keyOut, /*[Payload(Payload.Value)]*/out value);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private  bool GreatestInternal(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        private bool GreatestInternal(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut)
         {
             if (root != Nil)
             {
-                NodeRef node = root;
-                KeyType greatest = nodes[node].key;
-                while (nodes[node].right != Nil)
-                {
-                    node = nodes[node].right;
-                    greatest = nodes[node].key;
-                }
-                Splay(ref root, greatest);
-                keyOut = greatest;
+                Splay(ref root, default(KeyType), FixedComparer.Maximum);
+                keyOut = nodes[root].key;
                 valueOut = nodes[root].value;
                 return true;
             }
@@ -698,7 +696,7 @@ uint countNew = checked(this.count + 1);
         /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
         [Payload(Payload.Value)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Greatest(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        public bool Greatest(out KeyType keyOut,[Payload(Payload.Value)] out ValueType valueOut)
         {
             return GreatestInternal(out keyOut, /*[Payload(Payload.Value)]*/out valueOut);
         }
@@ -710,7 +708,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="greatestOut">out parameter receiving the key</param>
         /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Greatest(out KeyType keyOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        public bool Greatest(out KeyType keyOut)
         {
             ValueType value;
             return GreatestInternal(out keyOut, /*[Payload(Payload.Value)]*/out value);
@@ -721,7 +719,7 @@ uint countNew = checked(this.count + 1);
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 int rootComparison = comparer.Compare(key, nodes[root].key);
                 if ((rootComparison > 0) || (orEqual && (rootComparison == 0)))
                 {
@@ -732,7 +730,7 @@ uint countNew = checked(this.count + 1);
                 else if (nodes[root].left != Nil)
                 {
                     KeyType rootKey = nodes[root].key;
-                    Splay(ref nodes[root].left, rootKey);
+                    Splay(ref nodes[root].left, rootKey, comparer);
                     nearestKey = nodes[nodes[root].left].key;
                     valueOut = nodes[nodes[root].left].value;
                     return true;
@@ -808,7 +806,7 @@ uint countNew = checked(this.count + 1);
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 int rootComparison = comparer.Compare(key, nodes[root].key);
                 if ((rootComparison < 0) || (orEqual && (rootComparison == 0)))
                 {
@@ -819,7 +817,7 @@ uint countNew = checked(this.count + 1);
                 else if (nodes[root].right != Nil)
                 {
                     KeyType rootKey = nodes[root].key;
-                    Splay(ref nodes[root].right, rootKey);
+                    Splay(ref nodes[root].right, rootKey, comparer);
                     nearestKey = nodes[nodes[root].right].key;
                     valueOut = nodes[nodes[root].right].value;
                     return true;
@@ -1007,9 +1005,29 @@ uint countNew = checked(this.count + 1);
         //[5] "Data Structures, Algorithms, and Performance", Derick Wood,
         //   Addison-Wesley, 1993, pp 367-375.
 
+        // use FixedComparer for finding the first or last in a tree
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private class FixedComparer : IComparer<KeyType>
+        {
+            private readonly int fixedResult;
+
+            public readonly static FixedComparer Minimum = new FixedComparer(-1);
+            public readonly static FixedComparer Maximum = new FixedComparer(1);
+
+            public FixedComparer(int fixedResult)
+            {
+                this.fixedResult = fixedResult;
+            }
+
+            public int Compare(KeyType x,KeyType y)
+            {
+                return fixedResult;
+            }
+        }
+
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         [EnableFixed]
-        private void Splay(ref NodeRef root,KeyType leftComparand)
+        private void Splay(ref NodeRef root,KeyType leftComparand,IComparer<KeyType> comparer)
         {
             unchecked
             {
@@ -1099,20 +1117,24 @@ uint countNew = checked(this.count + 1);
 
         // INonInvasiveTreeInspection
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Nil ? (object)root : null; } }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
             NodeRef n = (NodeRef)node;
             return nodes[n].left != Nil ? (object)nodes[n].left : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
             NodeRef n = (NodeRef)node;
             return nodes[n].right != Nil ? (object)nodes[n].right : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
             NodeRef n = (NodeRef)node;
@@ -1121,6 +1143,7 @@ uint countNew = checked(this.count + 1);
             return key;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
             NodeRef n = (NodeRef)node;
@@ -1129,11 +1152,13 @@ uint countNew = checked(this.count + 1);
             return value;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
             return null;
         }
 
+        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -1178,10 +1203,10 @@ uint countNew = checked(this.count + 1);
         // Enumeration
         //
 
-            /// <summary>
-            /// Get the default enumerator, which is the robust enumerator for splay trees.
-            /// </summary>
-            /// <returns></returns>
+        /// <summary>
+        /// Get the default enumerator, which is the robust enumerator for splay trees.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<EntryMap<KeyType, ValueType>> GetEnumerator()
         {
             // For splay trees, the default enumerator is Robust because the Fast enumerator is fragile
@@ -1296,10 +1321,9 @@ uint countNew = checked(this.count + 1);
                 {
 
                     if (valid)
-                    {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                    {
-                        KeyType key = currentKey;
+                        {
+                            KeyType key = currentKey;
                             ValueType value = default(ValueType);
 
                             /*[Feature(Feature.Dict)]*/
@@ -1309,7 +1333,6 @@ uint countNew = checked(this.count + 1);
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                                 /*[Payload(Payload.Value)]*/value);
                         }
-                    }
                     return new EntryMap<KeyType, ValueType>();
                 }
             }
@@ -1423,8 +1446,7 @@ uint countNew = checked(this.count + 1);
                 Advance();
             }
 
-            private void PushSuccessor(
-                NodeRef node)
+            private void PushSuccessor(                NodeRef node)
             {
                 while (node != tree.Nil)
                 {
@@ -1459,6 +1481,16 @@ uint countNew = checked(this.count + 1);
                 PushSuccessor(
                     tree.nodes[nextNode].right);
             }
+        }
+
+
+        //
+        // Cloning
+        //
+
+        public object Clone()
+        {
+            return new SplayTreeArrayMap<KeyType, ValueType>(this);
         }
     }
 }

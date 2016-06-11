@@ -671,18 +671,21 @@ namespace TreeLibTest
             }
         }
 
-        private delegate bool EquivalenceActionVariant0<KeyType, ValueType>(IOrderedMap<KeyType, ValueType> collection, out KeyType keyOut) where KeyType : IComparable<KeyType>;
+        private delegate bool EquivalenceActionVariant0<KeyType, ValueType>(IOrderedMap<KeyType, ValueType> collection, out KeyType keyOut, out ValueType valueOut) where KeyType : IComparable<KeyType>;
         private void EquivalenceActionVariant0Util(IOrderedMap<int, float>[] collections, Random rnd, ref string description, EquivalenceActionVariant0<int, float> variantMethod)
         {
             int key = 0;
+            float value = 0;
             bool f = false;
             for (int i = 0; i < collections.Length; i++)
             {
                 int key1;
-                bool f1 = variantMethod(collections[i], out key1);
+                float value1;
+                bool f1 = variantMethod(collections[i], out key1, out value1);
                 if (i == 0)
                 {
                     key = key1;
+                    value = value1;
                     f = f1;
                 }
                 else
@@ -690,6 +693,10 @@ namespace TreeLibTest
                     if (key != key1)
                     {
                         Fault(collections[i], description + "key");
+                    }
+                    if (value != value1)
+                    {
+                        Fault(collections[i], description + "value");
                     }
                     if (f != f1)
                     {
@@ -702,25 +709,52 @@ namespace TreeLibTest
         private void LeastAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "Least";
-            EquivalenceActionVariant0Util(collections, rnd, ref description,
-                delegate (IOrderedMap<int, float> collection, out int instanceKey)
-                { return collection.Least(out instanceKey); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { instanceValue = default(float); return collection.Least(out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { return collection.Least(out instanceKey, out instanceValue); });
+                    break;
+            }
         }
 
         private void GreatestAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "Greatest";
-            EquivalenceActionVariant0Util(collections, rnd, ref description,
-                delegate (IOrderedMap<int, float> collection, out int instanceKey)
-                { return collection.Greatest(out instanceKey); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { instanceValue = default(float); return collection.Greatest(out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { return collection.Greatest(out instanceKey, out instanceValue); });
+                    break;
+            }
         }
 
-        private delegate bool EquivalenceActionVariant1<KeyType, ValueType>(IOrderedMap<KeyType, ValueType> collection, KeyType key, out KeyType keyOut) where KeyType : IComparable<KeyType>;
+        private delegate bool EquivalenceActionVariant1<KeyType, ValueType>(IOrderedMap<KeyType, ValueType> collection, KeyType key, out KeyType keyOut, out ValueType valueOut) where KeyType : IComparable<KeyType>;
         private void EquivalenceActionVariant1Util(IOrderedMap<int, float>[] collections, Random rnd, ref string description, EquivalenceActionVariant1<int, float> variantMethod)
         {
             string descriptionPrefix = description;
 
             int queryKey;
+            float queryValue;
 
             KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if ((rnd.Next(2) == 0) && (items.Length != 0))
@@ -728,11 +762,13 @@ namespace TreeLibTest
                 // with existing
                 int index = rnd.Next(items.Length);
                 queryKey = items[index].Key;
+                queryValue = items[index].Value;
                 description = String.Format("{0} (existing) [{1}]", descriptionPrefix, queryKey);
             }
             else
             {
                 // with non-existing
+                queryValue = default(float);
                 do
                 {
                     queryKey = rnd.Next(Int32.MinValue, Int32.MaxValue);
@@ -742,14 +778,17 @@ namespace TreeLibTest
             }
 
             int modelKey = 0;
+            float modelValue = 0;
             bool f = false;
             for (int i = 0; i < collections.Length; i++)
             {
                 int instanceKey;
-                bool f1 = variantMethod(collections[i], queryKey, out instanceKey);
+                float instanceValue;
+                bool f1 = variantMethod(collections[i], queryKey, out instanceKey, out instanceValue);
                 if (i == 0)
                 {
                     modelKey = instanceKey;
+                    modelValue = instanceValue;
                     f = f1;
                 }
                 else
@@ -757,6 +796,10 @@ namespace TreeLibTest
                     if (modelKey != instanceKey)
                     {
                         Fault(collections[i], description + "key");
+                    }
+                    if (modelValue != instanceValue)
+                    {
+                        Fault(collections[i], description + "value");
                     }
                     if (f != f1)
                     {
@@ -769,33 +812,85 @@ namespace TreeLibTest
         private void NearestLessOrEqualAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestLessOrEqual";
-            EquivalenceActionVariant1Util(collections, rnd, ref description,
-                delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey)
-                { return collection.NearestLessOrEqual(queryKey, out instanceKey); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestLessOrEqual(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestLessOrEqual(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
         }
 
         private void NearestLessAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestLess";
-            EquivalenceActionVariant1Util(collections, rnd, ref description,
-                delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey)
-                { return collection.NearestLess(queryKey, out instanceKey); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestLess(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestLess(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
         }
 
         private void NearestGreaterOrEqualAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestGreaterOrEqual";
-            EquivalenceActionVariant1Util(collections, rnd, ref description,
-                delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey)
-                { return collection.NearestGreaterOrEqual(queryKey, out instanceKey); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestGreaterOrEqual(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestGreaterOrEqual(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
         }
 
         private void NearestGreaterAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestGreater";
-            EquivalenceActionVariant1Util(collections, rnd, ref description,
-                delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey)
-                { return collection.NearestGreater(queryKey, out instanceKey); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestGreater(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IOrderedMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestGreater(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
         }
 
 
@@ -851,6 +946,7 @@ namespace TreeLibTest
                 control,
                 collections,
                 actions,
+                delegate (IOrderedMap<int, float> _collection) { return _collection.Count; },
                 delegate (IOrderedMap<int, float>[] _collections) { Validate<int, float>(_collections); });
         }
     }

@@ -191,5 +191,36 @@ namespace BuildTool
 
             return foundDisjuction;
         }
+
+
+        public static bool TestEnumeratedFaceAttribute(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax expressionOut, string[] attributeAliases, FacetList facetsList)
+        {
+            foreach (AttributeListSyntax attributeList in attributeLists)
+            {
+                foreach (AttributeSyntax attribute in attributeList.Attributes)
+                {
+                    IdentifierNameSyntax attributeName;
+                    if ((attributeName = attribute.Name as IdentifierNameSyntax) != null)
+                    {
+                        if (Array.IndexOf(attributeAliases, attributeName.Identifier.Text) >= 0)
+                        {
+                            expressionOut = attribute.ArgumentList.Arguments[0].Expression;
+
+                            for (int i = 1; i < attribute.ArgumentList.Arguments.Count; i++)
+                            {
+                                MemberAccessExpressionSyntax argumentEnumTag = (MemberAccessExpressionSyntax)attribute.ArgumentList.Arguments[i].Expression;
+                                if (Array.IndexOf(facetsList.facets, argumentEnumTag.Name.Identifier.Text) >= 0)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            expressionOut = null;
+            return false;
+        }
     }
 }

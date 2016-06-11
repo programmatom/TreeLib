@@ -45,7 +45,7 @@ namespace TreeLibTest
 
         protected long lastActionIteration;
 
-        protected void IncrementIteration()
+        public void IncrementIteration()
         {
             iteration = unchecked(iteration + 1);
             if (Array.IndexOf(breakIterations, iteration) >= 0)
@@ -56,6 +56,14 @@ namespace TreeLibTest
                     Debugger.Break();
                 }
             }
+        }
+
+        private int? seed;
+
+        public void WriteIteration()
+        {
+            WriteLine(ConsoleColor.Yellow, "LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+            WriteLine("To repro, add to command line: {0}break:{1}", seed.HasValue ? String.Format("seed:{0} ", seed.Value) : null, iteration);
         }
 
         public delegate void VoidAction();
@@ -70,7 +78,7 @@ namespace TreeLibTest
             }
             catch (Exception exception)
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 Console.WriteLine("Unexpected exception occurred: {0}", exception);
                 throw new UnitTestFailureException(label, exception);
             }
@@ -90,7 +98,7 @@ namespace TreeLibTest
             }
             catch (Exception exception)
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 Console.WriteLine("Unexpected exception occurred: {0}", exception);
                 throw new UnitTestFailureException(label, exception);
             }
@@ -108,7 +116,7 @@ namespace TreeLibTest
             }
             catch (Exception exception) when (!(exception is UnitTestFailureException))
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 Console.WriteLine("Unexpected exception occurred: {0}", exception);
                 throw new UnitTestFailureException(label, exception);
             }
@@ -126,11 +134,11 @@ namespace TreeLibTest
 
         public void Fault(object faultingObject, string description, Exception innerException)
         {
-            Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+            WriteIteration();
             string message = String.Format("{0}: {1}", faultingObject != null ? faultingObject.GetType().Name : "<null>", description);
             if (innerException != null)
             {
-                message = String.Concat(Environment.NewLine, "Initial exception: ", innerException);
+                message = String.Concat(message, Environment.NewLine, "Initial exception: ", innerException);
             }
             Console.WriteLine(message);
             bool throwError = true;
@@ -146,6 +154,100 @@ namespace TreeLibTest
         {
             Fault(faultingObject, description, null);
         }
+
+
+
+        // validates tree supporting INonInvasiveTreeInspection, otherwise does nothing
+        protected void ValidateTree(object tree)
+        {
+            IncrementIteration();
+
+            INonInvasiveTreeInspection treeInspector;
+            if ((treeInspector = tree as INonInvasiveTreeInspection) != null)
+            {
+                try
+                {
+                    IncrementIteration();
+                    treeInspector.Validate();
+                }
+                catch (Exception exception)
+                {
+                    bool throwFailure = true;
+                    WriteIteration();
+                    WriteLine("[validate]: Unexpected exception occurred: {0}", exception);
+                    Debug.Assert(false);
+                    Debugger.Break();
+                    if (throwFailure)
+                    {
+                        throw new UnitTestFailureException("validate", exception);
+                    }
+                }
+            }
+        }
+
+
+
+        protected struct MultiRankInfo<KeyType, ValueType> : IComparable<MultiRankInfo<KeyType, ValueType>> where KeyType : IComparable<KeyType>
+        {
+            public readonly KeyType Key;
+            public readonly ValueType Value;
+            public readonly int Start;
+            public readonly int Length;
+
+            public MultiRankInfo(KeyType key, ValueType value, int start, int length)
+            {
+                this.Key = key;
+                this.Value = value;
+                this.Start = start;
+                this.Length = length;
+            }
+
+            public MultiRankInfo(KeyType key)
+                : this(key, default(ValueType), 0, 0)
+            {
+            }
+
+            public int CompareTo(MultiRankInfo<KeyType, ValueType> other)
+            {
+                return Comparer<KeyType>.Default.Compare(this.Key, other.Key);
+            }
+        }
+
+        protected MultiRankInfo<KeyType, ValueType>[] FlattenAnyRankTree<KeyType, ValueType>(object tree, bool multi) where KeyType : IComparable<KeyType>
+        {
+            if (tree is INonInvasiveMultiRankMapInspection)
+            {
+                MultiRankMapEntry[] ranks;
+                ranks = ((INonInvasiveMultiRankMapInspection)tree).GetRanks();
+                MultiRankInfo<KeyType, ValueType>[] result = new MultiRankInfo<KeyType, ValueType>[ranks.Length];
+                for (int i = 0; i < ranks.Length; i++)
+                {
+                    result[i] = new MultiRankInfo<KeyType, ValueType>(
+                        (KeyType)ranks[i].key,
+                        (ValueType)ranks[i].value,
+                        ranks[i].rank.start,
+                        multi ? ranks[i].rank.length : 1);
+                }
+                return result;
+            }
+            else if (tree is INonInvasiveMultiRankMapInspectionLong)
+            {
+                MultiRankMapEntryLong[] ranks;
+                ranks = ((INonInvasiveMultiRankMapInspectionLong)tree).GetRanks();
+                MultiRankInfo<KeyType, ValueType>[] result = new MultiRankInfo<KeyType, ValueType>[ranks.Length];
+                for (int i = 0; i < ranks.Length; i++)
+                {
+                    result[i] = new MultiRankInfo<KeyType, ValueType>(
+                        (KeyType)ranks[i].key,
+                        (ValueType)ranks[i].value,
+                        (int)ranks[i].rank.start,
+                        multi ? (int)ranks[i].rank.length : 1);
+                }
+                return result;
+            }
+            throw new ArgumentException();
+        }
+
 
 
         private ConsoleBuffer consoleBuffer;
@@ -166,6 +268,11 @@ namespace TreeLibTest
 
         public void WriteLine(string format, params object[] args)
         {
+            WriteLine((ConsoleColor?)null, format, args);
+        }
+
+        public void WriteLine(ConsoleColor? color, string format, params object[] args)
+        {
             string line = String.Format(format, args);
             if (consoleBuffer != null)
             {
@@ -173,14 +280,17 @@ namespace TreeLibTest
             }
             else
             {
+                ConsoleColor savedColor = Console.ForegroundColor;
+                Console.ForegroundColor = color.HasValue ? color.Value : savedColor;
                 Console.WriteLine(line);
+                Console.ForegroundColor = savedColor;
             }
         }
 
 
         protected void ShowException(string testName, Exception exception)
         {
-            WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+            WriteIteration();
             WriteLine("{0} Failure: {1}", testName, exception.Message);
             if (exception.InnerException != null)
             {
@@ -206,6 +316,7 @@ namespace TreeLibTest
 
 
         protected delegate void InvokeAction<TreeType>(TreeType[] collections, Random rnd, ref string lastActionDescription);
+        protected delegate uint CountMethod<TreeType>(TreeType reference);
         protected delegate void ValidateMethod<TreeType>(TreeType[] collections);
         protected bool StochasticDriver<TreeType>(
             string title,
@@ -213,11 +324,13 @@ namespace TreeLibTest
             StochasticControls control,
             TreeType[] collections,
             Tuple<Tuple<int, int>, InvokeAction<TreeType>>[] actions,
+            CountMethod<TreeType> getCount,
             ValidateMethod<TreeType> validate)
         {
             try
             {
                 Random rnd = new Random(seed);
+                this.seed = seed;
 
                 int totalProb1 = 0;
                 int totalProb2 = 0;
@@ -237,7 +350,7 @@ namespace TreeLibTest
                 while (!control.Stop)
                 {
                     iterations++;
-                    uint lastCount = ((INonInvasiveTreeInspection)collections[0]).Count;
+                    uint lastCount = getCount(collections[0]);
                     maxCountEver = Math.Max(maxCountEver, lastCount);
                     maxCount1 = Math.Max(maxCount1, lastCount);
                     minCount1 = Math.Min(minCount1, lastCount);
@@ -277,7 +390,7 @@ namespace TreeLibTest
                 control.Failed = true;
                 ShowException(title, exception);
                 return false;
-            }
+            } 
 
             return true;
         }

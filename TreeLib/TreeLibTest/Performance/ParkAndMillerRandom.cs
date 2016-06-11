@@ -89,7 +89,7 @@ namespace TreeLibTest
 #if DEBUG
         private static bool Checked_DBG;
 #endif
-        public int Random()
+        public int Next()
         {
             int S;
             int lo;
@@ -106,7 +106,7 @@ namespace TreeLibTest
                     int Value_DBG = -1;
                     for (int Counter_DBG = 1; Counter_DBG <= 10000; Counter_DBG++)
                     {
-                        Value_DBG = State_DBG.Random();
+                        Value_DBG = State_DBG.Next();
                     }
                     if (Value_DBG != 1043618065)
                     {

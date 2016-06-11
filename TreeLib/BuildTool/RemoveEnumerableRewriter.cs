@@ -47,15 +47,18 @@ namespace BuildTool
             node = (InterfaceDeclarationSyntax)base.VisitInterfaceDeclaration(node);
 
             int i = 0;
-            foreach (BaseTypeSyntax baseType in node.BaseList.Types)
+            if (node.BaseList != null)
             {
-                if ((baseType.Type.IsKind(SyntaxKind.GenericName) && String.Equals(((GenericNameSyntax)baseType.Type).Identifier.Text, BaseInterfaceToRemove))
-                    || ((baseType.Type.IsKind(SyntaxKind.IdentifierName) && String.Equals(((IdentifierNameSyntax)baseType.Type).Identifier.Text, BaseInterfaceToRemove))))
+                foreach (BaseTypeSyntax baseType in node.BaseList.Types)
                 {
-                    node = node.WithBaseList(node.BaseList.WithTypes(node.BaseList.Types.RemoveAt(i)));
-                    continue;
+                    if ((baseType.Type.IsKind(SyntaxKind.GenericName) && String.Equals(((GenericNameSyntax)baseType.Type).Identifier.Text, BaseInterfaceToRemove))
+                        || ((baseType.Type.IsKind(SyntaxKind.IdentifierName) && String.Equals(((IdentifierNameSyntax)baseType.Type).Identifier.Text, BaseInterfaceToRemove))))
+                    {
+                        node = node.WithBaseList(node.BaseList.WithTypes(node.BaseList.Types.RemoveAt(i)));
+                        continue;
+                    }
+                    i++;
                 }
-                i++;
             }
             // Fails: without it, leaves behind dangling colon, but we're not reparsing, so it's tolerated
             //if (node.BaseList.Types.Count == 0)

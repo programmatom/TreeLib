@@ -372,7 +372,7 @@ namespace TreeLibTest
                     return ' ';
                 case Theme.Red:
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.BackgroundColor = ConsoleColor.Magenta;
+                    Console.BackgroundColor = ConsoleColor.DarkRed;
                     return '*';
                 case Theme.Green:
                     Console.ForegroundColor = ConsoleColor.White;
@@ -381,7 +381,7 @@ namespace TreeLibTest
             }
         }
 
-        private static void DisplayLine(string label, string medianLabel, Theme medianTheme, double median, string averageLabel, Theme averageTheme, double average, string stabilityLabel, Theme stabilityTheme, double stability, Theme tagTheme, string tag)
+        private static void DisplayLine(string label, string medianLabel, Theme medianTheme, double median, string averageLabel, Theme averageTheme, double average, string stabilityLabel, Theme stabilityTheme, double? stability, Theme tagTheme, string tag)
         {
             ConsoleColor oldForeground = Console.ForegroundColor;
             ConsoleColor oldBackground = Console.BackgroundColor;
@@ -453,9 +453,9 @@ namespace TreeLibTest
                     "x",
                     acceptAverage ? (improvedAverage ? Theme.Green : Theme.Normal) : Theme.Red,
                     result.average / baseline.average,
-                    "x",
-                    acceptStability ? Theme.Normal : Theme.Red,
-                    result.stability / baseline.stability,
+                    String.Empty/*"x"*/,
+                    Theme.Normal/*acceptStability ? Theme.Normal : Theme.Red*/,
+                    null/*result.stability / baseline.stability*/,
                     Theme.Normal,
                     String.Empty);
             }
@@ -602,7 +602,7 @@ namespace TreeLibTest
                 }
             }
 
-            Console.WriteLine("Performance Tests - Finished: {0}", status);
+            Program.WritePassFail("Performance Tests - Finished", success, status, status);
             return success;
         }
     }
