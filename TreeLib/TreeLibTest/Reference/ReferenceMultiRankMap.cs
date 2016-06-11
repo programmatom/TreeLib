@@ -171,6 +171,22 @@ namespace TreeLibTest
             return false;
         }
 
+        public bool TrySet(KeyType key, ValueType value, int rank)
+        {
+            if (rank <= 0)
+            {
+                return false;
+            }
+
+            int i = BinarySearch(key);
+            if (i >= 0)
+            {
+                items[i] = new Item(items[i].key, value, rank);
+                return true;
+            }
+            return false;
+        }
+
         public bool TryGetKeyByRank(int rank, out KeyType key)
         {
             if (rank < 0)
@@ -230,6 +246,14 @@ namespace TreeLibTest
         public void Get(KeyType key, out ValueType value, out int rank, out int count)
         {
             if (!TryGet(key, out value, out rank, out count))
+            {
+                throw new ArgumentException("item not in tree");
+            }
+        }
+
+        public void Set(KeyType key, ValueType value, int rank)
+        {
+            if (!TrySet(key, value, rank))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -431,6 +455,194 @@ namespace TreeLibTest
             return NearestGreater(key, out nearestKey, out value);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            value = default(ValueType);
+            rank = 0;
+            count = 0;
+            bool f = NearestLessOrEqual(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            value = default(ValueType);
+            rank = 0;
+            count = 0;
+            bool f = NearestLess(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            value = default(ValueType);
+            rank = 0;
+            count = 0;
+            bool f = NearestGreaterOrEqual(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+            }
+            else
+            {
+                rank = RankCount;
+            }
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            value = default(ValueType);
+            rank = 0;
+            count = 0;
+            bool f = NearestGreater(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+            }
+            else
+            {
+                rank = RankCount;
+            }
+            return f;
+        }
+
+        public bool NearestLessOrEqualByRank(int position, out int nearestStart)
+        {
+            if (position >= 0)
+            {
+                int index;
+                return Find(Math.Min(position, RankCount - 1), out index, out nearestStart, false/*includeEnd*/);
+            }
+            nearestStart = 0;
+            return false;
+        }
+
+        public bool NearestLessByRank(int position, out int nearestStart)
+        {
+            if (position - 1 >= 0)
+            {
+                int index;
+                return Find(Math.Min(position - 1, RankCount - 1), out index, out nearestStart, false/*includeEnd*/);
+            }
+            nearestStart = 0;
+            return false;
+        }
+
+        public bool NearestGreaterOrEqualByRank(int position, out int nearestStart)
+        {
+            int index;
+            bool f = Find(position, out index, out nearestStart, false/*includeEnd*/);
+            if (f)
+            {
+                if (position > nearestStart)
+                {
+                    nearestStart += items[index].count;
+                    f = index < Count - 1;
+                }
+                return f;
+            }
+            nearestStart = RankCount;
+            return false;
+        }
+
+        public bool NearestGreaterByRank(int position, out int nearestStart)
+        {
+            int index;
+            bool f = Find(position, out index, out nearestStart, false/*includeEnd*/);
+            if (f)
+            {
+                if (position >= nearestStart)
+                {
+                    f = index < items.Count - 1;
+                    nearestStart += items[index].count;
+                }
+                return f;
+            }
+            nearestStart = RankCount;
+            return false;
+        }
+
+        public bool NearestLessOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            count = 0;
+            bool f = NearestLessOrEqualByRank(position, out nearestStart);
+            if (f)
+            {
+                nearestKey = GetKeyByRank(nearestStart);
+                int rank;
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+                Debug.Assert(rank == nearestStart);
+            }
+            return f;
+        }
+
+        public bool NearestLessByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            count = 0;
+            bool f = NearestLessByRank(position, out nearestStart);
+            if (f)
+            {
+                nearestKey = GetKeyByRank(nearestStart);
+                int rank;
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+                Debug.Assert(rank == nearestStart);
+            }
+            return f;
+        }
+
+        public bool NearestGreaterOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            count = 0;
+            bool f = NearestGreaterOrEqualByRank(position, out nearestStart);
+            if (f)
+            {
+                nearestKey = GetKeyByRank(nearestStart);
+                int rank;
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+                Debug.Assert(rank == nearestStart);
+            }
+            return f;
+        }
+
+        public bool NearestGreaterByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            nearestKey = default(KeyType);
+            value = default(ValueType);
+            count = 0;
+            bool f = NearestGreaterByRank(position, out nearestStart);
+            if (f)
+            {
+                nearestKey = GetKeyByRank(nearestStart);
+                int rank;
+                bool g = TryGet(nearestKey, out value, out rank, out count);
+                Debug.Assert(g);
+                Debug.Assert(rank == nearestStart);
+            }
+            return f;
+        }
+
 
         //
         // Internals
@@ -501,7 +713,6 @@ namespace TreeLibTest
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
         }
 
         //

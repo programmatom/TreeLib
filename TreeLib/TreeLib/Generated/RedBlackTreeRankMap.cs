@@ -36,10 +36,17 @@ using System.Runtime.InteropServices;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1572 // silence warning: XML comment has a param tag for '...', but there is no parameter by that name
+#pragma warning disable CS1573 // silence warning: Parameter '...' has no matching param tag in the XML comment
+#pragma warning disable CS1587 // silence warning: XML comment is not placed on a valid language element
+#pragma warning disable CS1591 // silence warning: Missing XML comment for publicly visible type or member
+
+//
 // Based on the .NET Framework Base Class Libarary implementation of red-black trees from here:
 // https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs
-
+//
 // An overview of red-black trees can be found here: https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
+//
 
 namespace TreeLib
 {
@@ -62,7 +69,9 @@ namespace TreeLib
         /*[Feature(Feature.Rank, Feature.RankMulti)]*//*[Widen]*/INonInvasiveMultiRankMapInspection,
 
         IEnumerable<EntryRankMap<KeyType, ValueType>>,
-        IEnumerable
+        IEnumerable,
+
+        ICloneable
 
         where KeyType : IComparable<KeyType>
     {
@@ -94,10 +103,6 @@ namespace TreeLib
             //        : String.Format("({0})*{2}={3}*({1})", left.node.left == null ? "Nil" : left.node.key.ToString(), right.node.left == null ? "Nil" : right.node.key.ToString(), key, value);
             //}
         }
-
-        [ArrayIndexing]
-        [Storage(Storage.Object)]
-        private Node this[Node node] { get { return node; } }
 
         [Storage(Storage.Object)]
         private readonly static Node _Null = null;
@@ -205,7 +210,87 @@ namespace TreeLib
         [Storage(Storage.Object)]
         public RedBlackTreeRankMap(RedBlackTreeRankMap<KeyType, ValueType> original)
         {
-            throw new NotImplementedException(); // TODO: clone
+            this.comparer = original.comparer;
+
+            this.count = original.count;
+            this.xExtent = original.xExtent;
+
+            this.allocationMode = original.allocationMode;
+            this.freelist = this.Null;
+            {
+                Node nodeOriginal = original.freelist;
+                while (nodeOriginal != original.Null)
+                {
+                    nodeOriginal = nodeOriginal.left;
+                    Node nodeCopy = new Node();
+                    nodeCopy.left = this.freelist;
+                    this.freelist = nodeCopy;
+                }
+            }
+#if DEBUG
+            this.allocateHelper.allocateCount = original.allocateHelper.allocateCount;
+#endif
+
+            this.root = this.Null;
+            if (original.root != original.Null)
+            {
+                Stack<STuple<Node, Node>> stack = new Stack<STuple<Node, Node>>();
+
+                Node nodeOriginal = original.root;
+                Node nodeThis = this.root;
+                while (nodeOriginal != original.Null)
+                {
+                    Node nodeChild = new Node();
+                    nodeChild.left = this.Null;
+                    nodeChild.right = this.Null;
+                    if (this.root == this.Null)
+                    {
+                        this.root = nodeChild;
+                    }
+                    else
+                    {
+                        nodeThis.left = nodeChild;
+                    }
+                    nodeThis = nodeChild;
+                    stack.Push(new STuple<Node, Node>(nodeThis, nodeOriginal));
+                    nodeOriginal = nodeOriginal.left;
+                }
+                while (stack.Count != 0)
+                {
+                    STuple<Node, Node> t = stack.Pop();
+                    nodeThis = t.Item1;
+                    nodeOriginal = t.Item2;
+
+                    nodeThis.key = nodeOriginal.key;
+                    nodeThis.value = nodeOriginal.value;
+                    nodeThis.xOffset = nodeOriginal.xOffset;
+                    nodeThis.isRed = nodeOriginal.isRed;
+
+                    if (nodeOriginal.right != original.Null)
+                    {
+                        bool first = true;
+                        nodeOriginal = nodeOriginal.right;
+                        while (nodeOriginal != original.Null)
+                        {
+                            Node nodeChild = new Node();
+                            nodeChild.left = this.Null;
+                            nodeChild.right = this.Null;
+                            if (first)
+                            {
+                                first = false;
+                                nodeThis.right = nodeChild;
+                            }
+                            else
+                            {
+                                nodeThis.left = nodeChild;
+                            }
+                            nodeThis = nodeChild;
+                            stack.Push(new STuple<Node, Node>(nodeThis, nodeOriginal));
+                            nodeOriginal = nodeOriginal.left;
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -265,14 +350,12 @@ namespace TreeLib
                 Debug.Assert(this.count == 0);
             }
             else
-            {
                 /*[Storage(Storage.Object)]*/
                 {
 #if DEBUG
                     allocateHelper.allocateCount = 0;
 #endif
                 }
-            }
 
             root = Null;
             this.count = 0;
@@ -301,9 +384,8 @@ namespace TreeLib
         public bool TryRemove(KeyType key)
         {
             return DeleteInternal(
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key);
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0);
         }
 
         
@@ -339,11 +421,10 @@ namespace TreeLib
         public bool TrySetValue(KeyType key,ValueType value)
         {
             return InsertUpdateInternal(
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/  key,
-                /*[Payload(Payload.Value)]*/ value,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
+                /*[Payload(Payload.Value)]*/value,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 false/*add*/,
                 true/*update*/);
         }
@@ -358,9 +439,8 @@ namespace TreeLib
         public void Remove(KeyType key)
         {
             if (!DeleteInternal(
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key))
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -512,11 +592,11 @@ namespace TreeLib
             Node nearestNode;
             bool f = NearestLess(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
             value = nearestNode != Null ? nearestNode.value : default(ValueType);
             return f;
@@ -537,12 +617,46 @@ namespace TreeLib
             Node nearestNode;
             return NearestLess(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key and
+        /// the value and rank associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank)
+        {
+            valueOut = default(ValueType);
+            rank = 0;
+            /*[Widen]*/
+            int nearestStart;
+            Node nearestNode;
+            bool f = NearestLess(
+                out nearestNode,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                true/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, /*[Payload(Payload.Value)]*/out valueOut, out rank);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         
@@ -563,11 +677,11 @@ namespace TreeLib
             Node nearestNode;
             bool f = NearestLess(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
             value = nearestNode != Null ? nearestNode.value : default(ValueType);
             return f;
@@ -588,12 +702,46 @@ namespace TreeLib
             Node nearestNode;
             return NearestLess(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestLess(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank)
+        {
+            valueOut = default(ValueType);
+            rank = 0;
+            /*[Widen]*/
+            int nearestStart;
+            Node nearestNode;
+            bool f = NearestLess(
+                out nearestNode,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                false/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, /*[Payload(Payload.Value)]*/out valueOut, out rank);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         
@@ -614,11 +762,11 @@ namespace TreeLib
             Node nearestNode;
             bool f = NearestGreater(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
             value = nearestNode != Null ? nearestNode.value : default(ValueType);
             return f;
@@ -639,12 +787,46 @@ namespace TreeLib
             Node nearestNode;
             return NearestGreater(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank)
+        {
+            valueOut = default(ValueType);
+            rank = this.xExtent;
+            /*[Widen]*/
+            int nearestStart;
+            Node nearestNode;
+            bool f = NearestGreater(
+                out nearestNode,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                true/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, /*[Payload(Payload.Value)]*/out valueOut, out rank);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
         
@@ -665,11 +847,11 @@ namespace TreeLib
             Node nearestNode;
             bool f = NearestGreater(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
             value = nearestNode != Null ? nearestNode.value : default(ValueType);
             return f;
@@ -690,19 +872,46 @@ namespace TreeLib
             Node nearestNode;
             return NearestGreater(
                 out nearestNode,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ out nearestKey,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ out nearestStart,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
         }
 
-        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [Widen]
-        public int GetExtent()
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key and
+        /// the value and rank  associated with it.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="value">out parameter receiving the value associated with the returned key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Payload(Payload.Value)] out ValueType valueOut,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank)
         {
-            return this.xExtent;
+            valueOut = default(ValueType);
+            rank = this.xExtent;
+            /*[Widen]*/
+            int nearestStart;
+            Node nearestNode;
+            bool f = NearestGreater(
+                out nearestNode,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                false/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, /*[Payload(Payload.Value)]*/out valueOut, out rank);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
 
@@ -731,9 +940,8 @@ namespace TreeLib
 
             return InsertUpdateInternal(
                 key,
-                /*[Payload(Payload.Value)]*/ value,
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key,
+                /*[Payload(Payload.Value)]*/value,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 1,
                 true/*add*/,
                 false/*update*/);
@@ -897,9 +1105,8 @@ namespace TreeLib
                         Debug.Assert(countAdjust < 0);
 
                         DeleteInternal(
-                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ key,
-                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ 0,
-                            /*[Feature(Feature.Rank, Feature.RankMulti)]*/ CompareKeyMode.Key);
+                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0);
                     }
                     else
                     {
@@ -1029,8 +1236,7 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(
-            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestLess(            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -1100,8 +1306,7 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(
-            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestGreater(            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -1176,24 +1381,15 @@ namespace TreeLib
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
+        private bool InsertUpdateInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
         {
-            Debug.Assert((mode == CompareKeyMode.Key) || (add != update));
+            Debug.Assert((true) || (add != update));
 
             if (root == Null)
             {
                 if (!add)
                 {
                     return false;
-                }
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                if (mode == CompareKeyMode.Position)
-                {
-                    if (position != 0)
-                    {
-                        return false;
-                    }
                 }
 
                 root = Allocate(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value, false);
@@ -1239,18 +1435,8 @@ namespace TreeLib
                     xPositionCurrent += current.xOffset;
                 }
 
-                if (mode == CompareKeyMode.Key)
                 {
                     order = comparer.Compare(key, current.key);
-                }
-                else
-                {
-                    Debug.Assert(mode == CompareKeyMode.Position);
-                    order = position.CompareTo(xPositionCurrent);
-                    if (add && (order == 0))
-                    {
-                        order = -1; // node never found for sparse range mode
-                    }
                 }
 
                 if (order == 0)
@@ -1321,7 +1507,7 @@ namespace TreeLib
                 }
 
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                if ((mode == CompareKeyMode.Position)
+                if ((CompareKeyMode.Key == CompareKeyMode.Position)
                     && (position != unchecked(xPositionParent + xLengthParent)))
                 {
                     root.isRed = false;
@@ -1357,19 +1543,6 @@ namespace TreeLib
             }
             else
             {
-                // precedes parent
-
-                if (mode == CompareKeyMode.Position)
-                {
-                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                    /*[Widen]*/
-                    int positionParent = xPositionParent;
-                    if (position != positionParent)
-                    {
-                        root.isRed = false;
-                        return false;
-                    }
-                }
 
                 // compute here to throw before modifying tree
                 /*[Widen]*/
@@ -1415,8 +1588,7 @@ namespace TreeLib
 
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void ShiftRightOfPath(
-            [Widen] int position,            [Widen] int xAdjust)
+        private void ShiftRightOfPath(            [Widen] int position,            [Widen] int xAdjust)
         {
             unchecked
             {
@@ -1452,8 +1624,7 @@ namespace TreeLib
             }
         }
 
-        private bool DeleteInternal(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode)
+        private bool DeleteInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position)
         {
             unchecked
             {
@@ -1626,17 +1797,9 @@ namespace TreeLib
                         order = -1; // we don't need to compare any more once we found the match
                     }
                     else
-                    {
-                        if (mode == CompareKeyMode.Key)
                         {
                             order = comparer.Compare(key, current.key);
                         }
-                        else
-                        {
-                            Debug.Assert(mode == CompareKeyMode.Position);
-                            order = position.CompareTo(xPositionCurrent);
-                        }
-                    }
 
                     if (order == 0)
                     {
@@ -1695,7 +1858,7 @@ namespace TreeLib
                         match,
                         parentOfMatch,
                         parent/*successor*/,
-                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/ xPositionParent - xPositionMatch,
+                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPositionParent - xPositionMatch,
                         grandParent/*parentOfSuccessor*/);
 
                     ShiftRightOfPath(xPositionMatch + 1, -xLength);
@@ -1715,8 +1878,7 @@ namespace TreeLib
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(
-            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            Node parentOfsuccessor)
+        private void ReplaceNode(            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            Node parentOfsuccessor)
         {
             unchecked
             {
@@ -1890,9 +2052,8 @@ namespace TreeLib
             return Null;
         }
 
-        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool Find(
-            KeyType key,            out Node match,            [Widen] out int xPositionMatch)
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        private bool Find(            KeyType key,            out Node match,            [Widen] out int xPositionMatch)
         {
             unchecked
             {
@@ -1951,8 +2112,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool FindPosition(
-            [Widen] int position,            out Node lastLessEqual,            [Widen] out int xPositionLastLessEqual)
+        private bool FindPosition(            [Widen] int position,            out Node lastLessEqual,            [Widen] out int xPositionLastLessEqual)
         {
             unchecked
             {
@@ -2158,6 +2318,7 @@ namespace TreeLib
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [ExcludeFromCodeCoverage]
         private void ValidateRanges()
         {
             if (root != Null)
@@ -2207,20 +2368,24 @@ namespace TreeLib
 
         // INonInvasiveTreeInspection
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Null ? (object)root : null; } }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
             Node n = (Node)node;
             return n.left != Null ? (object)n.left : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
             Node n = (Node)node;
             return n.right != Null ? (object)n.right : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
             Node n = (Node)node;
@@ -2229,6 +2394,7 @@ namespace TreeLib
             return key;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
             Node n = (Node)node;
@@ -2237,12 +2403,14 @@ namespace TreeLib
             return value;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
             Node n = (Node)node;
             return n.isRed ? "red" : "black";
         }
 
+        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Null)
@@ -2287,6 +2455,7 @@ namespace TreeLib
             ValidateDepthInvariant();
         }
 
+        [ExcludeFromCodeCoverage]
         private void ValidateDepthInvariant()
         {
             int min = Int32.MaxValue;
@@ -2301,11 +2470,13 @@ namespace TreeLib
             }
         }
 
+        [ExcludeFromCodeCoverage]
         private int MaxDepth(Node root)
         {
             return (root == Null) ? 0 : (1 + Math.Max(MaxDepth(root.left), MaxDepth(root.right)));
         }
 
+        [ExcludeFromCodeCoverage]
         private void MinDepth(Node root,int depth,ref int min)
         {
             if (root == Null)
@@ -2328,6 +2499,7 @@ namespace TreeLib
         // INonInvasiveMultiRankMapInspection
 
         [Feature(Feature.Rank, Feature.RankMulti)]
+        [ExcludeFromCodeCoverage]
         [Widen]
         MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
         {
@@ -2394,6 +2566,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti)]
+        [ExcludeFromCodeCoverage]
         void INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
@@ -2512,7 +2685,6 @@ namespace TreeLib
                 {
 
                     if (valid)
-                    {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                         {
                             KeyType key = currentKey;
@@ -2536,7 +2708,6 @@ namespace TreeLib
                                 /*[Payload(Payload.Value)]*/value,
                                 /*[Feature(Feature.Rank, Feature.RankMulti)]*/rank);
                         }
-                    }
                     return new EntryRankMap<KeyType, ValueType>();
                 }
             }
@@ -2656,8 +2827,7 @@ namespace TreeLib
                 Advance();
             }
 
-            private void PushSuccessor(
-                Node node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xPosition)
+            private void PushSuccessor(                Node node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xPosition)
             {
                 while (node != tree.Null)
                 {
@@ -2699,6 +2869,16 @@ namespace TreeLib
                     nextNode.right,
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart);
             }
+        }
+
+
+        //
+        // Cloning
+        //
+
+        public object Clone()
+        {
+            return new RedBlackTreeRankMap<KeyType, ValueType>(this);
         }
     }
 }

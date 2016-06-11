@@ -98,8 +98,7 @@ namespace TreeLib
         public long YLength { get { return yLength; } }
 
 
-        public EntryRange2MapLong(
-            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            [Feature(Feature.Range2)][Widen] long yStart,            [Feature(Feature.Range2)][Widen] long yLength)
+        public EntryRange2MapLong(            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            [Feature(Feature.Range2)][Widen] long yStart,            [Feature(Feature.Range2)][Widen] long yLength)
         {
             this.value = value;
             this.xStart = xStart;

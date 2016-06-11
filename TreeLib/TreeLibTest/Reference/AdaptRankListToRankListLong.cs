@@ -28,52 +28,34 @@ using TreeLib.Internal;
 
 namespace TreeLibTest
 {
-    public class AdaptMultiRankListToMultiRankListLong<KeyType> :
-        IMultiRankList<KeyType>,
+    public class AdaptRankListToRankListLong<KeyType> :
+        IRankList<KeyType>,
         INonInvasiveTreeInspection,
         INonInvasiveMultiRankMapInspection,
-        IEnumerable<EntryMultiRankList<KeyType>>
+        IEnumerable<EntryRankList<KeyType>>
         where KeyType : IComparable<KeyType>
     {
-        private readonly IMultiRankListLong<KeyType> inner;
+        private readonly IRankListLong<KeyType> inner;
+
 
         //
         // Construction
         //
 
-        public AdaptMultiRankListToMultiRankListLong(IMultiRankListLong<KeyType> inner)
+        // Caller must create inner collection and provide it, since we can't know how to select the implementation.
+        public AdaptRankListToRankListLong(IRankListLong<KeyType> inner)
         {
             this.inner = inner;
         }
 
-        private static long ToLong(int i)
-        {
-            // translate overflow tests to the equivalent for 64-bit
-            if (i > Int32.MaxValue / 2)
-            {
-                return (long)i - Int32.MaxValue + Int64.MaxValue;
-            }
+        public IRankListLong<KeyType> Inner { get { return inner; } }
 
-            return i;
-        }
-
-        private static int ToInt(long l)
-        {
-            // translate overflow tests to the equivalent for 32-bit
-            if (l > Int64.MaxValue / 2)
-            {
-                return (int)(l - Int64.MaxValue + Int32.MaxValue);
-            }
-            return (int)l;
-        }
 
         //
-        // IMultiRankList
+        // IRankMapLong
         //
 
         public uint Count { get { return inner.Count; } }
-
-        public int RankCount { get { return ToInt(inner.RankCount); } }
 
         public long LongCount { get { return inner.LongCount; } }
 
@@ -87,9 +69,9 @@ namespace TreeLibTest
             return inner.ContainsKey(key);
         }
 
-        public bool TryAdd(KeyType key, int count)
+        public bool TryAdd(KeyType key)
         {
-            return inner.TryAdd(key, ToLong(count));
+            return inner.TryAdd(key);
         }
 
         public bool TryRemove(KeyType key)
@@ -107,24 +89,22 @@ namespace TreeLibTest
             return inner.TrySetKey(key);
         }
 
-        public bool TryGet(KeyType key, out KeyType keyOut, out int rank, out int count)
+        public bool TryGet(KeyType key, out KeyType keyOut, out int rank)
         {
             long rankLong;
-            long countLong;
-            bool f = inner.TryGet(key, out keyOut, out rankLong, out countLong);
-            rank = ToInt(rankLong);
-            count = ToInt(countLong);
+            bool f = inner.TryGet(key, out keyOut, out rankLong);
+            rank = IntLong.ToInt(rankLong);
             return f;
         }
 
         public bool TryGetKeyByRank(int rank, out KeyType key)
         {
-            return inner.TryGetKeyByRank(ToLong(rank), out key);
+            return inner.TryGetKeyByRank(rank, out key);
         }
 
-        public void Add(KeyType key, int count)
+        public void Add(KeyType key)
         {
-            inner.Add(key, ToLong(count));
+            inner.Add(key);
         }
 
         public void Remove(KeyType key)
@@ -142,23 +122,21 @@ namespace TreeLibTest
             inner.SetKey(key);
         }
 
-        public void Get(KeyType key, out KeyType keyOut, out int rank, out int count)
+        public void Get(KeyType key, out KeyType keyOut, out int rank)
         {
             long rankLong;
-            long countLong;
-            inner.Get(key, out keyOut, out rankLong, out countLong);
-            rank = ToInt(rankLong);
-            count = ToInt(countLong);
+            inner.Get(key, out keyOut, out rankLong);
+            rank = IntLong.ToInt(rankLong);
         }
 
         public KeyType GetKeyByRank(int rank)
         {
-            return inner.GetKeyByRank(ToLong(rank));
+            return inner.GetKeyByRank(rank);
         }
 
         public void AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(key, ToLong(countAdjust));
+            inner.AdjustCount(key, IntLong.ToLong(countAdjust));
         }
 
         public bool Least(out KeyType leastOut)
@@ -191,48 +169,85 @@ namespace TreeLibTest
             return inner.NearestGreater(key, out nearestKey);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestLessOrEqual(key, out nearestKey, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestLess(key, out nearestKey, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestGreaterOrEqual(key, out nearestKey, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestGreater(key, out nearestKey, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
 
         //
         // INonInvasiveTreeInspection
         //
 
-        // uint Count { get; }
+        uint INonInvasiveTreeInspection.Count { get { return ((INonInvasiveTreeInspection)inner).Count; } }
 
-        object INonInvasiveTreeInspection.Root { get { throw new NotSupportedException(); } }
+        object INonInvasiveTreeInspection.Root { get { return ((INonInvasiveTreeInspection)inner).Root; } }
 
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetLeftChild(node);
         }
 
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetRightChild(node);
         }
 
         object INonInvasiveTreeInspection.GetKey(object node)
         {
-            throw new NotSupportedException();
+            KeyValue<KeyType, ValueType> kv = (KeyValue<KeyType, ValueType>)((INonInvasiveTreeInspection)inner).GetKey(node);
+            return kv.key;
         }
 
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            throw new NotSupportedException();
+            KeyValue<KeyType, ValueType> kv = (KeyValue<KeyType, ValueType>)((INonInvasiveTreeInspection)inner).GetKey(node);
+            return kv.value;
         }
 
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetMetadata(node);
         }
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
+            ((INonInvasiveTreeInspection)inner).Validate();
         }
+
 
         //
         // INonInvasiveMultiRankMapInspection
         //
+
+        uint INonInvasiveMultiRankMapInspection.Count { get { return (uint)((INonInvasiveMultiRankMapInspectionLong)inner).Count; } }
 
         MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
         {
@@ -242,8 +257,8 @@ namespace TreeLibTest
             {
                 ranks[i].key = innerRanks[i].key;
                 ranks[i].value = innerRanks[i].value;
-                ranks[i].rank.start = ToInt(innerRanks[i].rank.start);
-                ranks[i].rank.length = ToInt(innerRanks[i].rank.length);
+                ranks[i].rank.start = IntLong.ToInt(innerRanks[i].rank.start);
+                ranks[i].rank.length = IntLong.ToInt(innerRanks[i].rank.length);
             }
             return ranks;
         }
@@ -258,7 +273,7 @@ namespace TreeLibTest
         // IEnumerable
         //
 
-        public IEnumerator<EntryMultiRankList<KeyType>> GetEnumerator()
+        public IEnumerator<EntryRankList<KeyType>> GetEnumerator()
         {
             throw new NotImplementedException();
         }

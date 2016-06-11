@@ -407,6 +407,58 @@ namespace TreeLibTest
             return NearestGreater(key, out nearestKey, out value);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            value = default(ValueType);
+            rank = 0;
+            bool f = NearestLessOrEqual(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            value = default(ValueType);
+            rank = 0;
+            bool f = NearestLess(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            value = default(ValueType);
+            rank = 0;
+            bool f = NearestGreaterOrEqual(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            value = default(ValueType);
+            rank = 0;
+            bool f = NearestGreater(key, out nearestKey);
+            if (f)
+            {
+                bool g = TryGet(nearestKey, out value, out rank);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
 
         //
         // Internals
@@ -477,7 +529,6 @@ namespace TreeLibTest
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
         }
 
         //

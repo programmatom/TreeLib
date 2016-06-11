@@ -34,7 +34,8 @@ namespace TreeLibTest
     {
         public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
             INonInvasiveTreeInspection tree,
-            out int maxDepth) where KeyType : IComparable<KeyType>
+            out int maxDepth,
+            bool propagateValue) where KeyType : IComparable<KeyType>
         {
             List<KeyValuePair<KeyType, ValueType>> items = new List<KeyValuePair<KeyType, ValueType>>();
 
@@ -51,7 +52,7 @@ namespace TreeLibTest
             {
                 current = stack.Pop();
                 KeyType key = (KeyType)tree.GetKey(current);
-                ValueType value = (ValueType)tree.GetValue(current);
+                ValueType value = propagateValue ? (ValueType)tree.GetValue(current) : default(ValueType);
                 items.Add(new KeyValuePair<KeyType, ValueType>(key, value));
 
                 object node = tree.GetRightChild(current);
@@ -67,10 +68,25 @@ namespace TreeLibTest
         }
 
         public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            INonInvasiveTreeInspection tree,
+            out int maxDepth) where KeyType : IComparable<KeyType>
+        {
+            return Flatten<KeyType, ValueType>(tree, out maxDepth, true/*propagateValue*/);
+        }
+
+        public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            INonInvasiveTreeInspection tree,
+            bool propagateValue) where KeyType : IComparable<KeyType>
+        {
+            int maxDepth;
+            return Flatten<KeyType, ValueType>(tree, out maxDepth, propagateValue);
+        }
+
+        public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
             INonInvasiveTreeInspection tree) where KeyType : IComparable<KeyType>
         {
             int maxDepth;
-            return Flatten<KeyType, ValueType>(tree, out maxDepth);
+            return Flatten<KeyType, ValueType>(tree, out maxDepth, true/*propagateValue*/);
         }
 
 

@@ -30,10 +30,17 @@ using System.Runtime.InteropServices;
 
 using TreeLib.Internal;
 
+#pragma warning disable CS1572 // silence warning: XML comment has a param tag for '...', but there is no parameter by that name
+#pragma warning disable CS1573 // silence warning: Parameter '...' has no matching param tag in the XML comment
+#pragma warning disable CS1587 // silence warning: XML comment is not placed on a valid language element
+#pragma warning disable CS1591 // silence warning: Missing XML comment for publicly visible type or member
+
+//
 // Implementation of top-down splay tree written by Daniel Sleator <sleator@cs.cmu.edu>.
 // Taken from http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c
-
+//
 // An overview of splay trees can be found here: https://en.wikipedia.org/wiki/Splay_tree
+//
 
 namespace TreeLib
 {
@@ -55,7 +62,9 @@ namespace TreeLib
         INonInvasiveTreeInspection,
         /*[Feature(Feature.Rank, Feature.RankMulti)]*//*[Widen]*/INonInvasiveMultiRankMapInspectionLong,
         IEnumerable<EntryMultiRankListLong<KeyType>>,
-        IEnumerable
+        IEnumerable,
+
+        ICloneable
 
         where KeyType : IComparable<KeyType>
     {
@@ -194,7 +203,7 @@ namespace TreeLib
         public SplayTreeMultiRankListLong([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity,AllocationMode allocationMode)
         {
             this.comparer = comparer;
-            root = Nil;
+            this.root = Nil;
 
             this.allocationMode = allocationMode;
             this.freelist = Nil;
@@ -251,7 +260,63 @@ namespace TreeLib
         [Storage(Storage.Object)]
         public SplayTreeMultiRankListLong(SplayTreeMultiRankListLong<KeyType> original)
         {
-            throw new NotImplementedException(); // TODO: clone
+            this.comparer = original.comparer;
+
+            this.count = original.count;
+            this.xExtent = original.xExtent;
+
+            this.allocationMode = original.allocationMode;
+            this.freelist = this.Nil;
+            {
+                Node nodeOriginal = original.freelist;
+                while (nodeOriginal != original.Nil)
+                {
+                    nodeOriginal = nodeOriginal.left;
+                    Node nodeCopy = new Node();
+                    nodeCopy.left = this.freelist;
+                    this.freelist = nodeCopy;
+                }
+            }
+#if DEBUG
+            this.allocateHelper.allocateCount = original.allocateHelper.allocateCount;
+#endif
+
+            // TODO: performance and memory usage
+            // Cloning a Splay tree is problematic because of the worst-case O(N) depth. Here we are using a breadth-first
+            // traversal to clone, as it is likely to use less memory in a typically "leggy" splay tree (vs. other types)
+            // than depth-first. Need to determine if this is sufficient or should be parameterized to give caller control,
+            // with the option of an O(N lg N) traversal instead.
+            this.root = this.Nil;
+            if (original.root != original.Nil)
+            {
+                this.root = new Node();
+
+                Queue<STuple<Node, Node>> worklist = new Queue<STuple<Node, Node>>();
+                worklist.Enqueue(new STuple<Node, Node>(this.root, original.root));
+                while (worklist.Count != 0)
+                {
+                    STuple<Node, Node> item = worklist.Dequeue();
+
+                    Node nodeThis = item.Item1;
+                    Node nodeOriginal = item.Item2;
+
+                    nodeThis.key = nodeOriginal.key;
+                    nodeThis.xOffset = nodeOriginal.xOffset;
+                    nodeThis.left = this.Nil;
+                    nodeThis.right = this.Nil;
+
+                    if (nodeOriginal.left != original.Nil)
+                    {
+                        nodeThis.left = new Node();
+                        worklist.Enqueue(new STuple<Node, Node>(nodeThis.left, nodeOriginal.left));
+                    }
+                    if (nodeOriginal.right != original.Nil)
+                    {
+                        nodeThis.right = new Node();
+                        worklist.Enqueue(new STuple<Node, Node>(nodeThis.right, nodeOriginal.right));
+                    }
+                }
+            }
         }
 
 
@@ -308,14 +373,12 @@ namespace TreeLib
                 Debug.Assert(this.count == 0);
             }
             else
-            {
                 /*[Storage(Storage.Object)]*/
                 {
 #if DEBUG
                     allocateHelper.allocateCount = 0;
 #endif
                 }
-            }
 
             root = Nil;
             this.count = 0;
@@ -333,7 +396,7 @@ namespace TreeLib
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 return 0 == comparer.Compare(key, root.key);
             }
             return false;
@@ -353,12 +416,12 @@ namespace TreeLib
             {
                 if (root != Nil)
                 {
-                    Splay(ref root, key);
+                    Splay(ref root, key, comparer);
                     int c = comparer.Compare(key, root.key);
                     if (c == 0)
                     {
                         /*[Feature(Feature.Rank, Feature.RankMulti)]*/
-                        Splay(ref root.right, key);
+                        Splay(ref root.right, key, comparer);
                         /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                         Debug.Assert((root.right == Nil) || (root.right.left == Nil));
                         /*[Feature(Feature.Rank, Feature.RankMulti)]*/
@@ -380,7 +443,7 @@ namespace TreeLib
                         {
                             x = root.left;
                             x.xOffset += root.xOffset;
-                            Splay(ref x, key);
+                            Splay(ref x, key, comparer);
                             Debug.Assert(x.right == Nil);
                             if (root.right != Nil)
                             {
@@ -416,7 +479,7 @@ namespace TreeLib
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 if (0 == comparer.Compare(key, root.key))
                 {
                     keyOut = root.key;
@@ -441,7 +504,7 @@ namespace TreeLib
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 if (0 == comparer.Compare(key, root.key))
                 {
                     root.key = key;
@@ -508,19 +571,12 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool LeastInternal(out KeyType keyOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        private bool LeastInternal(out KeyType keyOut)
         {
             if (root != Nil)
             {
-                Node node = root;
-                KeyType least = node.key;
-                while (node.left != Nil)
-                {
-                    node = node.left;
-                    least = node.key;
-                }
-                Splay(ref root, least);
-                keyOut = least;
+                Splay(ref root, default(KeyType), FixedComparer.Minimum);
+                keyOut = root.key;
                 return true;
             }
             keyOut = default(KeyType);
@@ -534,25 +590,18 @@ namespace TreeLib
         /// <param name="leastOut">out parameter receiving the key</param>
         /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Least(out KeyType keyOut) // slow; use NearestGreaterOrEqual() if KeyType.MinValue is available
+        public bool Least(out KeyType keyOut)
         {
             return LeastInternal(out keyOut);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private  bool GreatestInternal(out KeyType keyOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        private bool GreatestInternal(out KeyType keyOut)
         {
             if (root != Nil)
             {
-                Node node = root;
-                KeyType greatest = node.key;
-                while (node.right != Nil)
-                {
-                    node = node.right;
-                    greatest = node.key;
-                }
-                Splay(ref root, greatest);
-                keyOut = greatest;
+                Splay(ref root, default(KeyType), FixedComparer.Maximum);
+                keyOut = root.key;
                 return true;
             }
             keyOut = default(KeyType);
@@ -566,7 +615,7 @@ namespace TreeLib
         /// <param name="greatestOut">out parameter receiving the key</param>
         /// <returns>true if a key was found (i.e. collection contains at least 1 key-value pair)</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool Greatest(out KeyType keyOut) // slow; use NearestLessOrEqual() if KeyType.MaxValue is available
+        public bool Greatest(out KeyType keyOut)
         {
             return GreatestInternal(out keyOut);
         }
@@ -576,7 +625,7 @@ namespace TreeLib
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 int rootComparison = comparer.Compare(key, root.key);
                 if ((rootComparison > 0) || (orEqual && (rootComparison == 0)))
                 {
@@ -586,7 +635,7 @@ namespace TreeLib
                 else if (root.left != Nil)
                 {
                     KeyType rootKey = root.key;
-                    Splay(ref root.left, rootKey);
+                    Splay(ref root.left, rootKey, comparer);
                     nearestKey = root.left.key;
                     return true;
                 }
@@ -610,6 +659,32 @@ namespace TreeLib
 
         
         /// <summary>
+        /// Retrieves the highest key in the collection that is less than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than or equal to the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        {
+            rank = 0;
+            rankCount = 0;
+            bool f = NearestLess(key, out nearestKey, true/*orEqual*/);
+            if (f)
+            {
+                /*[Payload(Payload.None)]*/
+                KeyType duplicateKey;
+                bool g = TryGet(nearestKey, /*[Payload(Payload.None)]*/out duplicateKey, out rank, /*[Feature(Feature.RankMulti)]*/out rankCount);
+                Debug.Assert(g);
+                Debug.Assert(0 == comparer.Compare(nearestKey, duplicateKey));
+            }
+            return f;
+        }
+
+        
+        /// <summary>
         /// Retrieves the highest key in the collection that is less than the provided key.
         /// </summary>
         /// <param name="key">key to search below</param>
@@ -621,12 +696,38 @@ namespace TreeLib
             return NearestLess(key, out nearestKey, false/*orEqual*/);
         }
 
+        
+        /// <summary>
+        /// Retrieves the highest key in the collection that is less than the provided key.
+        /// </summary>
+        /// <param name="key">key to search below</param>
+        /// <param name="nearestKey">highest key less than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key less than the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestLess(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        {
+            rank = 0;
+            rankCount = 0;
+            bool f = NearestLess(key, out nearestKey, false/*orEqual*/);
+            if (f)
+            {
+                /*[Payload(Payload.None)]*/
+                KeyType duplicateKey;
+                bool g = TryGet(nearestKey, /*[Payload(Payload.None)]*/out duplicateKey, out rank, /*[Feature(Feature.RankMulti)]*/out rankCount);
+                Debug.Assert(g);
+                Debug.Assert(0 == comparer.Compare(nearestKey, duplicateKey));
+            }
+            return f;
+        }
+
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool NearestGreater(KeyType key,out KeyType nearestKey,bool orEqual)
         {
             if (root != Nil)
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 int rootComparison = comparer.Compare(key, root.key);
                 if ((rootComparison < 0) || (orEqual && (rootComparison == 0)))
                 {
@@ -636,7 +737,7 @@ namespace TreeLib
                 else if (root.right != Nil)
                 {
                     KeyType rootKey = root.key;
-                    Splay(ref root.right, rootKey);
+                    Splay(ref root.right, rootKey, comparer);
                     nearestKey = root.right.key;
                     return true;
                 }
@@ -660,6 +761,32 @@ namespace TreeLib
 
         
         /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than or equal to the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than or equal to the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        {
+            rank = this.xExtent;
+            rankCount = 0;
+            bool f = NearestGreater(key, out nearestKey, true/*orEqual*/);
+            if (f)
+            {
+                /*[Payload(Payload.None)]*/
+                KeyType duplicateKey;
+                bool g = TryGet(nearestKey, /*[Payload(Payload.None)]*/out duplicateKey, out rank, /*[Feature(Feature.RankMulti)]*/out rankCount);
+                Debug.Assert(g);
+                Debug.Assert(0 == comparer.Compare(nearestKey, duplicateKey));
+            }
+            return f;
+        }
+
+        
+        /// <summary>
         /// Retrieves the lowest key in the collection that is greater than the provided key.
         /// </summary>
         /// <param name="key">key to search above</param>
@@ -671,11 +798,316 @@ namespace TreeLib
             return NearestGreater(key, out nearestKey, false/*orEqual*/);
         }
 
-        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [Widen]
-        public long GetExtent()
+        
+        /// <summary>
+        /// Retrieves the lowest key in the collection that is greater than the provided key.
+        /// </summary>
+        /// <param name="key">key to search above</param>
+        /// <param name="nearestKey">lowest key greater than the provided key</param>
+        /// <param name="rank">the rank of the returned key</param>
+        /// <param name="count">the count of the returned key</param>
+        /// <returns>true if there was a key greater than the provided key</returns>
+        [Feature(Feature.Rank, Feature.RankMulti)]
+        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
-            return this.xExtent;
+            rank = this.xExtent;
+            rankCount = 0;
+            bool f = NearestGreater(key, out nearestKey, false/*orEqual*/);
+            if (f)
+            {
+                /*[Payload(Payload.None)]*/
+                KeyType duplicateKey;
+                bool g = TryGet(nearestKey, /*[Payload(Payload.None)]*/out duplicateKey, out rank, /*[Feature(Feature.RankMulti)]*/out rankCount);
+                Debug.Assert(g);
+                Debug.Assert(0 == comparer.Compare(nearestKey, duplicateKey));
+            }
+            return f;
+        }
+
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        public bool TryGet([Widen] long start,[Widen] out long xLength)
+        {
+            unchecked
+            {
+                if (root != Nil)
+                {
+                    Splay2(ref root, start);
+                    if (start == Start(root))
+                    {
+                        Splay2(ref root.right, 0);
+                        Debug.Assert((root.right == Nil) || (root.right.left == Nil));
+                        if (root.right != Nil)
+                        {
+                            xLength = root.right.xOffset;
+                        }
+                        else
+                        {
+                            xLength = this.xExtent - root.xOffset;
+                        }
+                        return true;
+                    }
+                }
+                xLength = 0;
+                return false;
+            }
+        }
+
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        private bool NearestLess([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,bool orEqual)
+        {
+            if (root != Nil)
+            {
+                Splay2(ref root, position);
+                /*[Widen]*/
+                long start = Start(root) ;
+                if ((position < start) || (!orEqual && (position == start)))
+                {
+                    if (root.left != Nil)
+                    {
+                        Splay2(ref root.left, 0);
+                        Debug.Assert(root.left.right == Nil);
+                        nearestKey = root.left.key;
+                        nearestStart = start + (root.left.xOffset);
+                        return true;
+                    }
+                    nearestKey = default(KeyType);
+                    nearestStart = 0;
+                    return false;
+                }
+                else
+                {
+                    nearestKey = root.key;
+                    nearestStart = Start(root);
+                    return true;
+                }
+            }
+            nearestKey = default(KeyType);
+            nearestStart = 0;
+            return false;
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
+        public bool NearestLessOrEqualByRank([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,[Widen] out long xLength)
+        {
+            xLength = 0;
+            bool f = NearestLess(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, true/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than or equal to the specified index.
+        /// Use this method to convert an index to the interior of a key's range into the start index of a key's range.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the specified index is greater than or equal to the extent it will return the last key's start index.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a key was found with a starting index less than or equal to the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
+        public bool NearestLessOrEqualByRank([Widen] long position,[Widen] out long nearestStart)
+        {
+            KeyType nearestKey;
+            return NearestLess(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessByRank", Feature.RankMulti)]
+        public bool NearestLessByRank([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,[Widen] out long xLength)
+        {
+            xLength = 0;
+            bool f = NearestLess(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, false/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index less than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index of the range that was found.
+        /// If the specified index is an interior index, the start of the containing range will be returned.
+        /// If the index is at the start of a key's range, the start of the previous key's range will be returned.
+        /// If the value is greater than or equal to the extent it will return the start of last range of the collection.
+        /// If there are no keys in the collection or position is less than or equal to 0, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index less than the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestLessByRank", Feature.RankMulti)]
+        public bool NearestLessByRank([Widen] long position,[Widen] out long nearestStart)
+        {
+            KeyType nearestKey;
+            return NearestLess(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, false/*orEqual*/);
+        }
+
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        private bool NearestGreater([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,bool orEqual)
+        {
+            if (root != Nil)
+            {
+                Splay2(ref root, position);
+                /*[Widen]*/
+                long start = Start(root) ;
+                if ((position > start) || (!orEqual && (position == start)))
+                {
+                    if (root.right != Nil)
+                    {
+                        Splay2(ref root.right, 0);
+                        Debug.Assert(root.right.left == Nil);
+                        nearestKey = root.right.key;
+                        nearestStart = start + (root.right.xOffset);
+                        return true;
+                    }
+                    nearestKey = default(KeyType);
+                    nearestStart = this.xExtent;
+                    return false;
+                }
+                else
+                {
+                    nearestKey = root.key;
+                    nearestStart = start;
+                    return true;
+                }
+            }
+            nearestKey = default(KeyType);
+            nearestStart = 0;
+            return false;
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
+        public bool NearestGreaterOrEqualByRank([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,[Widen] out long xLength)
+        {
+            xLength = 0;
+            bool f = NearestGreater(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, true/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's index that starts at an index greater than or equal to the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range, that index will be returned.
+        /// If the index refers to the interior index for a key's range, the start of the next key's range in the sequence will be returned.
+        /// If the index is less than or equal to 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
+        public bool NearestGreaterOrEqualByRank([Widen] long position,[Widen] out long nearestStart)
+        {
+            KeyType nearestKey;
+            return NearestGreater(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, true/*orEqual*/);
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <param name="nearestKey">the key that was found</param>
+        /// <param name="count">the count for the key (i.e. the length of the key's range)</param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterByRank", Feature.RankMulti)]
+        public bool NearestGreaterByRank([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,[Widen] out long xLength)
+        {
+            xLength = 0;
+            bool f = NearestGreater(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, false/*orEqual*/);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, out xLength);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        
+        /// <summary>
+        /// Search for the nearest key's range that starts at an index greater than the specified index.
+        /// </summary>
+        /// <param name="position">the index to begin searching at</param>
+        /// <param name="nearestStart">an out parameter receiving the start index that was found.
+        /// If the index refers to the start of a key's range or is an interior index for a range, the next key's range will be returned.
+        /// If the index is less than 0, the index 0 will be returned, which is the start of the first key's range.
+        /// If the index is greater than or equal to the start of the last key's range, no index will be found.
+        /// </param>
+        /// <returns>true if a range was found with a starting index greater than the specified index</returns>
+        [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [Rename("NearestGreaterByRank", Feature.RankMulti)]
+        public bool NearestGreaterByRank([Widen] long position,[Widen] out long nearestStart)
+        {
+            KeyType nearestKey;
+            return NearestGreater(position, /*[Feature(Feature.RankMulti)]*/out nearestKey, out nearestStart, false/*orEqual*/);
         }
 
 
@@ -692,7 +1124,7 @@ namespace TreeLib
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        public long RankCount { get { return GetExtent(); } }
+        public long RankCount { get { return this.xExtent; } }
 
         // ContainsKey() - reuses Feature.Dict implementation
 
@@ -715,7 +1147,7 @@ namespace TreeLib
                     throw new ArgumentOutOfRangeException();
                 }
 
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 int c;
                 if ((root == Nil) || ((c = comparer.Compare(key, root.key)) < 0))
                 {
@@ -760,7 +1192,7 @@ namespace TreeLib
                     i.key = key;
 
                     /*[Feature(Feature.RankMulti)]*/
-                    Splay(ref root.right, key);
+                    Splay(ref root.right, key, comparer);
                     /*[Feature(Feature.RankMulti)]*/
                     Debug.Assert((root.right == Nil) || (root.right.left == Nil));
                     /*[Widen]*/
@@ -817,11 +1249,11 @@ namespace TreeLib
             {
                 if (root != Nil)
                 {
-                    Splay(ref root, key);
+                    Splay(ref root, key, comparer);
                     if (0 == comparer.Compare(key, root.key))
                     {
                         /*[Feature(Feature.RankMulti)]*/
-                        Splay(ref root.right, key);
+                        Splay(ref root.right, key, comparer);
                         /*[Feature(Feature.RankMulti)]*/
                         Debug.Assert((root.right == Nil) || (root.right.left == Nil));
                         rank = root.xOffset;
@@ -835,6 +1267,52 @@ namespace TreeLib
                 /*[Feature(Feature.RankMulti)]*/
                 rankCount = 0;
                 keyOut = default(KeyType);
+                return false;
+            }
+        }
+
+        
+        /// <summary>
+        /// Attempts to update the key data and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for and also update</param>
+        /// <param name="rank">the new rank count</param>
+        /// <returns>true if they key was found and the rank was a valid value or false if the rank count was not at least 1
+        /// or the sum of counts would have exceeded Int64.MaxValue</returns>
+        [Feature(Feature.RankMulti)]
+        public bool TrySet(KeyType key,[Widen] long rankCount)
+        {
+            unchecked
+            {
+                Splay(ref root, key, comparer);
+                int c;
+                if ((root != Nil) && ((c = comparer.Compare(key, root.key)) == 0))
+                {
+                    Splay(ref root.right, key, comparer);
+                    Debug.Assert((root.right == Nil) || (root.right.left == Nil));
+                    /*[Widen]*/
+                    long oldLength = root.right != Nil ? root.right.xOffset : this.xExtent - root.xOffset ;
+
+                    if (rankCount > 0)
+                    {
+                        /*[Widen]*/
+                        long countAdjust = checked(rankCount - oldLength) ;
+                        this.xExtent = checked(this.xExtent + countAdjust);
+
+                        if (root.right != Nil)
+                        {
+                            unchecked
+                            {
+                                root.right.xOffset += countAdjust;
+                            }
+                        }
+                        /*[Payload(Payload.None)]*/
+                        root.key = key;
+
+                        return true;
+                    }
+                }
+
                 return false;
             }
         }
@@ -876,7 +1354,7 @@ namespace TreeLib
                     Debug.Assert((root.right == Nil) || (root.right.left == Nil));
                     /*[Widen]*/
                     long length = root.right != Nil ? root.right.xOffset : this.xExtent - root.xOffset ;
-                    if (/*(rank >= Start(root, Side.X)) && */(rank < Start(root) + length))
+                    if (/*(rank >= Start(root, Side.X)) && */rank < Start(root) + length)
                     {
                         Debug.Assert(rank >= Start(root));
                         key = root.key;
@@ -933,6 +1411,27 @@ namespace TreeLib
 
         
         /// <summary>
+        /// Updates the key and rank index associated with a key in the collection.
+        /// </summary>
+        /// <param name="key">key to search for and also update</param>
+        /// <param name="rank">the new rank count</param>
+        /// <exception cref="ArgumentException">the rank count was not at least 1</exception>
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int64.MaxValue</exception>
+        [Feature(Feature.RankMulti)]
+        public void Set(KeyType key,[Widen] long rankCount)
+        {
+            if (rankCount < 1)
+            {
+                throw new ArgumentException("rankCount");
+            }
+            if (!TrySet(key, rankCount))
+            {
+                throw new ArgumentException("item not in tree");
+            }
+        }
+
+        
+        /// <summary>
         /// Retrieves the key at the specified rank index. If all keys in the collection were
         /// converted to a sorted array of keys, this would be the equivalent of array[rank], subject to the
         /// constraint that only the first occurrence of each key can be indexed.
@@ -966,13 +1465,13 @@ namespace TreeLib
         {
             unchecked
             {
-                Splay(ref root, key);
+                Splay(ref root, key, comparer);
                 int c;
                 if ((root != Nil) && ((c = comparer.Compare(key, root.key)) == 0))
                 {
                     // update and possibly remove
 
-                    Splay(ref root.right, key);
+                    Splay(ref root.right, key, comparer);
                     Debug.Assert((root.right == Nil) || (root.right.left == Nil));
                     /*[Widen]*/
                     long oldLength = root.right != Nil ? root.right.xOffset : this.xExtent - root.xOffset ;
@@ -1012,7 +1511,7 @@ namespace TreeLib
                         {
                             x = root.left;
                             x.xOffset += root.xOffset;
-                            Splay(ref x, key);
+                            Splay(ref x, key, comparer);
                             Debug.Assert(x.right == Nil);
                             if (root.right != Nil)
                             {
@@ -1180,9 +1679,29 @@ namespace TreeLib
         //[5] "Data Structures, Algorithms, and Performance", Derick Wood,
         //   Addison-Wesley, 1993, pp 367-375.
 
+        // use FixedComparer for finding the first or last in a tree
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private class FixedComparer : IComparer<KeyType>
+        {
+            private readonly int fixedResult;
+
+            public readonly static FixedComparer Minimum = new FixedComparer(-1);
+            public readonly static FixedComparer Maximum = new FixedComparer(1);
+
+            public FixedComparer(int fixedResult)
+            {
+                this.fixedResult = fixedResult;
+            }
+
+            public int Compare(KeyType x,KeyType y)
+            {
+                return fixedResult;
+            }
+        }
+
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         [EnableFixed]
-        private void Splay(ref Node root,KeyType leftComparand)
+        private void Splay(ref Node root,KeyType leftComparand,IComparer<KeyType> comparer)
         {
             unchecked
             {
@@ -1396,7 +1915,7 @@ namespace TreeLib
                         {
                             break;
                         }
-                        c = position.CompareTo((t.xOffset + t.right.xOffset));
+                        c = position.CompareTo(t.xOffset + t.right.xOffset);
                         if (c > 0)
                         {
                             // rotate left
@@ -1464,6 +1983,7 @@ namespace TreeLib
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+        [ExcludeFromCodeCoverage]
         private void ValidateRanges()
         {
             if (root != Nil)
@@ -1513,20 +2033,24 @@ namespace TreeLib
 
         // INonInvasiveTreeInspection
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Nil ? (object)root : null; } }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
             Node n = (Node)node;
             return n.left != Nil ? (object)n.left : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
             Node n = (Node)node;
             return n.right != Nil ? (object)n.right : null;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
             Node n = (Node)node;
@@ -1535,17 +2059,20 @@ namespace TreeLib
             return key;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
             object value = null;
             return value;
         }
 
+        [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
             return null;
         }
 
+        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -1591,6 +2118,7 @@ namespace TreeLib
         // INonInvasiveMultiRankMapInspection
 
         [Feature(Feature.Rank, Feature.RankMulti)]
+        [ExcludeFromCodeCoverage]
         [Widen]
         MultiRankMapEntryLong[] INonInvasiveMultiRankMapInspectionLong.GetRanks()
         {
@@ -1656,6 +2184,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti)]
+        [ExcludeFromCodeCoverage]
         void INonInvasiveMultiRankMapInspectionLong.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
@@ -1666,10 +2195,10 @@ namespace TreeLib
         // Enumeration
         //
 
-            /// <summary>
-            /// Get the default enumerator, which is the robust enumerator for splay trees.
-            /// </summary>
-            /// <returns></returns>
+        /// <summary>
+        /// Get the default enumerator, which is the robust enumerator for splay trees.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<EntryMultiRankListLong<KeyType>> GetEnumerator()
         {
             // For splay trees, the default enumerator is Robust because the Fast enumerator is fragile
@@ -1784,10 +2313,9 @@ namespace TreeLib
                 {
 
                     if (valid)
-                    {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                    {
-                        KeyType key = currentKey;
+                        {
+                            KeyType key = currentKey;
                             /*[Widen]*/
                             long rank = 0 ;
                             /*[Widen]*/
@@ -1805,7 +2333,6 @@ namespace TreeLib
                                 /*[Feature(Feature.Rank, Feature.RankMulti)]*/rank,
                                 /*[Feature(Feature.RankMulti)]*/count);
                         }
-                    }
                     return new EntryMultiRankListLong<KeyType>();
                 }
             }
@@ -1926,8 +2453,7 @@ namespace TreeLib
                 Advance();
             }
 
-            private void PushSuccessor(
-                Node node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xPosition)
+            private void PushSuccessor(                Node node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xPosition)
             {
                 while (node != tree.Nil)
                 {
@@ -1969,6 +2495,16 @@ namespace TreeLib
                     nextNode.right,
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart);
             }
+        }
+
+
+        //
+        // Cloning
+        //
+
+        public object Clone()
+        {
+            return new SplayTreeMultiRankListLong<KeyType>(this);
         }
     }
 }

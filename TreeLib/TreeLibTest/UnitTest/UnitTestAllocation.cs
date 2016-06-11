@@ -581,275 +581,443 @@ namespace TreeLibTest
             }
         }
 
+        // also hit the constructors that take an explicit comparer for code coverage
+
+        private void DoWithDefaultComparer()
+        {
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new SplayTreeMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new SplayTreeArrayMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new RedBlackTreeMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new RedBlackTreeArrayMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AVLTreeMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AVLTreeArrayMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new SplayTreeList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new SplayTreeArrayList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new RedBlackTreeList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new RedBlackTreeArrayList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new AVLTreeList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new AVLTreeArrayList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new SplayTreeMultiRankMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AVLTreeMultiRankMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new SplayTreeMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new SplayTreeArrayMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new RedBlackTreeMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new RedBlackTreeArrayMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new AVLTreeMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new AVLTreeArrayMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new SplayTreeRankMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new SplayTreeArrayRankMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new RedBlackTreeRankMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AVLTreeRankMap<int, float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AVLTreeArrayRankMap<int, float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new SplayTreeRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new SplayTreeArrayRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new RedBlackTreeRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new RedBlackTreeArrayRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new AVLTreeRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new AVLTreeArrayRankList<KeyValue<int, float>>(capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2Map(new SplayTreeRange2Map<float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2Map(new SplayTreeArrayRange2Map<float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2Map(new RedBlackTreeRange2Map<float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2Map(new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2Map(new AVLTreeRange2Map<float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2Map(new AVLTreeArrayRange2Map<float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeMap(new SplayTreeRangeMap<float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeMap(new SplayTreeArrayRangeMap<float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeMap(new RedBlackTreeRangeMap<float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeMap(new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeMap(new AVLTreeRangeMap<float>(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeMap(new AVLTreeArrayRangeMap<float>(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2List(new SplayTreeRange2List(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2List(new SplayTreeArrayRange2List(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2List(new RedBlackTreeRange2List(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2List(new RedBlackTreeArrayRange2List(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2List(new AVLTreeRange2List(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRange2List(new AVLTreeArrayRange2List(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeList(new SplayTreeRangeList(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeList(new SplayTreeArrayRangeList(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeList(new RedBlackTreeRangeList(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeList(new RedBlackTreeArrayRangeList(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeList(new AVLTreeRangeList(capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRangeList(new AVLTreeArrayRangeList(capacity, allocationMode)); },
+            false/*permitDiscard*/);
+        }
+
+        private void DoWithExplicitComparer()
+        {
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new SplayTreeMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new SplayTreeArrayMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new RedBlackTreeMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new RedBlackTreeArrayMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AVLTreeMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AVLTreeArrayMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new SplayTreeList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new SplayTreeArrayList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new RedBlackTreeList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new RedBlackTreeArrayList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new AVLTreeList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMap(new AdaptListToMap<int, float>(new AVLTreeArrayList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new SplayTreeMultiRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new SplayTreeArrayMultiRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new RedBlackTreeMultiRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new RedBlackTreeArrayMultiRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AVLTreeMultiRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AVLTreeArrayMultiRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new SplayTreeMultiRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new SplayTreeArrayMultiRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new RedBlackTreeMultiRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new RedBlackTreeArrayMultiRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new AVLTreeMultiRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new AVLTreeArrayMultiRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new SplayTreeRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new SplayTreeArrayRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new RedBlackTreeRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new RedBlackTreeArrayRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AVLTreeRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AVLTreeArrayRankMap<int, float>(Comparer<int>.Default, capacity, allocationMode)); },
+            false/*permitDiscard*/);
+
+
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new SplayTreeRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new SplayTreeArrayRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new RedBlackTreeRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new RedBlackTreeArrayRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new AVLTreeRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            true/*permitDiscard*/);
+
+            DoTest(delegate (AllocationMode allocationMode, uint capacity)
+            { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new AVLTreeArrayRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default, capacity, allocationMode))); },
+            false/*permitDiscard*/);
+
+
+
+            // Range and Range2 do not have keys and therefore do not have a constructor taking an explicit comparer
+        }
+
         public override bool Do()
         {
             try
             {
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new SplayTreeMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
+                DoWithDefaultComparer();
 
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new SplayTreeArrayMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new RedBlackTreeMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new RedBlackTreeArrayMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AVLTreeMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AVLTreeArrayMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AdaptListToMap<int, float>(new SplayTreeList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AdaptListToMap<int, float>(new SplayTreeArrayList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AdaptListToMap<int, float>(new RedBlackTreeList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AdaptListToMap<int, float>(new RedBlackTreeArrayList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AdaptListToMap<int, float>(new AVLTreeList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMap(new AdaptListToMap<int, float>(new AVLTreeArrayList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new SplayTreeMultiRankMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AVLTreeMultiRankMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new SplayTreeMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new SplayTreeArrayMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new RedBlackTreeMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new RedBlackTreeArrayMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new AVLTreeMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestMultiRankMap(new AdaptMultiRankListToMultiRankMap<int, float>(new AVLTreeArrayMultiRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new SplayTreeRankMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new SplayTreeArrayRankMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new RedBlackTreeRankMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AVLTreeRankMap<int, float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AVLTreeArrayRankMap<int, float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new SplayTreeRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new SplayTreeArrayRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new RedBlackTreeRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new RedBlackTreeArrayRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new AVLTreeRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRankMap(new AdaptRankListToRankMap<int, float>(new AVLTreeArrayRankList<KeyValue<int, float>>(capacity, allocationMode))); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2Map(new SplayTreeRange2Map<float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2Map(new SplayTreeArrayRange2Map<float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2Map(new RedBlackTreeRange2Map<float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2Map(new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2Map(new AVLTreeRange2Map<float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2Map(new AVLTreeArrayRange2Map<float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeMap(new SplayTreeRangeMap<float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeMap(new SplayTreeArrayRangeMap<float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeMap(new RedBlackTreeRangeMap<float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeMap(new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeMap(new AVLTreeRangeMap<float>(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeMap(new AVLTreeArrayRangeMap<float>(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2List(new SplayTreeRange2List(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2List(new SplayTreeArrayRange2List(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2List(new RedBlackTreeRange2List(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2List(new RedBlackTreeArrayRange2List(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2List(new AVLTreeRange2List(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRange2List(new AVLTreeArrayRange2List(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeList(new SplayTreeRangeList(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeList(new SplayTreeArrayRangeList(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeList(new RedBlackTreeRangeList(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeList(new RedBlackTreeArrayRangeList(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeList(new AVLTreeRangeList(capacity, allocationMode)); },
-                true/*permitDiscard*/);
-
-                DoTest(delegate (AllocationMode allocationMode, uint capacity)
-                { return new AllocTestRangeList(new AVLTreeArrayRangeList(capacity, allocationMode)); },
-                false/*permitDiscard*/);
-
-
+                DoWithExplicitComparer();
 
                 return true;
             }
             catch (Exception)
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 throw;
             }
         }

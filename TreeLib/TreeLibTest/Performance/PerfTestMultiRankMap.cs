@@ -74,8 +74,8 @@ namespace TreeLibTest
         {
             for (int i = 0; i < count; i++)
             {
-                int key = random.Random();
-                int rankCount = random.Random() % 100 + 1;
+                int key = random.Next();
+                int rankCount = random.Next() % 100 + 1;
                 tree.TryAdd(key, key, rankCount);
             }
             if (tree.Count < .999 * count)
@@ -90,7 +90,7 @@ namespace TreeLibTest
             int i = 0;
             while ((count.HasValue && (i < count.Value)) || (!count.HasValue && (tree.Count != 0)))
             {
-                int rank = random.Random() % unchecked((int)tree.RankCount);
+                int rank = random.Next() % unchecked((int)tree.RankCount);
                 int key = tree.GetKeyByRank(rank);
                 tree.Remove(key);
                 i++;

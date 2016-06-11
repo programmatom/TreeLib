@@ -56,8 +56,7 @@ namespace TreeLib
         public ValueType Value { get { return value; } }
 
 
-        public EntryMap(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value)
+        public EntryMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value)
         {
             this.key = key;
             this.value = value;

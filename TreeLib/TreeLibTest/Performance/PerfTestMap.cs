@@ -74,7 +74,7 @@ namespace TreeLibTest
         {
             for (int i = 0; i < count; i++)
             {
-                int key = random.Random();
+                int key = random.Next();
                 tree.TryAdd(key, key);
             }
             if (tree.Count < .999 * count)
@@ -89,7 +89,7 @@ namespace TreeLibTest
             int i = 0;
             while ((count.HasValue && (i < count.Value)) || (!count.HasValue && (tree.Count != 0)))
             {
-                int key = random.Random();
+                int key = random.Next();
                 if (tree.NearestGreaterOrEqual(key, out key))
                 {
                     tree.Remove(key);

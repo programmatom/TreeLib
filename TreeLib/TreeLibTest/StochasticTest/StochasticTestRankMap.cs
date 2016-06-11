@@ -945,6 +945,228 @@ namespace TreeLibTest
             }
         }
 
+        private delegate bool EquivalenceActionVariant0<KeyType, ValueType>(IRankMap<KeyType, ValueType> collection, out KeyType keyOut, out ValueType valueOut) where KeyType : IComparable<KeyType>;
+        private void EquivalenceActionVariant0Util(IRankMap<int, float>[] collections, Random rnd, ref string description, EquivalenceActionVariant0<int, float> variantMethod)
+        {
+            int key = 0;
+            float value = 0;
+            bool f = false;
+            for (int i = 0; i < collections.Length; i++)
+            {
+                int key1;
+                float value1;
+                bool f1 = variantMethod(collections[i], out key1, out value1);
+                if (i == 0)
+                {
+                    key = key1;
+                    value = value1;
+                    f = f1;
+                }
+                else
+                {
+                    if (key != key1)
+                    {
+                        Fault(collections[i], description + "key");
+                    }
+                    if (value != value1)
+                    {
+                        Fault(collections[i], description + "value");
+                    }
+                    if (f != f1)
+                    {
+                        Fault(collections[i], description + "result");
+                    }
+                }
+            }
+        }
+
+        private void LeastAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            description = "Least";
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { instanceValue = default(float); return collection.Least(out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { return collection.Least(out instanceKey, out instanceValue); });
+                    break;
+            }
+        }
+
+        private void GreatestAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            description = "Greatest";
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { instanceValue = default(float); return collection.Greatest(out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant0Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, out int instanceKey, out float instanceValue)
+                        { return collection.Greatest(out instanceKey, out instanceValue); });
+                    break;
+            }
+        }
+
+        private delegate bool EquivalenceActionVariant1<KeyType, ValueType>(IRankMap<KeyType, ValueType> collection, KeyType key, out KeyType keyOut, out ValueType valueOut) where KeyType : IComparable<KeyType>;
+        private void EquivalenceActionVariant1Util(IRankMap<int, float>[] collections, Random rnd, ref string description, EquivalenceActionVariant1<int, float> variantMethod)
+        {
+            string descriptionPrefix = description;
+
+            int queryKey;
+            float queryValue;
+
+            MultiRankInfo<int, float>[] items = FlattenAnyRankTree<int, float>(collections[0], true/*multi*/);
+            if ((rnd.Next(2) == 0) && (items.Length != 0))
+            {
+                // with existing
+                int index = rnd.Next(items.Length);
+                queryKey = items[index].Key;
+                queryValue = items[index].Value;
+                description = String.Format("{0} (existing) [{1}]", descriptionPrefix, queryKey);
+            }
+            else
+            {
+                // with non-existing
+                queryValue = default(float);
+                do
+                {
+                    queryKey = rnd.Next(Int32.MinValue, Int32.MaxValue);
+                }
+                while (Array.BinarySearch(items, new MultiRankInfo<int, float>(queryKey), Comparer<MultiRankInfo<int, float>>.Default) >= 0);
+                description = String.Format("{0} (nonexisting) [{1}]", descriptionPrefix, queryKey);
+            }
+
+            int modelKey = 0;
+            float modelValue = 0;
+            bool f = false;
+            for (int i = 0; i < collections.Length; i++)
+            {
+                int instanceKey;
+                float instanceValue;
+                bool f1 = variantMethod(collections[i], queryKey, out instanceKey, out instanceValue);
+                if (i == 0)
+                {
+                    modelKey = instanceKey;
+                    modelValue = instanceValue;
+                    f = f1;
+                }
+                else
+                {
+                    if (modelKey != instanceKey)
+                    {
+                        Fault(collections[i], description + "key");
+                    }
+                    if (modelValue != instanceValue)
+                    {
+                        Fault(collections[i], description + "value");
+                    }
+                    if (f != f1)
+                    {
+                        Fault(collections[i], description + "result");
+                    }
+                }
+            }
+        }
+
+        private void NearestLessOrEqualAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            description = "NearestLessOrEqual";
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestLessOrEqual(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestLessOrEqual(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
+        }
+
+        private void NearestLessAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            description = "NearestLess";
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestLess(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestLess(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
+        }
+
+        private void NearestGreaterOrEqualAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            description = "NearestGreaterOrEqual";
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestGreaterOrEqual(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestGreaterOrEqual(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
+        }
+
+        private void NearestGreaterAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            description = "NearestGreater";
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { valueOut = default(float); return collection.NearestGreater(queryKey, out instanceKey); });
+                    break;
+                case 1:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
+                        { return collection.NearestGreater(queryKey, out instanceKey, out valueOut); });
+                    break;
+            }
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -993,6 +1215,14 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), GetKeyByRankAction),
 
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(280     , 280      ), AdjustCountAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), LeastAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), GreatestAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestLessOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestLessAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestGreaterOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestGreaterAction),
             };
 
             return StochasticDriver(
@@ -1001,6 +1231,7 @@ namespace TreeLibTest
                 control,
                 collections,
                 actions,
+                delegate (IRankMap<int, float> _collection) { return _collection.Count; },
                 delegate (IRankMap<int, float>[] _collections) { Validate<int, float>(_collections); });
         }
     }

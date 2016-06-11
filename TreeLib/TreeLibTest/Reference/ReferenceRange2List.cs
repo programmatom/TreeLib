@@ -101,6 +101,11 @@ namespace TreeLibTest
             return inner.TryGet(start, side, out otherStart, out xLength, out yLength, out value);
         }
 
+        public bool TrySet(int start, Side side, int xLength, int yLength)
+        {
+            return inner.TrySet(start, side, xLength, yLength, null);
+        }
+
         public void Insert(int start, Side side, int xLength, int yLength)
         {
             inner.Insert(start, side, xLength, yLength, null);
@@ -127,6 +132,11 @@ namespace TreeLibTest
             inner.Get(start, side, out otherStart, out xLength, out yLength, out value);
         }
 
+        public void Set(int start, Side side, int xLength, int yLength)
+        {
+            inner.Set(start, side, xLength, yLength, null);
+        }
+
         public int GetExtent(Side side)
         {
             return inner.GetExtent(side);
@@ -150,6 +160,30 @@ namespace TreeLibTest
         public bool NearestGreater(int position, Side side, out int nearestStart)
         {
             return inner.NearestGreater(position, side, out nearestStart);
+        }
+
+        public bool NearestLessOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength)
+        {
+            object value;
+            return inner.NearestLessOrEqual(position, side, out nearestStart, out otherStart, out xLength, out yLength, out value);
+        }
+
+        public bool NearestLess(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength)
+        {
+            object value;
+            return inner.NearestLess(position, side, out nearestStart, out otherStart, out xLength, out yLength, out value);
+        }
+
+        public bool NearestGreaterOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength)
+        {
+            object value;
+            return inner.NearestGreaterOrEqual(position, side, out nearestStart, out otherStart, out xLength, out yLength, out value);
+        }
+
+        public bool NearestGreater(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength)
+        {
+            object value;
+            return inner.NearestGreater(position, side, out nearestStart, out otherStart, out xLength, out yLength, out value);
         }
 
 
@@ -188,7 +222,6 @@ namespace TreeLibTest
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
         }
 
         //

@@ -45,26 +45,8 @@ namespace TreeLibTest
             this.inner = inner;
         }
 
-        private static long ToLong(int i)
-        {
-            // translate overflow tests to the equivalent for 64-bit
-            if (i > Int32.MaxValue / 2)
-            {
-                return (long)i - Int32.MaxValue + Int64.MaxValue;
-            }
+        public IRangeMapLong<ValueType> Inner { get { return inner; } }
 
-            return i;
-        }
-
-        private static int ToInt(long l)
-        {
-            // translate overflow tests to the equivalent for 32-bit
-            if (l > Int64.MaxValue / 2)
-            {
-                return (int)(l - Int64.MaxValue + Int32.MaxValue);
-            }
-            return (int)l;
-        }
 
         //
         // IRange2Map
@@ -81,121 +63,167 @@ namespace TreeLibTest
 
         public bool Contains(int start)
         {
-            return inner.Contains(ToLong(start));
+            return inner.Contains(IntLong.ToLong(start));
         }
 
         public bool TryInsert(int start, int xLength, ValueType value)
         {
-            return inner.TryInsert(ToLong(start), ToLong(xLength), value);
+            return inner.TryInsert(IntLong.ToLong(start), IntLong.ToLong(xLength), value);
         }
 
         public bool TryDelete(int start)
         {
-            return inner.TryDelete(ToLong(start));
+            return inner.TryDelete(IntLong.ToLong(start));
         }
 
         public bool TryGetLength(int start, out int length)
         {
             long lengthLong;
-            bool f = inner.TryGetLength(ToLong(start), out lengthLong);
-            length = ToInt(lengthLong);
+            bool f = inner.TryGetLength(IntLong.ToLong(start), out lengthLong);
+            length = IntLong.ToInt(lengthLong);
             return f;
         }
 
         public bool TrySetLength(int start, int length)
         {
-            return inner.TrySetLength(ToLong(start), ToLong(length));
+            return inner.TrySetLength(IntLong.ToLong(start), IntLong.ToLong(length));
         }
 
         public bool TryGetValue(int start, out ValueType value)
         {
-            return inner.TryGetValue(ToLong(start), out value);
+            return inner.TryGetValue(IntLong.ToLong(start), out value);
         }
 
         public bool TrySetValue(int start, ValueType value)
         {
-            return inner.TrySetValue(ToLong(start), value);
+            return inner.TrySetValue(IntLong.ToLong(start), value);
         }
 
         public bool TryGet(int start, out int xLength, out ValueType value)
         {
             long xLengthLong;
-            bool f = inner.TryGet(ToLong(start), out xLengthLong, out value);
-            xLength = ToInt(xLengthLong);
+            bool f = inner.TryGet(IntLong.ToLong(start), out xLengthLong, out value);
+            xLength = IntLong.ToInt(xLengthLong);
             return f;
+        }
+
+        public bool TrySet(int start, int length, ValueType value)
+        {
+            return inner.TrySet(IntLong.ToLong(start), IntLong.ToLong(length), value);
         }
 
         public void Insert(int start, int xLength, ValueType value)
         {
-            inner.Insert(ToLong(start), ToLong(xLength), value);
+            inner.Insert(IntLong.ToLong(start), IntLong.ToLong(xLength), value);
         }
 
         public void Delete(int start)
         {
-            inner.Delete(ToLong(start));
+            inner.Delete(IntLong.ToLong(start));
         }
 
         public int GetLength(int start)
         {
-            return ToInt(inner.GetLength(ToLong(start)));
+            return IntLong.ToInt(inner.GetLength(IntLong.ToLong(start)));
         }
 
         public void SetLength(int start, int length)
         {
-            inner.SetLength(ToLong(start), ToLong(length));
+            inner.SetLength(IntLong.ToLong(start), IntLong.ToLong(length));
         }
 
         public ValueType GetValue(int start)
         {
-            return inner.GetValue(ToLong(start));
+            return inner.GetValue(IntLong.ToLong(start));
         }
 
         public void SetValue(int start, ValueType value)
         {
-            inner.SetValue(ToLong(start), value);
+            inner.SetValue(IntLong.ToLong(start), value);
         }
 
         public void Get(int start, out int xLength, out ValueType value)
         {
             long xLengthLong;
-            inner.Get(ToLong(start), out xLengthLong, out value);
-            xLength = ToInt(xLengthLong);
+            inner.Get(IntLong.ToLong(start), out xLengthLong, out value);
+            xLength = IntLong.ToInt(xLengthLong);
+        }
+
+        public void Set(int start, int length, ValueType value)
+        {
+            inner.Set(IntLong.ToLong(start), IntLong.ToLong(length), value);
         }
 
         public int GetExtent()
         {
-            return ToInt(inner.GetExtent());
+            return IntLong.ToInt(inner.GetExtent());
         }
 
         public bool NearestLessOrEqual(int position, out int nearestStart)
         {
             long nearestStartLong;
-            bool f = inner.NearestLessOrEqual(ToLong(position), out nearestStartLong);
-            nearestStart = ToInt(nearestStartLong);
+            bool f = inner.NearestLessOrEqual(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
             return f;
         }
 
         public bool NearestLess(int position, out int nearestStart)
         {
             long nearestStartLong;
-            bool f = inner.NearestLess(ToLong(position), out nearestStartLong);
-            nearestStart = ToInt(nearestStartLong);
+            bool f = inner.NearestLess(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
             return f;
         }
 
         public bool NearestGreaterOrEqual(int position, out int nearestStart)
         {
             long nearestStartLong;
-            bool f = inner.NearestGreaterOrEqual(ToLong(position), out nearestStartLong);
-            nearestStart = ToInt(nearestStartLong);
+            bool f = inner.NearestGreaterOrEqual(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
             return f;
         }
 
         public bool NearestGreater(int position, out int nearestStart)
         {
             long nearestStartLong;
-            bool f = inner.NearestGreater(ToLong(position), out nearestStartLong);
-            nearestStart = ToInt(nearestStartLong);
+            bool f = inner.NearestGreater(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            return f;
+        }
+
+        public bool NearestLessOrEqual(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            long nearestStartLong, lengthLong;
+            bool f = inner.NearestLessOrEqual(IntLong.ToLong(position), out nearestStartLong, out lengthLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            length = IntLong.ToInt(lengthLong);
+            return f;
+        }
+
+        public bool NearestLess(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            long nearestStartLong, lengthLong;
+            bool f = inner.NearestLess(IntLong.ToLong(position), out nearestStartLong, out lengthLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            length = IntLong.ToInt(lengthLong);
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            long nearestStartLong, lengthLong;
+            bool f = inner.NearestGreaterOrEqual(IntLong.ToLong(position), out nearestStartLong, out lengthLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            length = IntLong.ToInt(lengthLong);
+            return f;
+        }
+
+        public bool NearestGreater(int position, out int nearestStart, out int length, out ValueType value)
+        {
+            long nearestStartLong, lengthLong;
+            bool f = inner.NearestGreater(IntLong.ToLong(position), out nearestStartLong, out lengthLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            length = IntLong.ToInt(lengthLong);
             return f;
         }
 
@@ -206,36 +234,38 @@ namespace TreeLibTest
 
         // uint Count { get; }
 
-        object INonInvasiveTreeInspection.Root { get { throw new NotSupportedException(); } }
+        uint INonInvasiveTreeInspection.Count { get { return ((INonInvasiveTreeInspection)inner).Count; } }
+
+        object INonInvasiveTreeInspection.Root { get { return ((INonInvasiveTreeInspection)inner).Root; } }
 
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetLeftChild(node);
         }
 
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetRightChild(node);
         }
 
         object INonInvasiveTreeInspection.GetKey(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetKey(node);
         }
 
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetKey(node);
         }
 
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetMetadata(node);
         }
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
+            ((INonInvasiveTreeInspection)inner).Validate();
         }
 
         //
@@ -249,10 +279,10 @@ namespace TreeLibTest
             for (int i = 0; i < innerRanges.Length; i++)
             {
                 ranges[i].value = innerRanges[i].value;
-                ranges[i].x.start = ToInt(innerRanges[i].x.start);
-                ranges[i].x.length = ToInt(innerRanges[i].x.length);
-                ranges[i].y.start = ToInt(innerRanges[i].y.start);
-                ranges[i].y.length = ToInt(innerRanges[i].y.length);
+                ranges[i].x.start = IntLong.ToInt(innerRanges[i].x.start);
+                ranges[i].x.length = IntLong.ToInt(innerRanges[i].x.length);
+                ranges[i].y.start = IntLong.ToInt(innerRanges[i].y.start);
+                ranges[i].y.length = IntLong.ToInt(innerRanges[i].y.length);
             }
             return ranges;
         }

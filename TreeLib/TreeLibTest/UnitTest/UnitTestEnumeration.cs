@@ -52,7 +52,7 @@ namespace TreeLibTest
             int key;
             do
             {
-                key = random.Random();
+                key = random.Next();
             }
             while (Array.BinarySearch(notFromThese, key, Comparer<int>.Default) >= 0);
             return key;
@@ -60,7 +60,7 @@ namespace TreeLibTest
 
         private static float MakeFloatValue(ParkAndMiller random)
         {
-            return .01f * random.Random();
+            return .01f * random.Next();
         }
 
         private enum Kind { Map, Set };
@@ -141,7 +141,7 @@ namespace TreeLibTest
                 long startIteration1 = iteration;
                 IncrementIteration();
 
-                KeyType keyToRemove = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray()[random.Random() % reference.Count].Key;
+                KeyType keyToRemove = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray()[random.Next() % reference.Count].Key;
 
                 reference.Remove(keyToRemove);
                 removeMethod.Invoke(testTree, new object[] { keyToRemove });
@@ -328,7 +328,7 @@ namespace TreeLibTest
                 KeyType[] notFromThese = Array.ConvertAll(referenceEntries, delegate (MultiRankMapEntry item) { return (KeyType)item.key; });
                 KeyType newKey = makeKey(random, notFromThese);
                 ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-                int newLength = rankKind == RankKind.MultiRank ? random.Random() % 100 + 1 : 1;
+                int newLength = rankKind == RankKind.MultiRank ? random.Next() % 100 + 1 : 1;
 
                 reference.Add(newKey, newValue, newLength);
                 addMethod.Invoke(
@@ -344,7 +344,7 @@ namespace TreeLibTest
                 long startIteration1 = iteration;
                 IncrementIteration();
 
-                KeyType keyToRemove = (KeyType)((INonInvasiveMultiRankMapInspection)reference).GetRanks()[random.Random() % reference.Count].key;
+                KeyType keyToRemove = (KeyType)((INonInvasiveMultiRankMapInspection)reference).GetRanks()[random.Next() % reference.Count].key;
 
                 reference.Remove(keyToRemove);
                 removeMethod.Invoke(testTree, new object[] { keyToRemove });
@@ -557,10 +557,10 @@ namespace TreeLibTest
                 }
                 TestTrue("enumeration", delegate () { return n == reference.Count; });
 
-                int xInsertBefore = reference.Count != 0 ? referenceEntries[random.Random() % reference.Count].x.start : 0;
+                int xInsertBefore = reference.Count != 0 ? referenceEntries[random.Next() % reference.Count].x.start : 0;
                 ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-                int newXLength = random.Random() % 100 + 1;
-                int newYLength = rangeKind == RangeKind.Range2 ? random.Random() % 100 + 1 : 1;
+                int newXLength = random.Next() % 100 + 1;
+                int newYLength = rangeKind == RangeKind.Range2 ? random.Next() % 100 + 1 : 1;
 
                 reference.Insert(xInsertBefore, Side.X, newXLength, rangeKind == RangeKind.Range2 ? newYLength : 1, newValue);
                 if (width == Width.Int)
@@ -595,7 +595,7 @@ namespace TreeLibTest
                 long startIteration1 = iteration;
                 IncrementIteration();
 
-                int startToRemove = ((INonInvasiveRange2MapInspection)reference).GetRanges()[random.Random() % reference.Count].x.start;
+                int startToRemove = ((INonInvasiveRange2MapInspection)reference).GetRanges()[random.Next() % reference.Count].x.start;
 
                 reference.Delete(startToRemove, Side.X);
                 if (width == Width.Int)
@@ -674,8 +674,8 @@ namespace TreeLibTest
                 {
                     const int xInsertBefore = 0;
                     ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-                    int newXLength = random.Random() % 100 + 1;
-                    int newYLength = rangeKind == RangeKind.Range2 ? random.Random() % 100 + 1 : 1;
+                    int newXLength = random.Next() % 100 + 1;
+                    int newYLength = rangeKind == RangeKind.Range2 ? random.Next() % 100 + 1 : 1;
 
                     reference.Insert(xInsertBefore, Side.X, newXLength, rangeKind == RangeKind.Range2 ? newYLength : 1, newValue);
                     if (width == Width.Int)
@@ -836,1089 +836,1136 @@ namespace TreeLibTest
         // main test
         //
 
-        // We're using AllocationMode.DynamicRetainFreelist in all of these in order to gain coverage of the Clear() method's
-        // complex code path (that must free each node).
+        private const uint TreeCapacityForFixed = 200;
 
         private void TestSplayTree()
         {
-            //
-            // Map
-            //
-
+            // Exercise all allocation modes to gain coverage of both code paths in the Clear() method.
+            foreach (AllocationMode allocationMode in new AllocationMode[] { AllocationMode.DynamicDiscard, AllocationMode.DynamicRetainFreelist, AllocationMode.PreallocatedFixed })
             {
-                SplayTreeMap<int, float> tree;
-                tree = new SplayTreeMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeMap<int, float>.FastEnumerableSurrogate(tree));
-            }
+                uint capacity = allocationMode == AllocationMode.PreallocatedFixed ? TreeCapacityForFixed : 0;
 
-            {
-                SplayTreeArrayMap<int, float> tree;
-                tree = new SplayTreeArrayMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeArrayMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeArrayMap<int, float>.FastEnumerableSurrogate(tree));
-            }
+                //
+                // Map
+                //
 
-            //
-            // Set
-            //
+                {
+                    SplayTreeMap<int, float> tree;
+                    tree = new SplayTreeMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeList<int> tree;
-                tree = new SplayTreeList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new SplayTreeList<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new SplayTreeList<int>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayMap<int, float> tree;
+                    tree = new SplayTreeArrayMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeArrayMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new SplayTreeArrayMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeArrayList<int> tree;
-                tree = new SplayTreeArrayList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new SplayTreeArrayList<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new SplayTreeArrayList<int>.FastEnumerableSurrogate(tree));
-            }
+                //
+                // Set
+                //
 
+                {
+                    SplayTreeList<int> tree;
+                    tree = new SplayTreeList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new SplayTreeList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new SplayTreeList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            //
-            // RankMap
-            //
-
-            // Int32
-
-            {
-                SplayTreeRankMap<int, float> tree;
-                tree = new SplayTreeRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                SplayTreeArrayRankMap<int, float> tree;
-                tree = new SplayTreeArrayRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                SplayTreeRankMapLong<int, float> tree;
-                tree = new SplayTreeRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMapLong<int, float>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayList<int> tree;
+                    tree = new SplayTreeArrayList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new SplayTreeArrayList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new SplayTreeArrayList<int>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // RankList
-            //
+                //
+                // RankMap
+                //
 
-            {
-                SplayTreeRankList<int> tree;
-                tree = new SplayTreeRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                // Int32
 
-            {
-                SplayTreeArrayRankList<int> tree;
-                tree = new SplayTreeArrayRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    SplayTreeRankMap<int, float> tree;
+                    tree = new SplayTreeRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayRankMap<int, float> tree;
+                    tree = new SplayTreeArrayRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeRankListLong<int> tree;
-                tree = new SplayTreeRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankListLong<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankListLong<int>.FastEnumerableSurrogate(tree));
-            }
+                // Long
 
-
-            //
-            // MultiRankMap
-            //
-
-            // Int32
-
-            {
-                SplayTreeMultiRankMap<int, float> tree;
-                tree = new SplayTreeMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                SplayTreeArrayMultiRankMap<int, float> tree;
-                tree = new SplayTreeArrayMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                SplayTreeMultiRankMapLong<int, float> tree;
-                tree = new SplayTreeMultiRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeMultiRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMapLong<int, float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    SplayTreeRankMapLong<int, float> tree;
+                    tree = new SplayTreeRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankMapLong<int, float>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // MultiRankList
-            //
+                //
+                // RankList
+                //
 
-            // Int32
+                {
+                    SplayTreeRankList<int> tree;
+                    tree = new SplayTreeRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeMultiRankList<int> tree;
-                tree = new SplayTreeMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayRankList<int> tree;
+                    tree = new SplayTreeArrayRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeArrayRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeArrayMultiRankList<int> tree;
-                tree = new SplayTreeArrayMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                // Long
 
-            // Long
-
-            {
-                SplayTreeMultiRankListLong<int> tree;
-                tree = new SplayTreeMultiRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankListLong<int>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeMultiRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankListLong<int>.FastEnumerableSurrogate(tree));
-            }
-
-
-            //
-            // Range2Map
-            //
-
-            // Int32
-
-            {
-                SplayTreeRange2Map<float> tree;
-                tree = new SplayTreeRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2Map<float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2Map<float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                SplayTreeArrayRange2Map<float> tree;
-                tree = new SplayTreeArrayRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2Map<float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2Map<float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                SplayTreeRange2MapLong<float> tree;
-                tree = new SplayTreeRange2MapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2MapLong<float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRange2MapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2MapLong<float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    SplayTreeRankListLong<int> tree;
+                    tree = new SplayTreeRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankListLong<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new SplayTreeRankListLong<int>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // Range2List
-            //
+                //
+                // MultiRankMap
+                //
 
-            // Int32
+                // Int32
 
-            {
-                SplayTreeRange2List tree;
-                tree = new SplayTreeRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2List.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2List.FastEnumerableSurrogate(tree));
-            }
+                {
+                    SplayTreeMultiRankMap<int, float> tree;
+                    tree = new SplayTreeMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeArrayRange2List tree;
-                tree = new SplayTreeArrayRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2List.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2List.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayMultiRankMap<int, float> tree;
+                    tree = new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                // Long
 
-            {
-                SplayTreeRange2ListLong tree;
-                tree = new SplayTreeRange2ListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2ListLong>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2ListLong.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRange2ListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2ListLong>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2ListLong.FastEnumerableSurrogate(tree));
-            }
-
-
-            //
-            // RangeMap
-            //
-
-            // Int32
-
-            {
-                SplayTreeRangeMap<float> tree;
-                tree = new SplayTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeMap<float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeMap<float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                SplayTreeArrayRangeMap<float> tree;
-                tree = new SplayTreeArrayRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeMap<float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeMap<float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                SplayTreeRangeMapLong<float> tree;
-                tree = new SplayTreeRangeMapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeMapLong<float>.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRangeMapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeMapLong<float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    SplayTreeMultiRankMapLong<int, float> tree;
+                    tree = new SplayTreeMultiRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeMultiRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankMapLong<int, float>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // RangeList
-            //
+                //
+                // MultiRankList
+                //
 
-            // Int32
+                // Int32
 
-            {
-                SplayTreeRangeList tree;
-                tree = new SplayTreeRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeList.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeList.FastEnumerableSurrogate(tree));
-            }
+                {
+                    SplayTreeMultiRankList<int> tree;
+                    tree = new SplayTreeMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                SplayTreeArrayRangeList tree;
-                tree = new SplayTreeArrayRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeList.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeArrayRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeList.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayMultiRankList<int> tree;
+                    tree = new SplayTreeArrayMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeArrayMultiRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                // Long
 
-            {
-                SplayTreeRangeListLong tree;
-                tree = new SplayTreeRangeListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeListLong>(
-                    tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeListLong.RobustEnumerableSurrogate(tree));
-                tree = new SplayTreeRangeListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeListLong>(
-                    tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeListLong.FastEnumerableSurrogate(tree));
+                {
+                    SplayTreeMultiRankListLong<int> tree;
+                    tree = new SplayTreeMultiRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankListLong<int>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeMultiRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new SplayTreeMultiRankListLong<int>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // Range2Map
+                //
+
+                // Int32
+
+                {
+                    SplayTreeRange2Map<float> tree;
+                    tree = new SplayTreeRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2Map<float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2Map<float>.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayRange2Map<float> tree;
+                    tree = new SplayTreeArrayRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2Map<float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2Map<float>.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    SplayTreeRange2MapLong<float> tree;
+                    tree = new SplayTreeRange2MapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2MapLong<float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRange2MapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2MapLong<float>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // Range2List
+                //
+
+                // Int32
+
+                {
+                    SplayTreeRange2List tree;
+                    tree = new SplayTreeRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2List.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeRange2List.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayRange2List tree;
+                    tree = new SplayTreeArrayRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2List.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new SplayTreeArrayRange2List.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    SplayTreeRange2ListLong tree;
+                    tree = new SplayTreeRange2ListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2ListLong>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2ListLong.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRange2ListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2ListLong>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new SplayTreeRange2ListLong.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // RangeMap
+                //
+
+                // Int32
+
+                {
+                    SplayTreeRangeMap<float> tree;
+                    tree = new SplayTreeRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeMap<float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeMap<float>.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayRangeMap<float> tree;
+                    tree = new SplayTreeArrayRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeMap<float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeMap<float>.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    SplayTreeRangeMapLong<float> tree;
+                    tree = new SplayTreeRangeMapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeMapLong<float>.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRangeMapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeMapLong<float>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // RangeList
+                //
+
+                // Int32
+
+                {
+                    SplayTreeRangeList tree;
+                    tree = new SplayTreeRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeList.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeRangeList.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    SplayTreeArrayRangeList tree;
+                    tree = new SplayTreeArrayRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeList.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeArrayRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new SplayTreeArrayRangeList.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    SplayTreeRangeListLong tree;
+                    tree = new SplayTreeRangeListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeListLong>(
+                        tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeListLong.RobustEnumerableSurrogate(tree));
+                    tree = new SplayTreeRangeListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeListLong>(
+                        tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new SplayTreeRangeListLong.FastEnumerableSurrogate(tree));
+                }
             }
         }
 
         private void TestRedBlackTree()
         {
-            //
-            // Map
-            //
-
+            // Exercise all allocation modes to gain coverage of both code paths in the Clear() method.
+            foreach (AllocationMode allocationMode in new AllocationMode[] { AllocationMode.DynamicDiscard, AllocationMode.DynamicRetainFreelist, AllocationMode.PreallocatedFixed })
             {
-                RedBlackTreeMap<int, float> tree;
-                tree = new RedBlackTreeMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeMap<int, float>.FastEnumerableSurrogate(tree));
-            }
+                uint capacity = allocationMode == AllocationMode.PreallocatedFixed ? TreeCapacityForFixed : 0;
 
-            {
-                RedBlackTreeArrayMap<int, float> tree;
-                tree = new RedBlackTreeArrayMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMap<int, float>.FastEnumerableSurrogate(tree));
-            }
+                //
+                // Map
+                //
 
-            //
-            // Set
-            //
+                {
+                    RedBlackTreeMap<int, float> tree;
+                    tree = new RedBlackTreeMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeList<int> tree;
-                tree = new RedBlackTreeList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new RedBlackTreeList<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new RedBlackTreeList<int>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayMap<int, float> tree;
+                    tree = new RedBlackTreeArrayMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeArrayList<int> tree;
-                tree = new RedBlackTreeArrayList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new RedBlackTreeArrayList<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new RedBlackTreeArrayList<int>.FastEnumerableSurrogate(tree));
-            }
+                //
+                // Set
+                //
 
+                {
+                    RedBlackTreeList<int> tree;
+                    tree = new RedBlackTreeList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new RedBlackTreeList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new RedBlackTreeList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            //
-            // RankMap
-            //
-
-            // Int32
-
-            {
-                RedBlackTreeRankMap<int, float> tree;
-                tree = new RedBlackTreeRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                RedBlackTreeArrayRankMap<int, float> tree;
-                tree = new RedBlackTreeArrayRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                RedBlackTreeRankMapLong<int, float> tree;
-                tree = new RedBlackTreeRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMapLong<int, float>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayList<int> tree;
+                    tree = new RedBlackTreeArrayList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new RedBlackTreeArrayList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new RedBlackTreeArrayList<int>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // RankList
-            //
+                //
+                // RankMap
+                //
 
-            {
-                RedBlackTreeRankList<int> tree;
-                tree = new RedBlackTreeRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                // Int32
 
-            {
-                RedBlackTreeArrayRankList<int> tree;
-                tree = new RedBlackTreeArrayRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    RedBlackTreeRankMap<int, float> tree;
+                    tree = new RedBlackTreeRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayRankMap<int, float> tree;
+                    tree = new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeRankListLong<int> tree;
-                tree = new RedBlackTreeRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankListLong<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankListLong<int>.FastEnumerableSurrogate(tree));
-            }
+                // Long
 
-
-            //
-            // MultiRankMap
-            //
-
-            // Int32
-
-            {
-                RedBlackTreeMultiRankMap<int, float> tree;
-                tree = new RedBlackTreeMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                RedBlackTreeArrayMultiRankMap<int, float> tree;
-                tree = new RedBlackTreeArrayMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                RedBlackTreeMultiRankMapLong<int, float> tree;
-                tree = new RedBlackTreeMultiRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeMultiRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMapLong<int, float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    RedBlackTreeRankMapLong<int, float> tree;
+                    tree = new RedBlackTreeRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankMapLong<int, float>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // MultiRankList
-            //
+                //
+                // RankList
+                //
 
-            // Int32
+                {
+                    RedBlackTreeRankList<int> tree;
+                    tree = new RedBlackTreeRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeMultiRankList<int> tree;
-                tree = new RedBlackTreeMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayRankList<int> tree;
+                    tree = new RedBlackTreeArrayRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeArrayMultiRankList<int> tree;
-                tree = new RedBlackTreeArrayMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                // Long
 
-            // Long
-
-            {
-                RedBlackTreeMultiRankListLong<int> tree;
-                tree = new RedBlackTreeMultiRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankListLong<int>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeMultiRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankListLong<int>.FastEnumerableSurrogate(tree));
-            }
-
-
-            //
-            // Range2Map
-            //
-
-            // Int32
-
-            {
-                RedBlackTreeRange2Map<float> tree;
-                tree = new RedBlackTreeRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2Map<float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2Map<float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                RedBlackTreeArrayRange2Map<float> tree;
-                tree = new RedBlackTreeArrayRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2Map<float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2Map<float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                RedBlackTreeRange2MapLong<float> tree;
-                tree = new RedBlackTreeRange2MapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2MapLong<float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRange2MapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2MapLong<float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    RedBlackTreeRankListLong<int> tree;
+                    tree = new RedBlackTreeRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankListLong<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new RedBlackTreeRankListLong<int>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // Range2List
-            //
+                //
+                // MultiRankMap
+                //
 
-            // Int32
+                // Int32
 
-            {
-                RedBlackTreeRange2List tree;
-                tree = new RedBlackTreeRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2List.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2List.FastEnumerableSurrogate(tree));
-            }
+                {
+                    RedBlackTreeMultiRankMap<int, float> tree;
+                    tree = new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeArrayRange2List tree;
-                tree = new RedBlackTreeArrayRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2List.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2List.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayMultiRankMap<int, float> tree;
+                    tree = new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                // Long
 
-            {
-                RedBlackTreeRange2ListLong tree;
-                tree = new RedBlackTreeRange2ListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2ListLong>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2ListLong.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRange2ListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2ListLong>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2ListLong.FastEnumerableSurrogate(tree));
-            }
-
-
-            //
-            // RangeMap
-            //
-
-            // Int32
-
-            {
-                RedBlackTreeRangeMap<float> tree;
-                tree = new RedBlackTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeMap<float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeMap<float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                RedBlackTreeArrayRangeMap<float> tree;
-                tree = new RedBlackTreeArrayRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeMap<float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeMap<float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                RedBlackTreeRangeMapLong<float> tree;
-                tree = new RedBlackTreeRangeMapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeMapLong<float>.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRangeMapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeMapLong<float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    RedBlackTreeMultiRankMapLong<int, float> tree;
+                    tree = new RedBlackTreeMultiRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeMultiRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankMapLong<int, float>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // RangeList
-            //
+                //
+                // MultiRankList
+                //
 
-            // Int32
+                // Int32
 
-            {
-                RedBlackTreeRangeList tree;
-                tree = new RedBlackTreeRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeList.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeList.FastEnumerableSurrogate(tree));
-            }
+                {
+                    RedBlackTreeMultiRankList<int> tree;
+                    tree = new RedBlackTreeMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                RedBlackTreeArrayRangeList tree;
-                tree = new RedBlackTreeArrayRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeList.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeArrayRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeList.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayMultiRankList<int> tree;
+                    tree = new RedBlackTreeArrayMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeArrayMultiRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                // Long
 
-            {
-                RedBlackTreeRangeListLong tree;
-                tree = new RedBlackTreeRangeListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeListLong>(
-                    tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeListLong.RobustEnumerableSurrogate(tree));
-                tree = new RedBlackTreeRangeListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeListLong>(
-                    tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeListLong.FastEnumerableSurrogate(tree));
+                {
+                    RedBlackTreeMultiRankListLong<int> tree;
+                    tree = new RedBlackTreeMultiRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankListLong<int>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeMultiRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new RedBlackTreeMultiRankListLong<int>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // Range2Map
+                //
+
+                // Int32
+
+                {
+                    RedBlackTreeRange2Map<float> tree;
+                    tree = new RedBlackTreeRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2Map<float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2Map<float>.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayRange2Map<float> tree;
+                    tree = new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2Map<float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2Map<float>.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    RedBlackTreeRange2MapLong<float> tree;
+                    tree = new RedBlackTreeRange2MapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2MapLong<float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRange2MapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2MapLong<float>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // Range2List
+                //
+
+                // Int32
+
+                {
+                    RedBlackTreeRange2List tree;
+                    tree = new RedBlackTreeRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2List.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeRange2List.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayRange2List tree;
+                    tree = new RedBlackTreeArrayRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2List.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new RedBlackTreeArrayRange2List.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    RedBlackTreeRange2ListLong tree;
+                    tree = new RedBlackTreeRange2ListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2ListLong>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2ListLong.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRange2ListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2ListLong>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new RedBlackTreeRange2ListLong.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // RangeMap
+                //
+
+                // Int32
+
+                {
+                    RedBlackTreeRangeMap<float> tree;
+                    tree = new RedBlackTreeRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeMap<float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeMap<float>.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayRangeMap<float> tree;
+                    tree = new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeMap<float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeMap<float>.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    RedBlackTreeRangeMapLong<float> tree;
+                    tree = new RedBlackTreeRangeMapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeMapLong<float>.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRangeMapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeMapLong<float>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // RangeList
+                //
+
+                // Int32
+
+                {
+                    RedBlackTreeRangeList tree;
+                    tree = new RedBlackTreeRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeList.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeRangeList.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    RedBlackTreeArrayRangeList tree;
+                    tree = new RedBlackTreeArrayRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeList.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeArrayRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new RedBlackTreeArrayRangeList.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    RedBlackTreeRangeListLong tree;
+                    tree = new RedBlackTreeRangeListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeListLong>(
+                        tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeListLong.RobustEnumerableSurrogate(tree));
+                    tree = new RedBlackTreeRangeListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeListLong>(
+                        tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new RedBlackTreeRangeListLong.FastEnumerableSurrogate(tree));
+                }
             }
         }
 
         private void TestAVLTree()
         {
-            //
-            // Map
-            //
-
+            // Exercise all allocation modes to gain coverage of both code paths in the Clear() method.
+            foreach (AllocationMode allocationMode in new AllocationMode[] { AllocationMode.DynamicDiscard, AllocationMode.DynamicRetainFreelist, AllocationMode.PreallocatedFixed })
             {
-                AVLTreeMap<int, float> tree;
-                tree = new AVLTreeMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeMap<int, float>.FastEnumerableSurrogate(tree));
-            }
+                uint capacity = allocationMode == AllocationMode.PreallocatedFixed ? TreeCapacityForFixed : 0;
 
-            {
-                AVLTreeArrayMap<int, float> tree;
-                tree = new AVLTreeArrayMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeArrayMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryMap<int, float>>(
-                    tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeArrayMap<int, float>.FastEnumerableSurrogate(tree));
-            }
+                //
+                // Map
+                //
 
-            //
-            // Set
-            //
+                {
+                    AVLTreeMap<int, float> tree;
+                    tree = new AVLTreeMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeList<int> tree;
-                tree = new AVLTreeList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new AVLTreeList<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new AVLTreeList<int>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayMap<int, float> tree;
+                    tree = new AVLTreeArrayMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeArrayMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayMap<int, float>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryMap<int, float>>(
+                        tree, Kind.Map, MakeIntKey, MakeFloatValue, new AVLTreeArrayMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeArrayList<int> tree;
-                tree = new AVLTreeArrayList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new AVLTreeArrayList<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestMapOrSet<int, float, EntryList<int>>(
-                    tree, Kind.Set, MakeIntKey, null, new AVLTreeArrayList<int>.FastEnumerableSurrogate(tree));
-            }
+                //
+                // Set
+                //
 
+                {
+                    AVLTreeList<int> tree;
+                    tree = new AVLTreeList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new AVLTreeList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new AVLTreeList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            //
-            // RankMap
-            //
-
-            // Int32
-
-            {
-                AVLTreeRankMap<int, float> tree;
-                tree = new AVLTreeRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                AVLTreeArrayRankMap<int, float> tree;
-                tree = new AVLTreeArrayRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                AVLTreeRankMapLong<int, float> tree;
-                tree = new AVLTreeRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMapLong<int, float>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayList<int> tree;
+                    tree = new AVLTreeArrayList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new AVLTreeArrayList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayList<int>(capacity, allocationMode);
+                    TestMapOrSet<int, float, EntryList<int>>(
+                        tree, Kind.Set, MakeIntKey, null, new AVLTreeArrayList<int>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // RankList
-            //
+                //
+                // RankMap
+                //
 
-            {
-                AVLTreeRankList<int> tree;
-                tree = new AVLTreeRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                // Int32
 
-            {
-                AVLTreeArrayRankList<int> tree;
-                tree = new AVLTreeArrayRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankList<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    AVLTreeRankMap<int, float> tree;
+                    tree = new AVLTreeRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayRankMap<int, float> tree;
+                    tree = new AVLTreeArrayRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeRankListLong<int> tree;
-                tree = new AVLTreeRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankListLong<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                    tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankListLong<int>.FastEnumerableSurrogate(tree));
-            }
+                // Long
 
-
-            //
-            // MultiRankMap
-            //
-
-            // Int32
-
-            {
-                AVLTreeMultiRankMap<int, float> tree;
-                tree = new AVLTreeMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                AVLTreeArrayMultiRankMap<int, float> tree;
-                tree = new AVLTreeArrayMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayMultiRankMap<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                AVLTreeMultiRankMapLong<int, float> tree;
-                tree = new AVLTreeMultiRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeMultiRankMapLong<int, float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                    tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMapLong<int, float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    AVLTreeRankMapLong<int, float> tree;
+                    tree = new AVLTreeRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankMapLong<int, float>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // MultiRankList
-            //
+                //
+                // RankList
+                //
 
-            // Int32
+                {
+                    AVLTreeRankList<int> tree;
+                    tree = new AVLTreeRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeMultiRankList<int> tree;
-                tree = new AVLTreeMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayRankList<int> tree;
+                    tree = new AVLTreeArrayRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankList<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeArrayRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeArrayMultiRankList<int> tree;
-                tree = new AVLTreeArrayMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankList<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayMultiRankList<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankList<int>.FastEnumerableSurrogate(tree));
-            }
+                // Long
 
-            // Long
-
-            {
-                AVLTreeMultiRankListLong<int> tree;
-                tree = new AVLTreeMultiRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankListLong<int>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeMultiRankListLong<int>(0, AllocationMode.DynamicRetainFreelist);
-                TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                    tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankListLong<int>.FastEnumerableSurrogate(tree));
-            }
-
-
-            //
-            // Range2Map
-            //
-
-            // Int32
-
-            {
-                AVLTreeRange2Map<float> tree;
-                tree = new AVLTreeRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2Map<float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2Map<float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                AVLTreeArrayRange2Map<float> tree;
-                tree = new AVLTreeArrayRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2Map<float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayRange2Map<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2Map<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2Map<float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                AVLTreeRange2MapLong<float> tree;
-                tree = new AVLTreeRange2MapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2MapLong<float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRange2MapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2MapLong<float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    AVLTreeRankListLong<int> tree;
+                    tree = new AVLTreeRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankListLong<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
+                        tree, Kind.Set, RankKind.Rank, MakeIntKey, MakeFloatValue, new AVLTreeRankListLong<int>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // Range2List
-            //
+                //
+                // MultiRankMap
+                //
 
-            // Int32
+                // Int32
 
-            {
-                AVLTreeRange2List tree;
-                tree = new AVLTreeRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2List.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2List.FastEnumerableSurrogate(tree));
-            }
+                {
+                    AVLTreeMultiRankMap<int, float> tree;
+                    tree = new AVLTreeMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeArrayRange2List tree;
-                tree = new AVLTreeArrayRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2List.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayRange2List(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2List>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2List.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayMultiRankMap<int, float> tree;
+                    tree = new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankMap<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankMap<int, float>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                // Long
 
-            {
-                AVLTreeRange2ListLong tree;
-                tree = new AVLTreeRange2ListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2ListLong>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2ListLong.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRange2ListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRange2ListLong>(
-                    tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2ListLong.FastEnumerableSurrogate(tree));
-            }
-
-
-            //
-            // RangeMap
-            //
-
-            // Int32
-
-            {
-                AVLTreeRangeMap<float> tree;
-                tree = new AVLTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeMap<float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeMap<float>.FastEnumerableSurrogate(tree));
-            }
-
-            {
-                AVLTreeArrayRangeMap<float> tree;
-                tree = new AVLTreeArrayRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeMap<float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMap<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeMap<float>.FastEnumerableSurrogate(tree));
-            }
-
-            // Long
-
-            {
-                AVLTreeRangeMapLong<float> tree;
-                tree = new AVLTreeRangeMapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeMapLong<float>.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRangeMapLong<float>(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                    tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeMapLong<float>.FastEnumerableSurrogate(tree));
-            }
+                {
+                    AVLTreeMultiRankMapLong<int, float> tree;
+                    tree = new AVLTreeMultiRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMapLong<int, float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeMultiRankMapLong<int, float>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
+                        tree, Kind.Map, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankMapLong<int, float>.FastEnumerableSurrogate(tree));
+                }
 
 
-            //
-            // RangeList
-            //
+                //
+                // MultiRankList
+                //
 
-            // Int32
+                // Int32
 
-            {
-                AVLTreeRangeList tree;
-                tree = new AVLTreeRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeList.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeList.FastEnumerableSurrogate(tree));
-            }
+                {
+                    AVLTreeMultiRankList<int> tree;
+                    tree = new AVLTreeMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            {
-                AVLTreeArrayRangeList tree;
-                tree = new AVLTreeArrayRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeList.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeArrayRangeList(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeList>(
-                    tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeList.FastEnumerableSurrogate(tree));
-            }
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayMultiRankList<int> tree;
+                    tree = new AVLTreeArrayMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankList<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayMultiRankList<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeArrayMultiRankList<int>.FastEnumerableSurrogate(tree));
+                }
 
-            // Long
+                // Long
 
-            {
-                AVLTreeRangeListLong tree;
-                tree = new AVLTreeRangeListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeListLong>(
-                    tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeListLong.RobustEnumerableSurrogate(tree));
-                tree = new AVLTreeRangeListLong(0, AllocationMode.DynamicRetainFreelist);
-                TestRangeMapOrList<float, EntryRangeListLong>(
-                    tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeListLong.FastEnumerableSurrogate(tree));
+                {
+                    AVLTreeMultiRankListLong<int> tree;
+                    tree = new AVLTreeMultiRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankListLong<int>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeMultiRankListLong<int>(capacity, allocationMode);
+                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
+                        tree, Kind.Set, RankKind.MultiRank, MakeIntKey, MakeFloatValue, new AVLTreeMultiRankListLong<int>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // Range2Map
+                //
+
+                // Int32
+
+                {
+                    AVLTreeRange2Map<float> tree;
+                    tree = new AVLTreeRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2Map<float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2Map<float>.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayRange2Map<float> tree;
+                    tree = new AVLTreeArrayRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2Map<float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayRange2Map<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2Map<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2Map<float>.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    AVLTreeRange2MapLong<float> tree;
+                    tree = new AVLTreeRange2MapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2MapLong<float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRange2MapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2MapLong<float>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // Range2List
+                //
+
+                // Int32
+
+                {
+                    AVLTreeRange2List tree;
+                    tree = new AVLTreeRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2List.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeRange2List.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayRange2List tree;
+                    tree = new AVLTreeArrayRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2List.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayRange2List(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2List>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Int, MakeFloatValue, new AVLTreeArrayRange2List.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    AVLTreeRange2ListLong tree;
+                    tree = new AVLTreeRange2ListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2ListLong>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2ListLong.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRange2ListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRange2ListLong>(
+                        tree, Kind.Set, RangeKind.Range2, Width.Long, MakeFloatValue, new AVLTreeRange2ListLong.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // RangeMap
+                //
+
+                // Int32
+
+                {
+                    AVLTreeRangeMap<float> tree;
+                    tree = new AVLTreeRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeMap<float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeMap<float>.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayRangeMap<float> tree;
+                    tree = new AVLTreeArrayRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeMap<float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayRangeMap<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMap<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeMap<float>.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    AVLTreeRangeMapLong<float> tree;
+                    tree = new AVLTreeRangeMapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeMapLong<float>.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRangeMapLong<float>(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
+                        tree, Kind.Map, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeMapLong<float>.FastEnumerableSurrogate(tree));
+                }
+
+
+                //
+                // RangeList
+                //
+
+                // Int32
+
+                {
+                    AVLTreeRangeList tree;
+                    tree = new AVLTreeRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeList.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeRangeList.FastEnumerableSurrogate(tree));
+                }
+
+                if (allocationMode != AllocationMode.DynamicDiscard)
+                {
+                    AVLTreeArrayRangeList tree;
+                    tree = new AVLTreeArrayRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeList.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeArrayRangeList(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeList>(
+                        tree, Kind.Set, RangeKind.Range, Width.Int, MakeFloatValue, new AVLTreeArrayRangeList.FastEnumerableSurrogate(tree));
+                }
+
+                // Long
+
+                {
+                    AVLTreeRangeListLong tree;
+                    tree = new AVLTreeRangeListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeListLong>(
+                        tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeListLong.RobustEnumerableSurrogate(tree));
+                    tree = new AVLTreeRangeListLong(capacity, allocationMode);
+                    TestRangeMapOrList<float, EntryRangeListLong>(
+                        tree, Kind.Set, RangeKind.Range, Width.Long, MakeFloatValue, new AVLTreeRangeListLong.FastEnumerableSurrogate(tree));
+                }
             }
         }
 
@@ -1937,7 +1984,7 @@ namespace TreeLibTest
             }
             catch (Exception)
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 throw;
             }
         }

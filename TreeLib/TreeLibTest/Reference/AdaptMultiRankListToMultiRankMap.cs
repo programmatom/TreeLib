@@ -108,6 +108,11 @@ namespace TreeLibTest
             return false;
         }
 
+        public bool TrySet(KeyType key, ValueType value, int rank)
+        {
+            return inner.TrySet(new KeyValue<KeyType, ValueType>(key, value), rank);
+        }
+
         public bool TryGetKeyByRank(int rank, out KeyType key)
         {
             KeyValue<KeyType, ValueType> kv;
@@ -146,6 +151,11 @@ namespace TreeLibTest
             KeyValue<KeyType, ValueType> kv;
             inner.Get(new KeyValue<KeyType, ValueType>(key), out kv, out rank, out count);
             value = kv.value;
+        }
+
+        public void Set(KeyType key, ValueType value, int rank)
+        {
+            inner.Set(new KeyValue<KeyType, ValueType>(key, value), rank);
         }
 
         public KeyType GetKeyByRank(int rank)
@@ -257,6 +267,98 @@ namespace TreeLibTest
             KeyValue<KeyType, ValueType> kv;
             bool f = inner.NearestGreater(new KeyValue<KeyType, ValueType>(key), out kv);
             nearestKey = kv.key;
+            return f;
+        }
+
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestLessOrEqual(new KeyValue<KeyType, ValueType>(key), out kv, out rank, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestLess(new KeyValue<KeyType, ValueType>(key), out kv, out rank, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestGreaterOrEqual(new KeyValue<KeyType, ValueType>(key), out kv, out rank, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestGreater(new KeyValue<KeyType, ValueType>(key), out kv, out rank, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+        
+        public bool NearestLessOrEqualByRank(int position, out int nearestStart)
+        {
+            return inner.NearestLessOrEqualByRank(position, out nearestStart);
+        }
+
+        public bool NearestLessByRank(int position, out int nearestStart)
+        {
+            return inner.NearestLessByRank(position, out nearestStart);
+        }
+
+        public bool NearestGreaterOrEqualByRank(int position, out int nearestStart)
+        {
+            return inner.NearestGreaterOrEqualByRank(position, out nearestStart);
+        }
+
+        public bool NearestGreaterByRank(int position, out int nearestStart)
+        {
+            return inner.NearestGreaterByRank(position, out nearestStart);
+        }
+
+        public bool NearestLessOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestLessOrEqualByRank(position, out kv, out nearestStart, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+
+        public bool NearestLessByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestLessByRank(position, out kv, out nearestStart, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+
+        public bool NearestGreaterOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestGreaterOrEqualByRank(position, out kv, out nearestStart, out count);
+            nearestKey = kv.key;
+            value = kv.value;
+            return f;
+        }
+
+        public bool NearestGreaterByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            bool f = inner.NearestGreaterByRank(position, out kv, out nearestStart, out count);
+            nearestKey = kv.key;
+            value = kv.value;
             return f;
         }
 

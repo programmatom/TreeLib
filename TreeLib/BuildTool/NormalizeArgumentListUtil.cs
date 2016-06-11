@@ -254,5 +254,96 @@ namespace BuildTool
         {
             return candidate.IsKind(SyntaxKind.MultiLineCommentTrivia);
         }
+
+        public static ParameterListSyntax NormalizeParameterList(ParameterListSyntax node)
+        {
+            int count = node.Parameters.Count;
+
+            SyntaxTriviaList[] argumentTriviasLeading = new SyntaxTriviaList[count];
+            SyntaxTriviaList[] argumentTriviasTrailing = new SyntaxTriviaList[count];
+            for (int j = 0; j < count; j++)
+            {
+                argumentTriviasLeading[j] = new SyntaxTriviaList();
+                argumentTriviasTrailing[j] = new SyntaxTriviaList();
+            }
+
+            if (count > 0)
+            {
+                // save trivia after open paren
+                SyntaxTriviaList trailing = SyntaxTriviaList.Empty.AddRange(node.OpenParenToken.TrailingTrivia.Where(MultiLineCommentPredicate));
+                argumentTriviasLeading[0] = argumentTriviasLeading[0].AddRange(trailing);
+            }
+            for (int j = 0; j < count - 1; j++)
+            {
+                // save trivia on trailing edge of separator to next argument
+                SyntaxTriviaList trailing = SyntaxTriviaList.Empty.AddRange(node.Parameters.GetSeparator(j).TrailingTrivia.Where(MultiLineCommentPredicate));
+                argumentTriviasLeading[j + 1] = argumentTriviasLeading[j + 1].AddRange(trailing);
+            }
+            for (int j = 0; j < count; j++)
+            {
+                // save leading and trailing trivia from argument
+                SyntaxTriviaList leading = node.Parameters[j].GetLeadingTrivia();
+                SyntaxTriviaList trailing = node.Parameters[j].GetTrailingTrivia();
+                argumentTriviasLeading[j] = argumentTriviasLeading[j].AddRange(leading);
+                argumentTriviasTrailing[j] = argumentTriviasTrailing[j].AddRange(trailing);
+            }
+            for (int j = 0; j < count - 1; j++)
+            {
+                // save trivia on leading edge of separator to previous argument
+                SyntaxTriviaList leading = SyntaxTriviaList.Empty.AddRange(node.Parameters.GetSeparator(j).LeadingTrivia.Where(MultiLineCommentPredicate));
+                argumentTriviasTrailing[j] = argumentTriviasTrailing[j].AddRange(leading);
+            }
+            if (count > 0)
+            {
+                // save trivia before close paren
+                SyntaxTriviaList leading = node.CloseParenToken.LeadingTrivia;
+                argumentTriviasTrailing[count - 1] = argumentTriviasTrailing[count - 1].AddRange(leading);
+            }
+
+            bool multiline;
+            int indent;
+            DetectMultiLineArgumentList(node.Parameters, out multiline, out indent);
+
+            // strip all trivia
+            node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(new SyntaxTriviaList()));
+            node = node.WithCloseParenToken(node.CloseParenToken.WithLeadingTrivia(new SyntaxTriviaList()));
+            for (int j = 0; j < count - 1; j++)
+            {
+                node = node.WithParameters(
+                    node.Parameters.ReplaceSeparator(
+                        node.Parameters.GetSeparator(j),
+                        node.Parameters.GetSeparator(j).WithLeadingTrivia(new SyntaxTriviaList()).WithTrailingTrivia(new SyntaxTriviaList())));
+            }
+
+            // reformat
+            SyntaxTriviaList delimiterTrailing = multiline
+                ? new SyntaxTriviaList().Add(SyntaxFactory.EndOfLine(Environment.NewLine)).Add(SyntaxFactory.Whitespace(new string(' ', indent)))
+                : new SyntaxTriviaList().Add(SyntaxFactory.Space);
+            if (multiline)
+            {
+                node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(delimiterTrailing));
+            }
+            for (int j = 0; j < count - 1; j++)
+            {
+                node = node.WithParameters(
+                    node.Parameters.ReplaceSeparator(
+                        node.Parameters.GetSeparator(j),
+                        node.Parameters.GetSeparator(j).WithTrailingTrivia(delimiterTrailing)));
+            }
+
+            // reassociate comment trivia to arguments
+            for (int j = 0; j < count; j++)
+            {
+                node = node.WithParameters(
+                    node.Parameters.Replace(
+                        node.Parameters[j],
+                        node.Parameters[j]
+                            .WithoutTrivia()
+                            .WithLeadingTrivia(argumentTriviasLeading[j])
+                            .WithTrailingTrivia(argumentTriviasTrailing[j])));
+            }
+
+            return node;
+        }
     }
 }

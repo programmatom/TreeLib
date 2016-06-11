@@ -46,26 +46,8 @@ namespace TreeLibTest
             this.inner = inner;
         }
 
-        private static long ToLong(int i)
-        {
-            // translate overflow tests to the equivalent for 64-bit
-            if (i > Int32.MaxValue / 2)
-            {
-                return (long)i - Int32.MaxValue + Int64.MaxValue;
-            }
+        public IMultiRankMapLong<KeyType, ValueType> Inner { get { return inner; } }
 
-            return i;
-        }
-
-        private static int ToInt(long l)
-        {
-            // translate overflow tests to the equivalent for 32-bit
-            if (l > Int64.MaxValue / 2)
-            {
-                return (int)(l - Int64.MaxValue + Int32.MaxValue);
-            }
-            return (int)l;
-        }
 
         //
         // IMultiRankMap
@@ -73,7 +55,7 @@ namespace TreeLibTest
 
         public uint Count { get { return inner.Count; } }
 
-        public int RankCount { get { return ToInt(inner.RankCount); } }
+        public int RankCount { get { return IntLong.ToInt(inner.RankCount); } }
 
         public long LongCount { get { return inner.LongCount; } }
 
@@ -89,7 +71,7 @@ namespace TreeLibTest
 
         public bool TryAdd(KeyType key, ValueType value, int count)
         {
-            return inner.TryAdd(key, value, ToLong(count));
+            return inner.TryAdd(key, value, IntLong.ToLong(count));
         }
 
         public bool TryRemove(KeyType key)
@@ -112,19 +94,24 @@ namespace TreeLibTest
             long rankLong;
             long countLong;
             bool f = inner.TryGet(key, out value, out rankLong, out countLong);
-            rank = ToInt(rankLong);
-            count = ToInt(countLong);
+            rank = IntLong.ToInt(rankLong);
+            count = IntLong.ToInt(countLong);
             return f;
+        }
+
+        public bool TrySet(KeyType key, ValueType value, int rank)
+        {
+            return inner.TrySet(key, value, IntLong.ToLong(rank));
         }
 
         public bool TryGetKeyByRank(int rank, out KeyType key)
         {
-            return inner.TryGetKeyByRank(ToLong(rank), out key);
+            return inner.TryGetKeyByRank(IntLong.ToLong(rank), out key);
         }
 
         public void Add(KeyType key, ValueType value, int count)
         {
-            inner.Add(key, value, ToLong(count));
+            inner.Add(key, value, IntLong.ToLong(count));
         }
 
         public void Remove(KeyType key)
@@ -147,18 +134,23 @@ namespace TreeLibTest
             long rankLong;
             long countLong;
             inner.Get(key, out value, out rankLong, out countLong);
-            rank = ToInt(rankLong);
-            count = ToInt(countLong);
+            rank = IntLong.ToInt(rankLong);
+            count = IntLong.ToInt(countLong);
+        }
+
+        public void Set(KeyType key, ValueType value, int rank)
+        {
+            inner.Set(key, value, IntLong.ToLong(rank));
         }
 
         public KeyType GetKeyByRank(int rank)
         {
-            return inner.GetKeyByRank(ToLong(rank));
+            return inner.GetKeyByRank(IntLong.ToLong(rank));
         }
 
         public void AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(key, ToLong(countAdjust));
+            inner.AdjustCount(key, IntLong.ToLong(countAdjust));
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)
@@ -221,6 +213,110 @@ namespace TreeLibTest
             return inner.NearestGreater(key, out nearestKey);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            long rankLong, countLong;
+            bool f = inner.NearestLessOrEqual(key, out nearestKey, out value, out rankLong, out countLong);
+            rank = IntLong.ToInt(rankLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            long rankLong, countLong;
+            bool f = inner.NearestLess(key, out nearestKey, out value, out rankLong, out countLong);
+            rank = IntLong.ToInt(rankLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            long rankLong, countLong;
+            bool f = inner.NearestGreaterOrEqual(key, out nearestKey, out value, out rankLong, out countLong);
+            rank = IntLong.ToInt(rankLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank, out int count)
+        {
+            long rankLong, countLong;
+            bool f = inner.NearestGreater(key, out nearestKey, out value, out rankLong, out countLong);
+            rank = IntLong.ToInt(rankLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestLessOrEqualByRank(int position, out int nearestStart)
+        {
+            long nearestStartLong;
+            bool f = inner.NearestLessOrEqualByRank(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            return f;
+        }
+
+        public bool NearestLessByRank(int position, out int nearestStart)
+        {
+            long nearestStartLong;
+            bool f = inner.NearestLessByRank(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            return f;
+        }
+
+        public bool NearestGreaterOrEqualByRank(int position, out int nearestStart)
+        {
+            long nearestStartLong;
+            bool f = inner.NearestGreaterOrEqualByRank(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            return f;
+        }
+
+        public bool NearestGreaterByRank(int position, out int nearestStart)
+        {
+            long nearestStartLong;
+            bool f = inner.NearestGreaterByRank(IntLong.ToLong(position), out nearestStartLong);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            return f;
+        }
+
+        public bool NearestLessOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            long nearestStartLong, countLong;
+            bool f = inner.NearestLessOrEqualByRank(IntLong.ToLong(position), out nearestKey, out nearestStartLong, out countLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestLessByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            long nearestStartLong, countLong;
+            bool f = inner.NearestLessByRank(IntLong.ToLong(position), out nearestKey, out nearestStartLong, out countLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestGreaterOrEqualByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            long nearestStartLong, countLong;
+            bool f = inner.NearestGreaterOrEqualByRank(IntLong.ToLong(position), out nearestKey, out nearestStartLong, out countLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
+        public bool NearestGreaterByRank(int position, out KeyType nearestKey, out int nearestStart, out int count, out ValueType value)
+        {
+            long nearestStartLong, countLong;
+            bool f = inner.NearestGreaterByRank(IntLong.ToLong(position), out nearestKey, out nearestStartLong, out countLong, out value);
+            nearestStart = IntLong.ToInt(nearestStartLong);
+            count = IntLong.ToInt(countLong);
+            return f;
+        }
+
 
         //
         // INonInvasiveTreeInspection
@@ -228,36 +324,38 @@ namespace TreeLibTest
 
         // uint Count { get; }
 
-        object INonInvasiveTreeInspection.Root { get { throw new NotSupportedException(); } }
+        uint INonInvasiveTreeInspection.Count { get { return ((INonInvasiveTreeInspection)inner).Count; } }
+
+        object INonInvasiveTreeInspection.Root { get { return ((INonInvasiveTreeInspection)inner).Root; } }
 
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetLeftChild(node);
         }
 
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetRightChild(node);
         }
 
         object INonInvasiveTreeInspection.GetKey(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetKey(node);
         }
 
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetKey(node);
         }
 
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
-            throw new NotSupportedException();
+            return ((INonInvasiveTreeInspection)inner).GetMetadata(node);
         }
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
+            ((INonInvasiveTreeInspection)inner).Validate();
         }
 
         //
@@ -272,8 +370,8 @@ namespace TreeLibTest
             {
                 ranks[i].key = innerRanks[i].key;
                 ranks[i].value = innerRanks[i].value;
-                ranks[i].rank.start = ToInt(innerRanks[i].rank.start);
-                ranks[i].rank.length = ToInt(innerRanks[i].rank.length);
+                ranks[i].rank.start = IntLong.ToInt(innerRanks[i].rank.start);
+                ranks[i].rank.length = IntLong.ToInt(innerRanks[i].rank.length);
             }
             return ranks;
         }

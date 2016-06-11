@@ -137,10 +137,12 @@ namespace TreeLibTest
             IRangeMap<ValueType> tree,
             IEnumerable<Op<ValueType>> sequence) where ValueType : IComparable<ValueType>
         {
+            ValidateTree(tree);
             foreach (Op<ValueType> op in sequence)
             {
                 IncrementIteration();
                 op.Do(tree);
+                ValidateTree(tree);
                 ValidateRanges(((INonInvasiveRange2MapInspection)tree).GetRanges());
             }
         }
@@ -150,10 +152,12 @@ namespace TreeLibTest
             IRangeMap<ValueType> treeAnalog,
             IEnumerable<Op<ValueType>> sequence) where ValueType : IComparable<ValueType>
         {
+            ValidateTree(tree);
             foreach (Op<ValueType> op in sequence)
             {
                 IncrementIteration();
                 op.Do(tree, treeAnalog);
+                ValidateTree(tree);
             }
             ValidateRangesEqual(tree, treeAnalog);
         }
@@ -357,6 +361,12 @@ namespace TreeLibTest
             TestThrow(label + " TrySetLength.2c", typeof(ArgumentOutOfRangeException), delegate () { tree.TrySetLength(0, -1); });
 
             tree = makeTree();
+            TestTrue(label + " TrySet.1a", delegate () { return tree.TryInsert(0, 1, "foo"); });
+            TestNoThrow(label + " TrySet.1b", delegate () { tree.TrySet(0, 2, "bar"); });
+            TestThrow(label + " TrySet.1c", typeof(ArgumentOutOfRangeException), delegate () { tree.TrySet(0, -1, "bar"); });
+            TestNoThrow(label + " TrySet.1d", delegate () { tree.TrySet(0, 0, "bar"); });
+
+            tree = makeTree();
             TestNoThrow(label + " Insert.1", delegate () { tree.Insert(0, 1, "foo"); });
             tree = makeTree();
             TestThrow(label + " Insert.2", typeof(ArgumentOutOfRangeException), delegate () { tree.Insert(0, 0, "foo"); });
@@ -373,6 +383,12 @@ namespace TreeLibTest
             TestTrue(label + " SetLength.2a", delegate () { return tree.TryInsert(0, 1, "foo"); });
             TestNoThrow(label + " SetLength.2b", delegate () { tree.SetLength(0, 1); });
             TestThrow(label + " SetLength.2c", typeof(ArgumentOutOfRangeException), delegate () { tree.SetLength(0, -1); });
+
+            tree = makeTree();
+            TestTrue(label + " Set.1a", delegate () { return tree.TryInsert(0, 1, "foo"); });
+            TestNoThrow(label + " Set.1b", delegate () { tree.Set(0, 2, "bar"); });
+            TestThrow(label + " Set.1c", typeof(ArgumentOutOfRangeException), delegate () { tree.Set(0, -1, "bar"); });
+            TestNoThrow(label + " Set.1f", delegate () { tree.Set(0, 0, "bar"); });
 
             tree = makeTree();
             TestTrue(label + " GetExtent degenerate", delegate () { return tree.GetExtent() == 0; });
@@ -480,10 +496,19 @@ namespace TreeLibTest
                 ReferenceRangeMap<string> reference2;
                 int p;
                 bool f;
+                Range2MapEntry r;
+                Range2MapEntry endcap = new Range2MapEntry(
+                    new Range(ranges[ranges.Length - 1].x.start + ranges[ranges.Length - 1].x.length, 0),
+                    new Range(),
+                    default(string));
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " Count", delegate () { return ranges.Length == unchecked((int)tree.Count); });
+
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " LongCount", delegate () { return ranges.Length == unchecked((int)tree.LongCount); });
 
 
                 tree = makeTree();
@@ -550,6 +575,20 @@ namespace TreeLibTest
                 BuildTree(tree, sequence);
                 TestTrue(label + " TryGet.3", delegate () { int xLength; string value; tree.TryGet(ranges[i].x.start, out xLength, out value); return value == (string)ranges[i].value; });
 
+                reference2 = reference.Clone();
+                TestTrue("prereq", delegate () { return reference2.TrySet(ranges[i].x.start, 125, "foo"); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " TrySet.X.1", delegate () { return tree.TrySet(ranges[i].x.start, 125, "foo"); });
+                ValidateRangesEqual(reference2, tree);
+                //
+                reference2 = reference.Clone();
+                TestTrue("prereq", delegate () { return reference2.TrySet(ranges[i].x.start, 0, "foo"); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " TrySet.X.2", delegate () { return tree.TrySet(ranges[i].x.start, 0, "foo"); });
+                ValidateRangesEqual(reference2, tree);
+
 
                 reference2 = reference.Clone();
                 reference2.Insert(ranges[i].x.start, Length, Value);
@@ -610,6 +649,20 @@ namespace TreeLibTest
                 BuildTree(tree, sequence);
                 TestTrue(label + " Get.3", delegate () { int xLength; string value; tree.Get(ranges[i].x.start, out xLength, out value); return value == (string)ranges[i].value; });
 
+                reference2 = reference.Clone();
+                TestTrue("prereq", delegate () { return reference2.TrySet(ranges[i].x.start, 125, "foo"); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " TrySet.X.1", delegate () { tree.TrySet(ranges[i].x.start, 125, "foo"); });
+                ValidateRangesEqual(reference2, tree);
+                //
+                reference2 = reference.Clone();
+                TestTrue("prereq", delegate () { return reference2.TrySet(ranges[i].x.start, 0, "foo"); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " Set.X.2", delegate () { tree.Set(ranges[i].x.start, 0, "foo"); });
+                ValidateRangesEqual(reference2, tree);
+
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -623,45 +676,81 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLessOrEqual.2", delegate () { int nearestStart; tree.NearestLessOrEqual(ranges[i].x.start, out nearestStart); return nearestStart == ranges[i].x.start; });
-
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestBool(label + " NearestLessOrEqual.3", i > 0, delegate () { int nearestStart; return tree.NearestLessOrEqual(ranges[i].x.start - 1, out nearestStart); });
+                TestTrue(label + " NearestLessOrEqual.2a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLessOrEqual(ranges[i].x.start, out nearestStart, out xLength, out value); return ff & (nearestStart == ranges[i].x.start) && (xLength == ranges[i].x.length) && (value == (string)ranges[i].value); });
+
+                f = i > 0;
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestBool(label + " NearestLessOrEqual.3", f, delegate () { int nearestStart; return tree.NearestLessOrEqual(ranges[i].x.start - 1, out nearestStart); });
                 //
-                p = i > 0 ? ranges[i].x.start - ranges[i - 1].x.length : 0;
+                p = f ? ranges[i].x.start - ranges[i - 1].x.length : 0;
+                r = f ? ranges[i - 1] : new Range2MapEntry();
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLessOrEqual.4", delegate () { int nearestStart; tree.NearestLessOrEqual(ranges[i].x.start - 1, out nearestStart); return nearestStart == p; });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestLessOrEqual.4a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLessOrEqual(ranges[i].x.start - 1, out nearestStart, out xLength, out value); return (ff == f) & (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLessOrEqual.5", delegate () { int nearestStart; return tree.NearestLessOrEqual(ranges[i].x.start + 1, out nearestStart); });
                 //
-                p = (i + 1 < ranges.Length) && (ranges[i].x.length == 1) ? ranges[i + 1].x.start : ranges[i].x.start;
+                f = (i + 1 < ranges.Length) && (ranges[i].x.length == 1);
+                r = f ? ranges[i + 1] : ranges[i];
+                p = f ? ranges[i + 1].x.start : ranges[i].x.start;
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLessOrEqual.6", delegate () { int nearestStart; tree.NearestLessOrEqual(ranges[i].x.start + 1, out nearestStart); return nearestStart == p; });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestLessOrEqual.6a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLessOrEqual(ranges[i].x.start + 1, out nearestStart, out xLength, out value); return ff && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLessOrEqual.7", delegate () { int nearestStart; return tree.NearestLessOrEqual(ranges[i].x.start + ranges[i].x.length + 1, out nearestStart); });
                 //
-                p = i + 1 < ranges.Length
-                    ? ((i + 2 < ranges.Length) && (ranges[i + 1].x.length == 1) ? ranges[i + 2].x.start : ranges[i + 1].x.start)
-                    : ranges[i].x.start;
+                if (i + 1 < ranges.Length)
+                {
+                    if ((i + 2 < ranges.Length) && (ranges[i + 1].x.length == 1))
+                    {
+                        p = ranges[i + 2].x.start;
+                        r = ranges[i + 2];
+                    }
+                    else
+                    {
+                        p = ranges[i + 1].x.start;
+                        r = ranges[i + 1];
+                    }
+                }
+                else
+                {
+                    p = ranges[i].x.start;
+                    r = ranges[i];
+                }
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLessOrEqual.8", delegate () { int nearestStart; tree.NearestLessOrEqual(ranges[i].x.start + ranges[i].x.length + 1, out nearestStart); return nearestStart == p; });
-
-
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestBool(label + " NearestLess.1", i > 0, delegate () { int nearestStart; return tree.NearestLess(ranges[i].x.start, out nearestStart); });
+                TestTrue(label + " NearestLessOrEqual.8a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLessOrEqual(ranges[i].x.start + ranges[i].x.length + 1, out nearestStart, out xLength, out value); return ff && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
+
+
+                f = i > 0;
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestBool(label + " NearestLess.1", f, delegate () { int nearestStart; return tree.NearestLess(ranges[i].x.start, out nearestStart); });
                 //
-                p = i > 0 ? ranges[i - 1].x.start : 0;
+                p = f ? ranges[i - 1].x.start : 0;
+                r = f ? ranges[i - 1] : new Range2MapEntry();
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLess.2", delegate () { int nearestStart; tree.NearestLess(ranges[i].x.start, out nearestStart); return nearestStart == p; });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestLess.2a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLess(ranges[i].x.start, out nearestStart, out xLength, out value); return (ff == f) && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -670,6 +759,10 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLess.4", delegate () { int nearestStart; tree.NearestLess(ranges[i].x.start + 1, out nearestStart); return nearestStart == ranges[i].x.start; });
+                r = ranges[i];
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestLess.4a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLess(ranges[i].x.start + 1, out nearestStart, out xLength, out value); return ff && (nearestStart == ranges[i].x.start) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -678,6 +771,10 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestLess.6", delegate () { int nearestStart; tree.NearestLess(ranges[i].x.start + ranges[i].x.length, out nearestStart); return nearestStart == ranges[i].x.start; });
+                r = ranges[i];
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestLess.6a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestLess(ranges[i].x.start + ranges[i].x.length, out nearestStart, out xLength, out value); return ff & (nearestStart == ranges[i].x.start) && (xLength == r.x.length) && (value == (string)r.value); });
 
 
                 tree = makeTree();
@@ -687,39 +784,61 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreaterOrEqual.2", delegate () { int nearestStart; tree.NearestGreaterOrEqual(ranges[i].x.start, out nearestStart); return nearestStart == ranges[i].x.start; });
+                r = ranges[i];
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestGreaterOrEqual.2a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestGreaterOrEqual(ranges[i].x.start, out nearestStart, out xLength, out value); return ff && (nearestStart == ranges[i].x.start) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreaterOrEqual.3", delegate () { int nearestStart; return tree.NearestGreaterOrEqual(ranges[i].x.start - 1, out nearestStart); });
                 //
-                p = (i == 0) || (ranges[i - 1].x.length != 1) ? ranges[i].x.start : ranges[i - 1].x.start;
+                f = (i == 0) || (ranges[i - 1].x.length != 1);
+                p = f ? ranges[i].x.start : ranges[i - 1].x.start;
+                r = f ? ranges[i] : ranges[i - 1];
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreaterOrEqual.4", delegate () { int nearestStart; tree.NearestGreaterOrEqual(ranges[i].x.start - 1, out nearestStart); return nearestStart == p; });
-
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestBool(label + " NearestGreaterOrEqual.5", i + 1 < ranges.Length, delegate () { int nearestStart; return tree.NearestGreaterOrEqual(ranges[i].x.start + 1, out nearestStart); });
+                TestTrue(label + " NearestGreaterOrEqual.4a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestGreaterOrEqual(ranges[i].x.start - 1, out nearestStart, out xLength, out value); return ff && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
+
+                f = i + 1 < ranges.Length;
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestBool(label + " NearestGreaterOrEqual.5", f, delegate () { int nearestStart; return tree.NearestGreaterOrEqual(ranges[i].x.start + 1, out nearestStart); });
                 //
-                p = i + 1 < ranges.Length ? ranges[i + 1].x.start : (ranges[i].x.start + ranges[i].x.length);
+                p = f ? ranges[i + 1].x.start : (ranges[i].x.start + ranges[i].x.length);
+                r = f ? ranges[i + 1] : endcap;
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreaterOrEqual.6", delegate () { int nearestStart; tree.NearestGreaterOrEqual(ranges[i].x.start + 1, out nearestStart); return nearestStart == p; });
-
-
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestBool(label + " NearestGreater.1", i + 1 < ranges.Length, delegate () { int nearestStart; return tree.NearestGreater(ranges[i].x.start, out nearestStart); });
+                TestTrue(label + " NearestGreaterOrEqual.6a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestGreaterOrEqual(ranges[i].x.start + 1, out nearestStart, out xLength, out value); return (ff == f) && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
+
+
+                f = i + 1 < ranges.Length;
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestBool(label + " NearestGreater.1", f, delegate () { int nearestStart; return tree.NearestGreater(ranges[i].x.start, out nearestStart); });
                 //
-                p = i + 1 < ranges.Length ? ranges[i + 1].x.start : (ranges[i].x.start + ranges[i].x.length);
+                p = f ? ranges[i + 1].x.start : (ranges[i].x.start + ranges[i].x.length);
+                r = f ? ranges[i + 1] : endcap;
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreater.2", delegate () { int nearestStart; tree.NearestGreater(ranges[i].x.start, out nearestStart); return nearestStart == p; });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestGreater.2a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestGreater(ranges[i].x.start, out nearestStart, out xLength, out value); return (ff == f) && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
 
-                p = ranges[i].x.start + ranges[i].x.length;
                 if ((i + 1 < ranges.Length) && (ranges[i].x.length == 1))
                 {
                     p = ranges[i + 1].x.start + ranges[i + 1].x.length;
+                }
+                else
+                {
+                    p = ranges[i].x.start + ranges[i].x.length;
                 }
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -729,6 +848,10 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreater.4", delegate () { int nearestStart; tree.NearestGreater(ranges[i].x.start + 1, out nearestStart); return nearestStart == p; });
+                r = ranges[i].x.length == 1 ? (f ? ranges[i + 2] : endcap) : (f ? ranges[i + 1] : endcap);
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestGreater.4a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestGreater(ranges[i].x.start + 1, out nearestStart, out xLength, out value); return (ff == f) && (nearestStart == p) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -737,6 +860,10 @@ namespace TreeLibTest
                 tree = makeTree();
                 BuildTree(tree, sequence);
                 TestTrue(label + " NearestGreater.6", delegate () { int nearestStart; tree.NearestGreater(ranges[i].x.start - 1, out nearestStart); return nearestStart == ranges[i].x.start; });
+                r = ranges[i];
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestTrue(label + " NearestGreater.6a", delegate () { int nearestStart, xLength; string value; bool ff = tree.NearestGreater(ranges[i].x.start - 1, out nearestStart, out xLength, out value); return ff && (nearestStart == ranges[i].x.start) && (xLength == r.x.length) && (value == (string)r.value); });
 
                 reference2 = reference.Clone();
                 TestNoThrow("prereq", delegate () { reference2.Insert(ranges[i].x.start, Int32.MaxValue - reference2.GetExtent() - 1, null); });
@@ -942,7 +1069,7 @@ namespace TreeLibTest
             }
             catch (Exception)
             {
-                Console.WriteLine("LAST ITERATION {0}, LAST ACTION ITERATION {1}", iteration, lastActionIteration);
+                WriteIteration();
                 throw;
             }
         }

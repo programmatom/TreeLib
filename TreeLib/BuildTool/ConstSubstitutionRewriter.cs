@@ -81,32 +81,7 @@ namespace BuildTool
         private readonly static string[] ConstAttributeAliases = new string[] { "Const" , "Const2" };
         private bool TestConstSubstAttribute(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax substConst)
         {
-            foreach (AttributeListSyntax attributeList in attributeLists)
-            {
-                foreach (AttributeSyntax attribute in attributeList.Attributes)
-                {
-                    IdentifierNameSyntax attributeName;
-                    if ((attributeName = attribute.Name as IdentifierNameSyntax) != null)
-                    {
-                        if (Array.IndexOf(ConstAttributeAliases, attributeName.Identifier.Text) >= 0)
-                        {
-                            substConst = attribute.ArgumentList.Arguments[0].Expression;
-
-                            for (int i = 1; i < attribute.ArgumentList.Arguments.Count; i++)
-                            {
-                                MemberAccessExpressionSyntax argumentEnumTag = (MemberAccessExpressionSyntax)attribute.ArgumentList.Arguments[i].Expression;
-                                if (Array.IndexOf(featureFacetAxis.facets, argumentEnumTag.Name.Identifier.Text) >= 0)
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            substConst = null;
-            return false;
+            return AttributeMatchUtil.TestEnumeratedFaceAttribute(attributeLists, out substConst, ConstAttributeAliases, featureFacetAxis);
         }
 
         private bool TestConstSubstSuppressionAttribute(SyntaxList<AttributeListSyntax> attributeLists)
@@ -159,10 +134,12 @@ namespace BuildTool
                     if (!substitutions.ContainsKey(identifierSymbol))
                     {
                         substitutions.Add(identifierSymbol, substConst);
+#pragma warning disable CS0162 // unreachable
                         if (trace)
                         {
                             Console.WriteLine("ADDCONST {0} ==> {1}", identifierSymbol.Name, substConst);
                         }
+#pragma warning restore CS0162
                     }
                     else
                     {
@@ -226,10 +203,12 @@ namespace BuildTool
                 if (!substitutions.ContainsKey(identifierSymbol))
                 {
                     substitutions.Add(identifierSymbol, substConst);
+#pragma warning disable CS0162 // unreachable
                     if (trace)
                     {
                         Console.WriteLine("ADDCONST {0} ==> {1}", identifierSymbol.Name, substConst);
                     }
+#pragma warning restore CS0162
                 }
                 else
                 {
@@ -254,10 +233,12 @@ namespace BuildTool
                 ExpressionSyntax constValue;
                 if (substitutions.TryGetValue(identifierSymbol, out constValue))
                 {
+#pragma warning disable CS0162 // unreachable
                     if (trace)
                     {
                         Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), constValue.ToFullString());
                     }
+#pragma warning restore CS0162
                     return constValue.WithTriviaFrom(node);
                 }
             }
@@ -280,10 +261,12 @@ namespace BuildTool
                             node.Left,
                             node.OperatorToken,
                             constValue);
+#pragma warning disable CS0162 // unreachable
                         if (trace)
                         {
                             Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), newNode.ToFullString());
                         }
+#pragma warning restore CS0162
                         return newNode;
                     }
                 }
@@ -341,10 +324,12 @@ namespace BuildTool
                 ExpressionSyntax constValue;
                 if (substitutions.TryGetValue(identifierSymbol, out constValue))
                 {
+#pragma warning disable CS0162 // unreachable
                     if (trace)
                     {
                         Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), constValue.ToFullString());
                     }
+#pragma warning restore CS0162
                     return constValue.WithTriviaFrom(node);
                 }
             }

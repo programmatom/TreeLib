@@ -87,6 +87,20 @@ namespace BuildTool
             return !AttributeMatchUtil.TestTriviaAnnotation(baseType.GetLeadingTrivia(), facetAxes);
         }
 
+        private static readonly string[] RenameAttributes = new string[] { "Rename" };
+        private bool RenameMethod(BaseMethodDeclarationSyntax method, out ExpressionSyntax newNameStringOut)
+        {
+            foreach (FacetList facetsList in facetAxes)
+            {
+                if (AttributeMatchUtil.TestEnumeratedFaceAttribute(method.AttributeLists, out newNameStringOut, RenameAttributes, facetsList))
+                {
+                    return true;
+                }
+            }
+            newNameStringOut = null;
+            return false;
+        }
+
 
         public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
         {
@@ -134,6 +148,16 @@ namespace BuildTool
                 if (RemoveMethod(node))
                 {
                     return null;
+                }
+                ExpressionSyntax newNameString;
+                if (RenameMethod(node, out newNameString))
+                {
+                    string newName = ((LiteralExpressionSyntax)newNameString).Token.Text;
+                    if (newName.StartsWith("\"") && newName.EndsWith("\""))
+                    {
+                        newName = newName.Substring(1, newName.Length - 2);
+                    }
+                    node = node.WithIdentifier(SyntaxFactory.Identifier(newName));
                 }
                 return base.VisitMethodDeclaration(node);
             }
@@ -190,6 +214,8 @@ namespace BuildTool
 
         public override SyntaxNode VisitParameterList(ParameterListSyntax node)
         {
+            node = NormalizeArgumentListUtil.NormalizeParameterList(node);
+
             ParameterListSyntax originalNode = node;
             //node = (ParameterListSyntax)base.VisitParameterList(node); can't - see below
 
@@ -210,7 +236,7 @@ namespace BuildTool
                 // on each.
                 node = node.Update(
                     node.OpenParenToken,
-                    node.Parameters.RemoveAt(i).Insert(i, (ParameterSyntax)base.VisitParameter(parameter)),
+                    node.Parameters.RemoveAt(i).Insert(i, (ParameterSyntax)base.VisitParameter(parameter).WithTriviaFrom(node.Parameters[i])),
                     node.CloseParenToken);
                 i++;
             }

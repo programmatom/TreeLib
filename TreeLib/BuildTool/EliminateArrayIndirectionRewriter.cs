@@ -225,6 +225,17 @@ namespace BuildTool
             return node;
         }
 
+        public override SyntaxNode VisitIndexerDeclaration(IndexerDeclarationSyntax node)
+        {
+            ISymbol subst;
+            if (ArrayIndexingHelper.HasArrayIndexingAttribute(semanticModel, node.AttributeLists, out subst))
+            {
+                return null;
+            }
+
+            return base.VisitIndexerDeclaration(node);
+        }
+
         public override SyntaxNode VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
             node = (FieldDeclarationSyntax)base.VisitFieldDeclaration(node);

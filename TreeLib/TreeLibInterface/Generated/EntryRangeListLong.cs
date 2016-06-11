@@ -63,8 +63,7 @@ namespace TreeLib
         public long Length { get { return xLength; } }
 
 
-        public EntryRangeListLong(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
+        public EntryRangeListLong(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
         {
             this.xStart = xStart;
             this.xLength = xLength;

@@ -21,7 +21,7 @@
 */
 using System;
 
-#pragma warning disable CS1591
+#pragma warning disable CS1591 // silence warning about missing Xml documentation
 
 namespace TreeLib.Internal
 {

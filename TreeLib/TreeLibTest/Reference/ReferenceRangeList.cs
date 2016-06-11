@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using TreeLib;
 using TreeLib.Internal;
@@ -139,6 +140,58 @@ namespace TreeLibTest
         public bool NearestGreater(int position, out int nearestStart)
         {
             return inner.NearestGreater(position, out nearestStart);
+        }
+
+        public bool NearestLessOrEqual(int position, out int nearestStart, out int length)
+        {
+            length = 0;
+            object value;
+            bool f = inner.NearestLessOrEqual(position, out nearestStart);
+            if (f)
+            {
+                bool g = inner.TryGet(nearestStart, out length, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestLess(int position, out int nearestStart, out int length)
+        {
+            length = 0;
+            object value;
+            bool f = inner.NearestLess(position, out nearestStart);
+            if (f)
+            {
+                bool g = inner.TryGet(nearestStart, out length, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(int position, out int nearestStart, out int length)
+        {
+            length = 0;
+            object value;
+            bool f = inner.NearestGreaterOrEqual(position, out nearestStart);
+            if (f)
+            {
+                bool g = inner.TryGet(nearestStart, out length, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreater(int position, out int nearestStart, out int length)
+        {
+            length = 0;
+            object value;
+            bool f = inner.NearestGreater(position, out nearestStart);
+            if (f)
+            {
+                bool g = inner.TryGet(nearestStart, out length, out value);
+                Debug.Assert(g);
+            }
+            return f;
         }
 
 

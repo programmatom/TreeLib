@@ -1092,7 +1092,7 @@ namespace TreeLibTest
             }
         }
 
-        private delegate bool OrderingVariantMethod(IRangeMap<float> collection, int position, out int nearestStart);
+        private delegate bool OrderingVariantMethod(IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float Value);
         private void OrderingActionBase(IRangeMap<float>[] collections, Random rnd, ref string description, OrderingVariantMethod variantAction)
         {
             Range2MapEntry[] items = ((INonInvasiveRange2MapInspection)collections[0]).GetRanges();
@@ -1117,17 +1117,23 @@ namespace TreeLibTest
             // test only equivalence -- rely on reference implementation being correct (assumed demonstrated during unit tests)
             description = description + String.Format(" {0}", position);
             bool f = false;
-            int nearest = 0;
+            int nearestStartModel = 0;
+            int lengthModel = 0;
+            float valueModel = 0;
             for (int i = 0; i < collections.Length; i++)
             {
                 try
                 {
-                    int nearest1;
-                    bool f1 = variantAction(collections[i], position, out nearest1);
+                    int nearestStartInstance;
+                    int lengthInstance;
+                    float valueInstance;
+                    bool f1 = variantAction(collections[i], position, out nearestStartInstance, out lengthInstance, out valueInstance);
                     if (i == 0)
                     {
                         f = f1;
-                        nearest = nearest1;
+                        nearestStartModel = nearestStartInstance;
+                        lengthModel = lengthInstance;
+                        valueModel = valueInstance;
                     }
                     else
                     {
@@ -1135,9 +1141,17 @@ namespace TreeLibTest
                         {
                             Fault(collections[i], description + " - return code discrepancy");
                         }
-                        if (nearest != nearest1)
+                        if (nearestStartModel != nearestStartInstance)
                         {
-                            Fault(collections[i], description + " - position discrepancy");
+                            Fault(collections[i], description + " - nearestStart");
+                        }
+                        if (lengthModel != lengthInstance)
+                        {
+                            Fault(collections[i], description + " - length");
+                        }
+                        if (valueModel != valueInstance)
+                        {
+                            Fault(collections[i], description + " - value");
                         }
                     }
                 }
@@ -1151,33 +1165,85 @@ namespace TreeLibTest
         private void NearestLessOrEqualAction(IRangeMap<float>[] collections, Random rnd, ref string description)
         {
             description = "NearestLessOrEqual";
-            OrderingActionBase(collections, rnd, ref description,
-                delegate (IRangeMap<float> collection, int position, out int nearestStart)
-                { return collection.NearestLessOrEqual(position, out nearestStart); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { xLength = 0; value = default(float); return collection.NearestLessOrEqual(position, out nearestStart); });
+                    break;
+                case 1:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { return collection.NearestLessOrEqual(position, out nearestStart, out xLength, out value); });
+                    break;
+            }
         }
 
         private void NearestLessAction(IRangeMap<float>[] collections, Random rnd, ref string description)
         {
             description = "NearestLess";
-            OrderingActionBase(collections, rnd, ref description,
-                delegate (IRangeMap<float> collection, int position, out int nearestStart)
-                { return collection.NearestLess(position, out nearestStart); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { xLength = 0; value = default(float); return collection.NearestLess(position, out nearestStart); });
+                    break;
+                case 1:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { return collection.NearestLess(position, out nearestStart, out xLength, out value); });
+                    break;
+            }
         }
 
         private void NearestGreaterOrEqualAction(IRangeMap<float>[] collections, Random rnd, ref string description)
         {
             description = "NearestGreaterOrEqual";
-            OrderingActionBase(collections, rnd, ref description,
-                delegate (IRangeMap<float> collection, int position, out int nearestStart)
-                { return collection.NearestGreaterOrEqual(position, out nearestStart); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { xLength = 0; value = default(float); return collection.NearestGreaterOrEqual(position, out nearestStart); });
+                    break;
+                case 1:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { return collection.NearestGreaterOrEqual(position, out nearestStart, out xLength, out value); });
+                    break;
+            }
         }
 
         private void NearestGreaterAction(IRangeMap<float>[] collections, Random rnd, ref string description)
         {
             description = "NearestGreater";
-            OrderingActionBase(collections, rnd, ref description,
-                delegate (IRangeMap<float> collection, int position, out int nearestStart)
-                { return collection.NearestGreater(position, out nearestStart); });
+            switch (rnd.Next() % 2)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { xLength = 0; value = default(float); return collection.NearestGreater(position, out nearestStart); });
+                    break;
+                case 1:
+                    OrderingActionBase(collections, rnd, ref description,
+                        delegate (IRangeMap<float> collection, int position, out int nearestStart, out int xLength, out float value)
+                        { return collection.NearestGreater(position, out nearestStart, out xLength, out value); });
+                    break;
+            }
         }
 
 
@@ -1224,10 +1290,10 @@ namespace TreeLibTest
 
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(100     , 100     ), GetExtentAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(100     , 100     ), NearestLessOrEqualAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(100     , 100     ), NearestLessAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(100     , 100     ), NearestGreaterOrEqualAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(100     , 100     ), NearestGreaterAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(150     , 150     ), NearestLessOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(150     , 150     ), NearestLessAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(150     , 150     ), NearestGreaterOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRangeMap<float>>>(new Tuple<int, int>(150     , 150     ), NearestGreaterAction),
             };
 
             return StochasticDriver(
@@ -1236,6 +1302,7 @@ namespace TreeLibTest
                 control,
                 collections,
                 actions,
+                delegate (IRangeMap<float> _collection) { return _collection.Count; },
                 delegate (IRangeMap<float>[] _collections) { Validate<float>(_collections); });
         }
     }

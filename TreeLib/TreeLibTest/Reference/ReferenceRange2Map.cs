@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using TreeLib;
 using TreeLib.Internal;
@@ -199,6 +200,24 @@ namespace TreeLibTest
             return false;
         }
 
+        public bool TrySet(int start, Side side, int xLength, int yLength, ValueType value)
+        {
+            if ((xLength < 0) || (yLength < 0))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            int index, xStart, yStart;
+            if (Find(start, side, out index, out xStart, out yStart, false/*includeEnd*/))
+            {
+                Tuple<int, int, ValueType> old = items[index];
+                items[index] = new Tuple<int, int, ValueType>(xLength != 0 ? xLength : old.Item1, yLength != 0 ? yLength : old.Item2, value);
+                return true;
+            }
+            value = default(ValueType);
+            return false;
+        }
+
         public void Insert(int start, Side side, int xLength, int yLength, ValueType value)
         {
             if (!TryInsert(start, side, xLength, yLength, value))
@@ -254,6 +273,14 @@ namespace TreeLibTest
         public void Get(int start, Side side, out int otherStart, out int xLength, out int yLength, out ValueType value)
         {
             if (!TryGet(start, side, out otherStart, out xLength, out yLength, out value))
+            {
+                throw new ArgumentException("item not in tree");
+            }
+        }
+
+        public void Set(int start, Side side, int xLength, int yLength, ValueType value)
+        {
+            if (!TrySet(start, side, xLength, yLength, value))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -355,6 +382,67 @@ namespace TreeLibTest
         }
 
 
+        public bool NearestLessOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value)
+        {
+            otherStart = 0;
+            xLength = 0;
+            yLength = 0;
+            value = default(ValueType);
+            bool f = NearestLessOrEqual(position, side, out nearestStart);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, side, out otherStart, out xLength, out yLength, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestLess(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value)
+        {
+            otherStart = 0;
+            xLength = 0;
+            yLength = 0;
+            value = default(ValueType);
+            bool f = NearestLess(position, side, out nearestStart);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, side, out otherStart, out xLength, out yLength, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value)
+        {
+            otherStart = GetExtent(side == Side.X ? Side.Y : Side.X);
+            xLength = 0;
+            yLength = 0;
+            value = default(ValueType);
+            bool f = NearestGreaterOrEqual(position, side, out nearestStart);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, side, out otherStart, out xLength, out yLength, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+        public bool NearestGreater(int position, Side side, out int nearestStart, out int otherStart, out int xLength, out int yLength, out ValueType value)
+        {
+            otherStart = GetExtent(side == Side.X ? Side.Y : Side.X);
+            xLength = 0;
+            yLength = 0;
+            value = default(ValueType);
+            bool f = NearestGreater(position, side, out nearestStart);
+            if (f)
+            {
+                bool g = TryGet(nearestStart, side, out otherStart, out xLength, out yLength, out value);
+                Debug.Assert(g);
+            }
+            return f;
+        }
+
+
         //
         // INonInvasiveTreeInspection
         //
@@ -390,7 +478,6 @@ namespace TreeLibTest
 
         void INonInvasiveTreeInspection.Validate()
         {
-            throw new NotSupportedException();
         }
 
         //

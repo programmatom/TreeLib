@@ -48,27 +48,7 @@ namespace TreeLibTest
             this.inner = inner;
         }
 
-
-        private static long ToLong(int i)
-        {
-            // translate overflow tests to the equivalent for 64-bit
-            if (i > Int32.MaxValue / 2)
-            {
-                return (long)i - Int32.MaxValue + Int64.MaxValue;
-            }
-
-            return i;
-        }
-
-        private static int ToInt(long l)
-        {
-            // translate overflow tests to the equivalent for 32-bit
-            if (l > Int64.MaxValue / 2)
-            {
-                return (int)(l - Int64.MaxValue + Int32.MaxValue);
-            }
-            return (int)l;
-        }
+        public IRankMapLong<KeyType, ValueType> Inner { get { return inner; } }
 
 
         //
@@ -113,7 +93,7 @@ namespace TreeLibTest
         {
             long rankLong;
             bool f = inner.TryGet(key, out value, out rankLong);
-            rank = ToInt(rankLong);
+            rank = IntLong.ToInt(rankLong);
             return f;
         }
 
@@ -146,7 +126,7 @@ namespace TreeLibTest
         {
             long rankLong;
             inner.Get(key, out value, out rankLong);
-            rank = ToInt(rankLong);
+            rank = IntLong.ToInt(rankLong);
         }
 
         public KeyType GetKeyByRank(int rank)
@@ -156,7 +136,7 @@ namespace TreeLibTest
 
         public void AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(key, ToLong(countAdjust));
+            inner.AdjustCount(key, IntLong.ToLong(countAdjust));
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)
@@ -219,6 +199,38 @@ namespace TreeLibTest
             return inner.NearestGreater(key, out nearestKey);
         }
 
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestLessOrEqual(key, out nearestKey, out value, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
+        public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestLess(key, out nearestKey, out value, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestGreaterOrEqual(key, out nearestKey, out value, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
+        public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
+        {
+            long rankLong;
+            bool f = inner.NearestGreater(key, out nearestKey, out value, out rankLong);
+            rank = IntLong.ToInt(rankLong);
+            return f;
+        }
+
 
         //
         // INonInvasiveTreeInspection
@@ -275,8 +287,8 @@ namespace TreeLibTest
             {
                 ranks[i].key = innerRanks[i].key;
                 ranks[i].value = innerRanks[i].value;
-                ranks[i].rank.start = ToInt(innerRanks[i].rank.start);
-                ranks[i].rank.length = ToInt(innerRanks[i].rank.length);
+                ranks[i].rank.start = IntLong.ToInt(innerRanks[i].rank.start);
+                ranks[i].rank.length = IntLong.ToInt(innerRanks[i].rank.length);
             }
             return ranks;
         }
