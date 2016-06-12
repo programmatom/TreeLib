@@ -66,6 +66,9 @@ Argument|Description
 `-perf`|Disable performance testing (perf testing is enabled by default in the `Release` build and disabled in the `Debug` build)
 `+perf`|Enable performance testing
 `baseline`|Cause a new baseline measurement to be made. If omitted, the current run will be compared to any existing baseline and deviations (faster or slower) will be written to the output
+---|---
+`break:<iteration>`|Generate an assert and `Debugger.Break()` at the specified iteration. This is used for rerunning and breaking immediately before a test failure.
+`seed:<number>`|Specify the seed to use for the random number generator in stochastic tests. This allows failures to be reproduced upon rerun, and debugged if used in conjunction with `break`.
 
 Unit Tests
 ---
