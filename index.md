@@ -5,7 +5,7 @@ TreeLib: Balanced Binary Trees - Rank Augmented, for .NET
 
 What's in TreeLib?
 ---
-TreeLib provides three self-balancing binary tree implementations ([Red-Black][1], [AVL][2], and [Splay][3]), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings.
+TreeLib provides three self-balancing binary tree implementations ([Red-Black][1], [AVL][2], and [Splay][3]), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings. There is also [TreeLibUtil](#whats-in-treelibutil) which provides `HugeList<>`, a substitute for `List<>` that supports fast insertion and deletion on very large lists.
 
 The source code is written in C# and the assemblies will work with any .NET language.
 
@@ -133,7 +133,7 @@ Enumerator|Description
 ---|---
 Robust|The robust enumerator uses an internal key cursor and queries the tree using the `NextGreater()` method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key is inserted or removed and it comes *before* the enumerator's current key in sorting order, it will have no affect on the enumerator. If a key is inserted or removed and it comes *after* the enumerator's current key (i.e. in the portion of the collection the enumerator hasn't visited yet), the enumerator will include the key if inserted or skip the key if removed. Because the enumerator queries the tree for each element it's running time per element is O(lg N), or O(N lg N) to enumerate the entire tree.
 Fast|The fast enumerator uses an internal stack of nodes to peform in-order traversal of the tree structure. Because it uses the tree structure, it is invalidated if the tree is modified by an insertion or deletion and will throw an `InvalidOperationException` when next advanced. For some types of trees (Red-Black), a failed insertion or deletion will still invalidate the enumerator, as failed operations may still have performed rotations in the tree. For the Splay tree, all operations modify the tree structure, include queries, and will invalidate the enumerator. The complexity of the fast enumerator is O(1) per element, or O(N) to enumerate the entire tree.
-**A note about splay trees and enumeration**: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the *robust* enumerator is recommended for splay trees. The drawback is robust's O(N lg N) complexity.
+**A note about splay trees and enumeration**: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the robust enumerator is recommended for splay trees. The drawback is robust's O(N lg N) complexity.
 
 The default enumerators for the tree base types are listed below. These are the enumerators returned from the `IEnumerable<>` interface implemented by each tree:
 Tree Type|Default Enumerator
@@ -143,6 +143,11 @@ Red-Black|Fast
 Splay|Robust
 Each type of enumerator is explicitly available on the tree by calling either the `GetRobustEnumerable()` method or the `GetFastEnumerable()` method.
 
+What's in TreeLibUtil?
+---
+TreeLibUtil contains `HugeList<>`, an analog of the .NET Framework's `List<>` class, which provides fast insertion and deletion on very large lists. There is a variant, `HugeListLong<>`, which supports array indexing beyond 32-bits. The implementation is a *fractured array*, maintaining a large number of small array fragments of a configurable size, kept sequence using a range collection tree. Indexing and insertion/deletion operations can be regarded as O(lg N), where N is the number of fragments, with a fairly large constant representing copying of items within a single fragment. Enumeration of the entire list is O(N) using the fast enumerator of the underlying tree. The interface `IHugeList<>` provides most of the functionality of `List<>`, with the same methods and parameters. It also provides a demonstration of how range collections might be used.
+
+---
 [1]: https://en.wikipedia.org/wiki/Red-black_tree
 [2]: https://en.wikipedia.org/wiki/AVL_tree
 [3]: https://en.wikipedia.org/wiki/Splay_tree
@@ -150,3 +155,4 @@ Each type of enumerator is explicitly available on the tree by calling either th
 [5]: https://stackedit.io/editor
 
 Last updated June 2016. Authored using [stackedit][5].
+

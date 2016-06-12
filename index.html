@@ -42,13 +42,11 @@
 
 <h2 id="whats-in-treelib">What’s in TreeLib?</h2>
 
-<p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings.</p>
+<p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings. There is also <a href="#whats-in-treelibutil">TreeLibUtil</a> which provides <code>HugeList&lt;&gt;</code>, a substitute for <code>List&lt;&gt;</code> that supports fast insertion and deletion on very large lists.</p>
 
 <p>The source code is written in C# and the assemblies will work with any .NET language.</p>
 
 <p>The linked articles discuss the properties of these tree types in detail and that discussion will not be repeated here. Here is the crucial summary: All trees have O(lg N) per-operation complexity over a large number of operations. AVL and Red-Black trees have O(lg N) worst case time for individual operations whereas Splay trees have O(N) worst case time, so their overall O(lg N) is only in an amortized sense. (For scenarios with hard deadlines, Red-Black and AVL are fine, but Splay is inappropriate.) Red-Black is a good general-purpose tree. For access patterns that include many more queries than writes, AVL trees may be faster due to a tighter bound on depth (thus search path length), but they rotate more on insert/delete so may be more expensive in modification-heavy scenarios. Splay trees move recently accessed nodes near the root, so may have better than O(lg N) performance on access patterns with strong referential locality.</p>
-
-
 
 <h2 id="where-did-the-implementations-come-from">Where did the implementations come from?</h2>
 
@@ -399,7 +397,7 @@ Any type parameters for key or value (if applicable) are specified in the type n
 </tbody></table>
 
 
-<p><strong>A note about splay trees and enumeration</strong>: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the <em>robust</em> enumerator is recommended for splay trees. The drawback is robust’s O(N lg N) complexity.</p>
+<p><strong>A note about splay trees and enumeration</strong>: Enumeration of splay trees is generally problematic, for two reasons. First, every operation on a splay tree modifies the structure of the tree, including queries. Second, splay trees may have depth of N in the worst case (as compared to other trees which are guaranteed to be less deep than approximately two times the optimal depth, or 2 lg N). The first property makes fast enumeration less useful, and the second property means fast enumeration may consume up to memory proportional to N for the internal stack used for traversal. Therefore, the robust enumerator is recommended for splay trees. The drawback is robust’s O(N lg N) complexity.</p>
 
 <p>The default enumerators for the tree base types are listed below. These are the enumerators returned from the <code>IEnumerable&lt;&gt;</code> interface implemented by each tree:</p>
 
@@ -426,6 +424,14 @@ Any type parameters for key or value (if applicable) are specified in the type n
 
 
 <p>Each type of enumerator is explicitly available on the tree by calling either the <code>GetRobustEnumerable()</code> method or the <code>GetFastEnumerable()</code> method.</p>
+
+
+
+<h2 id="whats-in-treelibutil">What’s in TreeLibUtil?</h2>
+
+<p>TreeLibUtil contains <code>HugeList&lt;&gt;</code>, an analog of the .NET Framework’s <code>List&lt;&gt;</code> class, which provides fast insertion and deletion on very large lists. There is a variant, <code>HugeListLong&lt;&gt;</code>, which supports array indexing beyond 32-bits. The implementation is a <em>fractured array</em>, maintaining a large number of small array fragments of a configurable size, kept sequence using a range collection tree. Indexing and insertion/deletion operations can be regarded as O(lg N), where N is the number of fragments, with a fairly large constant representing copying of items within a single fragment. Enumeration of the entire list is O(N) using the fast enumerator of the underlying tree. The interface <code>IHugeList&lt;&gt;</code> provides most of the functionality of <code>List&lt;&gt;</code>, with the same methods and parameters. It also provides a demonstration of how range collections might be used.</p>
+
+<hr>
 
 <p>Last updated June 2016. Authored using <a href="https://stackedit.io/editor">stackedit</a>.</p>
 
