@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TreeLibInterface")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("TreeLib Interface")]
+[assembly: AssemblyDescription("TreeLib: Balanced Binary Trees, Rank Augmented - Interface")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Thomas R. Lawrence")]
 [assembly: AssemblyProduct("TreeLib")]
-[assembly: AssemblyCopyright("Copyright © Thomas R. Lawrence 2016")]
+[assembly: AssemblyCopyright("Copyright © 2016 Thomas R. Lawrence")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

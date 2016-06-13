@@ -2223,7 +2223,7 @@ out xPosition))
             }
         }
 
-        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        [Feature(Feature.Rank, Feature.RankMulti)]
         private bool Find(            KeyType key,            out Node match,            [Widen] out int xPositionMatch)
         {
             unchecked
@@ -2403,9 +2403,19 @@ out xPosition))
 
         // INonInvasiveTreeInspection
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.Root is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Null ? (object)root : null; } }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetLeftChild() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
@@ -2413,6 +2423,11 @@ out xPosition))
             return n.left_child ? (object)n.left : null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetRightChild() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
@@ -2420,6 +2435,11 @@ out xPosition))
             return n.right_child ? (object)n.right : null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetKey() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
@@ -2429,6 +2449,11 @@ out xPosition))
             return key;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetValue() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
@@ -2436,6 +2461,11 @@ out xPosition))
             return value;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetMetadata() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
@@ -2443,6 +2473,11 @@ out xPosition))
             return n.balance;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.Validate() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
@@ -2582,6 +2617,11 @@ out xPosition))
 
         // INonInvasiveMultiRankMapInspection
 
+        /// <summary>
+        /// INonInvasiveMultiRankMapInspection.GetRanks() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [ExcludeFromCodeCoverage]
         [Widen]
@@ -2648,6 +2688,11 @@ out xPosition))
             return ranks;
         }
 
+        /// <summary>
+        /// INonInvasiveMultiRankMapInspection.Validate() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [ExcludeFromCodeCoverage]
         void INonInvasiveMultiRankMapInspection.Validate()

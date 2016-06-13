@@ -90,6 +90,7 @@ namespace TreeLib.Internal
     }
 
 
+    [ExcludeFromCodeCoverage]
     public class ExcludeFromCodeCoverageAttribute : Attribute
     {
         public ExcludeFromCodeCoverageAttribute()

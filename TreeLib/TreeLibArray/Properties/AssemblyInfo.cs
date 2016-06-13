@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TreeLibArray")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("TreeLib: Balanced Binary Trees, Rank Augmented - Array-embedded implementations")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Thomas R. Lawrence")]
 [assembly: AssemblyProduct("TreeLib")]
-[assembly: AssemblyCopyright("Copyright © Thomas R. Lawrence 2016")]
+[assembly: AssemblyCopyright("Copyright © 2016 Thomas R. Lawrence")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

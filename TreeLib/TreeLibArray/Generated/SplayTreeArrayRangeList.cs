@@ -1305,9 +1305,19 @@ uint countNew = checked(this.count + 1);
 
         // INonInvasiveTreeInspection
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.Root is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Nil ? (object)root : null; } }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetLeftChild() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
@@ -1315,6 +1325,11 @@ uint countNew = checked(this.count + 1);
             return nodes[n].left != Nil ? (object)nodes[n].left : null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetRightChild() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
@@ -1322,6 +1337,11 @@ uint countNew = checked(this.count + 1);
             return nodes[n].right != Nil ? (object)nodes[n].right : null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetKey() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
@@ -1329,6 +1349,11 @@ uint countNew = checked(this.count + 1);
             return key;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetValue() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
@@ -1336,12 +1361,22 @@ uint countNew = checked(this.count + 1);
             return value;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetMetadata() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
             return null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.Validate() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
@@ -1377,6 +1412,11 @@ uint countNew = checked(this.count + 1);
 
         // INonInvasiveRange2MapInspection
 
+        /// <summary>
+        /// INonInvasiveRange2MapInspection.GetRanges() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
         [ExcludeFromCodeCoverage]
         [Widen]
@@ -1444,6 +1484,11 @@ uint countNew = checked(this.count + 1);
             return ranges;
         }
 
+        /// <summary>
+        /// INonInvasiveRange2MapInspection.Validate() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
         [ExcludeFromCodeCoverage]
         void INonInvasiveRange2MapInspection.Validate()

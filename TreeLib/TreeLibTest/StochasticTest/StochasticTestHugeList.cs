@@ -45,15 +45,23 @@ namespace TreeLibTest
         private StringBuilder script = new StringBuilder();
         private bool scriptKilled;
 
-        private void CheckScript()
+        private void CheckScript(int extent)
         {
-            if (script.Length > 100000)
+            if (extent == 0)
             {
-                scriptKilled = true;
+                scriptKilled = false;
+                script = new StringBuilder();
             }
-            if (scriptKilled)
+            else
             {
-                script = new StringBuilder("INVALID - WAS TRUNCATED BECAUSE IT BECAME TOO BIG");
+                if (script.Length > 100000)
+                {
+                    scriptKilled = true;
+                }
+                if (scriptKilled)
+                {
+                    script = new StringBuilder("INVALID - WAS TRUNCATED BECAUSE IT BECAME TOO BIG");
+                }
             }
         }
 
@@ -86,6 +94,55 @@ namespace TreeLibTest
             }
         }
 
+
+        private static int InsertRangeCountGenerator(Random rnd, int extent)
+        {
+            int c = rnd.Next() % 20 + (int)(Math.Pow(rnd.NextDouble(), 30) * 5000);
+            return c;
+        }
+
+        private static int RemoveRangeCountGenerator(Random rnd, int extent)
+        {
+            int c = rnd.Next() % 20 + (int)(Math.Pow(rnd.NextDouble(), 50) * extent);
+            return Math.Min(c, extent);
+        }
+
+#if false // TODO: remove
+        private static int InsertRangeCountGenerator(Random rnd, int extent)
+        {
+            switch (rnd.Next() % 3)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    return rnd.Next() % 20 + 1;
+                case 1:
+                    return (int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1);
+                case 2:
+                    return (int)(Math.Pow(rnd.NextDouble(), 5) * 5000);
+            }
+        }
+
+        private static int RemoveRangeCountGenerator(Random rnd, int extent)
+        {
+            switch (rnd.Next() % 3)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new InvalidOperationException();
+                case 0:
+                    return Math.Min(rnd.Next() % 20 + 1, extent);
+                case 1:
+                    return Math.Min((int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1), extent);
+                case 2:
+                    return (int)(Math.Pow(rnd.NextDouble(), 5) * extent);
+            }
+        }
+#endif
+
+
+        private int index;
 
         private void ContainsAction(IHugeList<int>[] lists, Random rnd, ref string description)
         {
@@ -145,8 +202,14 @@ namespace TreeLibTest
             int extent = reference.Count;
 
             int item = rnd.Next();
-            int index = rnd.Next(Math.Min(-1, -extent / 40), extent + Math.Max(1 + 1/*upper bound is exclusive*/, extent / 40));
+
+            if (rnd.Next() % 3 != 0)
+            {
+                index = rnd.Next(Math.Min(-1, -extent / 40), extent + Math.Max(1 + 1/*upper bound is exclusive*/, extent / 40));
+            }
+
             bool valid = (index >= 0) && (index <= extent);
+
             description = String.Format("Insert [{0}, {1}: {2}]", index, valid ? "valid" : "invalid", item);
             script.AppendLine(String.Format("new OpInsert<T>({0}, default(T)),", index));
             for (int i = 0; i < lists.Length; i++)
@@ -179,8 +242,13 @@ namespace TreeLibTest
             IHugeList<int> reference = lists[0];
             int extent = reference.Count;
 
-            int index = rnd.Next(Math.Min(-1, -extent / 40), extent + Math.Max(1 + 1/*upper bound is exclusive*/, extent / 40));
+            if (rnd.Next() % 3 != 0)
+            {
+                index = rnd.Next(Math.Min(-1, -extent / 40), extent + Math.Max(1 + 1/*upper bound is exclusive*/, extent / 40));
+            }
+
             bool valid = (index >= 0) && (index < extent);
+
             description = String.Format("Remove [{0}, {1}]", index, valid ? "valid" : "invalid");
             script.AppendLine(String.Format("new OpRemoveAt<T>({0}),", index));
             for (int i = 0; i < lists.Length; i++)
@@ -213,22 +281,7 @@ namespace TreeLibTest
             IHugeList<int> reference = lists[0];
             int extent = reference.Count;
 
-            int count;
-            switch (rnd.Next() % 3)
-            {
-                default:
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                case 0:
-                    count = rnd.Next() % 20 + 1;
-                    break;
-                case 1:
-                    count = (int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1);
-                    break;
-                case 2:
-                    count = (int)(Math.Pow(rnd.NextDouble(), 5) * 5000);
-                    break;
-            }
+            int count = InsertRangeCountGenerator(rnd, extent);
 
             int[] items = new int[count];
             for (int i = 0; i < items.Length; i++)
@@ -237,19 +290,22 @@ namespace TreeLibTest
             }
             int offset = 0;
 
-            int index;
-            switch (rnd.Next() % 10)
+            if ((rnd.Next() % 3 != 0) || (index == 0) && (index == extent))
             {
-                case 0: // insert at starting edge
-                    index = 0;
-                    break;
-                case 1: // insert at trailing edge
-                    index = extent;
-                    break;
-                default: // at random position in middle
-                    index = rnd.Next(0, extent);
-                    break;
+                switch (rnd.Next() % 10)
+                {
+                    case 0: // insert at starting edge
+                        index = 0;
+                        break;
+                    case 1: // insert at trailing edge
+                        index = extent;
+                        break;
+                    default: // at random position in middle
+                        index = rnd.Next(0, extent);
+                        break;
+                }
             }
+            index = Math.Min(extent, Math.Max(0, index));
 
             bool valid = true;
             if (rnd.Next() % 10 == 0)
@@ -333,36 +389,24 @@ namespace TreeLibTest
             IHugeList<int> reference = lists[0];
             int extent = reference.Count;
 
-            int count;
-            switch (rnd.Next() % 3)
-            {
-                default:
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                case 0:
-                    count = Math.Min(rnd.Next() % 20 + 1, extent);
-                    break;
-                case 1:
-                    count = Math.Min((int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1), extent);
-                    break;
-                case 2:
-                    count = (int)(Math.Pow(rnd.NextDouble(), 5) * extent);
-                    break;
-            }
+            int count = RemoveRangeCountGenerator(rnd, extent);
 
-            int index;
-            switch (rnd.Next() % 10)
+            if ((rnd.Next() % 3 != 0) || (index == 0) && (index == extent))
             {
-                case 0: // remove at starting edge
-                    index = 0;
-                    break;
-                case 1: // remove at trailing edge
-                    index = extent - count;
-                    break;
-                default: // at random position in middle
-                    index = rnd.Next(0, extent - count);
-                    break;
+                switch (rnd.Next() % 10)
+                {
+                    case 0: // remove at starting edge
+                        index = 0;
+                        break;
+                    case 1: // remove at trailing edge
+                        index = extent - count;
+                        break;
+                    default: // at random position in middle
+                        index = rnd.Next(0, extent - count);
+                        break;
+                }
             }
+            index = Math.Min(extent - count, Math.Max(0, index));
 
             bool valid = true;
             if (rnd.Next() % 10 == 0)
@@ -421,39 +465,8 @@ namespace TreeLibTest
             IHugeList<int> reference = lists[0];
             int extent = reference.Count;
 
-            int removeCount;
-            switch (rnd.Next() % 3)
-            {
-                default:
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                case 0:
-                    removeCount = Math.Min(rnd.Next() % 20 + 1, extent);
-                    break;
-                case 1:
-                    removeCount = Math.Min((int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1), extent);
-                    break;
-                case 2:
-                    removeCount = (int)(Math.Pow(rnd.NextDouble(), 5) * extent);
-                    break;
-            }
-
-            int insertCount;
-            switch (rnd.Next() % 3)
-            {
-                default:
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                case 0:
-                    insertCount = rnd.Next() % 20 + 1;
-                    break;
-                case 1:
-                    insertCount = (int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1);
-                    break;
-                case 2:
-                    insertCount = (int)(Math.Pow(rnd.NextDouble(), 5) * 5000);
-                    break;
-            }
+            int removeCount = RemoveRangeCountGenerator(rnd, extent);
+            int insertCount = InsertRangeCountGenerator(rnd, extent);
 
             int[] items = new int[insertCount];
             for (int i = 0; i < items.Length; i++)
@@ -462,19 +475,22 @@ namespace TreeLibTest
             }
             int offset = 0;
 
-            int index;
-            switch (rnd.Next() % 10)
+            if ((rnd.Next() % 3 != 0) || (index == 0) && (index == extent))
             {
-                case 0: // insert at starting edge
-                    index = 0;
-                    break;
-                case 1: // insert at trailing edge
-                    index = extent - removeCount;
-                    break;
-                default: // at random position in middle
-                    index = rnd.Next(0, extent - removeCount);
-                    break;
+                switch (rnd.Next() % 10)
+                {
+                    case 0: // insert at starting edge
+                        index = 0;
+                        break;
+                    case 1: // insert at trailing edge
+                        index = extent - removeCount;
+                        break;
+                    default: // at random position in middle
+                        index = rnd.Next(0, extent - removeCount);
+                        break;
+                }
             }
+            index = Math.Min(extent - removeCount, Math.Max(0, index));
 
             bool valid = true;
             if (rnd.Next() % 10 == 0)
@@ -565,7 +581,7 @@ namespace TreeLibTest
             int extent = reference.Count;
 
             int modulus, item;
-            switch (rnd.Next() % 4)
+            switch ((int)(4 * Math.Pow(rnd.NextDouble(), 10))) // reaches '3' in just under 3% of cases
             {
                 default:
                     Debug.Assert(false);
@@ -964,37 +980,38 @@ namespace TreeLibTest
             }
 
             bool valid = true;
-            if (rnd.Next() % 10 == 0)
-            {
-                // make invalid inputs
-                valid = false;
-                switch (rnd.Next() % 4)
-                {
-                    default:
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    case 0:
-                        index = -2;
-                        break;
-                    case 1:
-                        index = extent + 1;
-                        break;
-                    case 2:
-                        count = -1;
-                        break;
-                    case 3:
-                        count = extent + 2;
-                        if (extent == 0)
-                        {
-                            valid = true; // special case: count not validated when extent is 0
-                        }
-                        break;
-                }
-            }
+            // TODO: disabled because LastIndexOf and FindLastIndex have different invalid parameter boundaries
+            //if (rnd.Next() % 10 == 0)
+            //{
+            //    // make invalid inputs
+            //    valid = false;
+            //    switch (rnd.Next() % 4)
+            //    {
+            //        default:
+            //            Debug.Assert(false);
+            //            throw new InvalidOperationException();
+            //        case 0:
+            //            index = -2;
+            //            break;
+            //        case 1:
+            //            index = extent + 1;
+            //            break;
+            //        case 2:
+            //            count = -1;
+            //            break;
+            //        case 3:
+            //            count = extent + 2;
+            //            if (extent == 0)
+            //            {
+            //                valid = true; // special case: count not validated when extent is 0
+            //            }
+            //            break;
+            //    }
+            //}
 
             description = String.Format(
                 "{0} ({1}) [{2}, {3}, {4}: {5}]",
-                method == 0 ? "LastIndexOf" : (method == 1 ? "LastFindIndex" : "LastIndexOfAny"),
+                method == 0 ? "LastIndexOf" : (method == 1 ? "FindLastIndex" : "LastIndexOfAny"),
                 existing ? "existing" : "missing",
                 itemsForAny != null ? itemsForAny.ToString() : item.ToString(),
                 index,
@@ -1070,33 +1087,25 @@ namespace TreeLibTest
             {
                 new ReferenceHugeList<int>(), // must be first
 
-                //new HugeList<int>(typeof(SplayTreeRangeMap<>), 1),
-                //new HugeList<int>(typeof(SplayTreeRangeMap<>), 2),
-                new HugeList<int>(typeof(SplayTreeRangeMap<>), 5),
-                //new HugeList<int>(typeof(SplayTreeRangeMap<>), 20),
-                //new HugeList<int>(typeof(SplayTreeRangeMap<>), 100),
-                new HugeList<int>(typeof(SplayTreeRangeMap<>), 512),
+                new HugeList<int>(typeof(SplayTreeRangeMap<>), 47),
+                new HugeList<int>(typeof(AVLTreeRangeMap<>), 512),
 
-                //new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(SplayTreeRangeMapLong<>), 1)),
-                //new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(SplayTreeRangeMapLong<>), 2)),
-                new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(SplayTreeRangeMapLong<>), 5)),
-                //new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(SplayTreeRangeMapLong<>), 20)),
-                //new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(SplayTreeRangeMapLong<>), 100)),
+                new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(RedBlackTreeRangeMapLong<>), 47)),
                 new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(SplayTreeRangeMapLong<>), 512)),
             };
 
             Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>[] actions = new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>[]
             {
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(400     , 400     ), ContainsAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(400     , 400     ), InsertAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(400     , 400     ), RemoveAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(500     , 500     ), InsertRangeAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(400     , 400     ), RemoveRangeAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(400     , 400     ), ReplaceRangeAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(400     , 400     ), RemoveAllAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(200     , 200     ), CopyToAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(200     , 200     ), IndexSearchAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(200     , 200     ), LastIndexSearchAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 400,  400), ContainsAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 400,  400), InsertAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 400,  400), RemoveAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>(1000, 2000), InsertRangeAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 400,  400), RemoveRangeAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 400,  400), ReplaceRangeAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 400,  200), RemoveAllAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 200,  200), CopyToAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 200,  200), IndexSearchAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 200,  200), LastIndexSearchAction),
             };
 
             return StochasticDriver(
@@ -1106,7 +1115,7 @@ namespace TreeLibTest
                 lists,
                 actions,
                 delegate (IHugeList<int> _list) { return (uint)_list.Count; },
-                delegate (IHugeList<int>[] _lists) { Validate(_lists); CheckScript(); });
+                delegate (IHugeList<int>[] _lists) { Validate(_lists); CheckScript(lists[0].Count); });
         }
     }
 }

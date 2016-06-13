@@ -50,6 +50,17 @@ namespace TreeLib
 
         private ushort version;
 
+        /// <summary>
+        /// Create a new HugeList based on the provided underlying tree implementation. All tree implementations are functionally
+        /// equivalent but may have different performance characteristics. It is recommended to measure the scenario to determine
+        /// which works best. The tree implementation must be one of the following: AVLTreeRangeMap, RedBlackTreeRangeMap, or
+        /// SplayTreeRangeMap (or the long variants if useing HugeListLong), and the generic type parameter must be T[], where
+        /// T is the same concrete type used to specialize the HugeList. The provided template collection must be empty.
+        /// The HugeList will use the default maximum block size of 512.
+        /// </summary>
+        /// <param name="storage">An instance of the specific tree implementation to use</param>
+        /// <exception cref="ArgumentNullException">storage is null</exception>
+        /// <exception cref="ArgumentException">storage is not empty</exception>
         public HugeListBase([Widen]IRangeMap<T[]> storage)
         {
             if (storage == null)
@@ -64,6 +75,22 @@ namespace TreeLib
             this.tree = (/*[Widen]*/IRangeMap<T[]>)(((ICloneable)storage).Clone());
         }
 
+        /// <summary>
+        /// Create a new HugeList based on the provided underlying tree implementation. All tree implementations are functionally
+        /// equivalent but may have different performance characteristics. It is recommended to measure the scenario to determine
+        /// which works best. The tree implementation must be one of the following: AVLTreeRangeMap, RedBlackTreeRangeMap, or
+        /// SplayTreeRangeMap (or the long variants if useing HugeListLong), and the generic type parameter must be T[], where
+        /// T is the same concrete type used to specialize the HugeList. The provided template collection must be empty.
+        /// The HugeList will use the specified maximum block size. There is a trade-off in the maximum block size. Smaller values
+        /// will make small inserts and deletes faster by reducing the size of the array fragments that must be copied, but increase
+        /// the number of fragments, slowing queries. Larger block sizes have the converse characteristics. The parameter should
+        /// be tuned for the specific application by performance measurement.
+        /// </summary>
+        /// <param name="storage">an instance of the specific tree implementation to use</param>
+        /// <param name="maxBlockSize">the maximum lenngth an internal array fragment is permitted to be</param>
+        /// <exception cref="ArgumentNullException">storage is null</exception>
+        /// <exception cref="ArgumentException">storage is not empty</exception>
+        /// <exception cref="ArgumentOutOfRangeException">maxBlockSize is less than 1</exception>
         public HugeListBase([Widen]IRangeMap<T[]> storage, int maxBlockSize)
             : this(storage)
         {
@@ -75,6 +102,20 @@ namespace TreeLib
             this.maxBlockSize = maxBlockSize;
         }
 
+        /// <summary>
+        /// Create a new HugeList based on the provided underlying tree type. All tree implementations are functionally
+        /// equivalent but may have different performance characteristics. It is recommended to measure the scenario to determine
+        /// which works best. The tree type must be one of the following: AVLTreeRangeMap&lt;&gt;, RedBlackTreeRangeMap&lt;&gt;, or
+        /// SplayTreeRangeMap&lt;&gt; (or the long variants if useing HugeListLong). The type parameter should be left unspecialized
+        /// as this constructor will specialize it automatically. For example:
+        /// <code>new HugeList(AVLTreeRangeMap&lt;&gt;)</code>
+        /// The HugeList will use the default maximum block size of 512.
+        /// </summary>
+        /// <param name="storage">The type of the tree implementation to use</param>
+        /// <exception cref="ArgumentNullException">treeType is null</exception>
+        /// <exception cref="ArgumentException">treeType is not a compatible type (it takes other than one generic type parameter,
+        /// does not have a default constructor, or fails to implement IRangeMap&lt;T%gt;, or IRangeMapLong&lt;T%gt; in the case
+        /// of HugeListLong</exception>
         public HugeListBase(Type treeType)
         {
             if (treeType == null)
@@ -86,7 +127,7 @@ namespace TreeLib
                 throw new ArgumentException();
             }
 
-            treeType = treeType.MakeGenericType(typeof(T[])); // throws ArgumentException generic signature doesn't match
+            treeType = treeType.MakeGenericType(typeof(T[])); // throws ArgumentException for us if generic signature doesn't match
             ConstructorInfo ci = treeType.GetConstructor(Type.EmptyTypes);
             if (ci == null)
             {
@@ -100,6 +141,25 @@ namespace TreeLib
             }
         }
 
+        /// <summary>
+        /// Create a new HugeList based on the provided underlying tree type. All tree implementations are functionally
+        /// equivalent but may have different performance characteristics. It is recommended to measure the scenario to determine
+        /// which works best. The tree type must be one of the following: AVLTreeRangeMap&lt;&gt;, RedBlackTreeRangeMap&lt;&gt;, or
+        /// SplayTreeRangeMap&lt;&gt; (or the long variants if useing HugeListLong). The type parameter should be left unspecialized
+        /// as this constructor will specialize it automatically. For example:
+        /// <code>new HugeList(AVLTreeRangeMap&lt;&gt;)</code>
+        /// The HugeList will use the specified maximum block size. There is a trade-off in the maximum block size. Smaller values
+        /// will make small inserts and deletes faster by reducing the size of the array fragments that must be copied, but increase
+        /// the number of fragments, slowing queries. Larger block sizes have the converse characteristics. The parameter should
+        /// be tuned for the specific application by performance measurement.
+        /// </summary>
+        /// <param name="storage">The type of the tree implementation to use</param>
+        /// <param name="maxBlockSize">the maximum lenngth an internal array fragment is permitted to be</param>
+        /// <exception cref="ArgumentNullException">treeType is null</exception>
+        /// <exception cref="ArgumentException">treeType is not a compatible type (it takes other than one generic type parameter,
+        /// does not have a default constructor, or fails to implement IRangeMap&lt;T%gt;, or IRangeMapLong&lt;T%gt; in the case
+        /// of HugeListLong</exception>
+        /// <exception cref="ArgumentOutOfRangeException">maxBlockSize is less than 1</exception>
         public HugeListBase(Type treeType, int maxBlockSize)
             : this(treeType)
         {

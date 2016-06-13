@@ -921,12 +921,12 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), ContainsKeyAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(200     , 200     ), SetOrAddValueAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(200 - 20, 200 + 20), TryAddAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(200 - 50, 200 + 50), TryAddAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(300     , 300     ), TryRemoveAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), TryGetValueAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), TrySetValueAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(200 - 20, 200 + 20), AddAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(200 - 50, 200 + 50), AddAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(300     , 300     ), RemoveAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), GetValueAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), SetValueAction),

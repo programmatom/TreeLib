@@ -1198,31 +1198,31 @@ namespace TreeLibTest
 
             Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>[] actions = new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>[]
             {
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), ContainsKeyAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), ContainsKeyAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(400 + 15, 400 + 100), TryAddAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(460     , 460      ), TryRemoveAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), TryGetValueAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), TrySetValueAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), TryGetAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), TryGetKeyByRankAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(400 - 130, 400 + 200), TryAddAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(460      , 460      ), TryRemoveAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), TryGetValueAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), TrySetValueAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), TryGetAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), TryGetKeyByRankAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(400 + 15, 400 + 100), AddAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(460     , 460      ), RemoveAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), GetValueAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), SetValueAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), GetAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200      ), GetKeyByRankAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(400 - 130, 400 + 200), AddAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(460      , 460      ), RemoveAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), GetValueAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), SetValueAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), GetAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), GetKeyByRankAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(280     , 280      ), AdjustCountAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(280      , 280      ), AdjustCountAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), LeastAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), GreatestAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), LeastAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), GreatestAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestLessOrEqualAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestLessAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestGreaterOrEqualAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200     , 200     ), NearestGreaterAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestLessOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestLessAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestGreaterOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestGreaterAction),
             };
 
             return StochasticDriver(
