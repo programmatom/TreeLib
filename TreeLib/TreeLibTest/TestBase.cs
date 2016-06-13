@@ -315,6 +315,8 @@ namespace TreeLibTest
         }
 
 
+        protected long stochasticIterations;
+
         protected delegate void InvokeAction<TreeType>(TreeType[] collections, Random rnd, ref string lastActionDescription);
         protected delegate uint CountMethod<TreeType>(TreeType reference);
         protected delegate void ValidateMethod<TreeType>(TreeType[] collections);
@@ -342,25 +344,25 @@ namespace TreeLibTest
                 Debug.Assert((totalProb1 > 0) && (totalProb2 > 0));
 
                 const int RegimeDuration = 50000;
+                const int RegimeOffset = 15000;
                 int regime = 0;
-                long iterations = 0;
                 uint maxCountEver = 0;
                 uint maxCount1 = 0;
                 uint minCount1 = 0;
                 while (!control.Stop)
                 {
-                    iterations++;
+                    stochasticIterations++;
                     uint lastCount = getCount(collections[0]);
                     maxCountEver = Math.Max(maxCountEver, lastCount);
                     maxCount1 = Math.Max(maxCount1, lastCount);
                     minCount1 = Math.Min(minCount1, lastCount);
-                    if (iterations % control.ReportingInterval == 0)
+                    if (stochasticIterations % control.ReportingInterval == 0)
                     {
-                        WriteLine("  iterations: {0:N0}  r {1}  minc {2}  maxc {3}  lastc {4}  maxc* {5}", iterations, regime, minCount1, maxCount1, lastCount, maxCountEver);
+                        WriteLine("  iterations: {0:N0}  r {1}  minc {2}  maxc {3}  lastc {4}  maxc* {5}", stochasticIterations, regime, minCount1, maxCount1, lastCount, maxCountEver);
                         minCount1 = lastCount;
                         maxCount1 = lastCount;
                     }
-                    if (iterations % RegimeDuration == 0)
+                    if ((stochasticIterations - RegimeOffset) % RegimeDuration == 0)
                     {
                         regime = regime ^ 1;
                     }
@@ -390,7 +392,7 @@ namespace TreeLibTest
                 control.Failed = true;
                 ShowException(title, exception);
                 return false;
-            } 
+            }
 
             return true;
         }

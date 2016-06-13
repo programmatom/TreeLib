@@ -1001,9 +1001,19 @@ namespace TreeLib
 
         // INonInvasiveTreeInspection
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.Root is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.Root { get { return root != Nil ? (object)root : null; } }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetLeftChild() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetLeftChild(object node)
         {
@@ -1011,6 +1021,11 @@ namespace TreeLib
             return n.left != Nil ? (object)n.left : null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetRightChild() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetRightChild(object node)
         {
@@ -1018,6 +1033,11 @@ namespace TreeLib
             return n.right != Nil ? (object)n.right : null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetKey() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
@@ -1027,6 +1047,11 @@ namespace TreeLib
             return key;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetValue() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
@@ -1034,12 +1059,22 @@ namespace TreeLib
             return value;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.GetMetadata() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetMetadata(object node)
         {
             return null;
         }
 
+        /// <summary>
+        /// INonInvasiveTreeInspection.Validate() is a diagnostic method intended to be used ONLY for validation of trees
+        /// during unit testing. It is not intended for consumption by users of the library and there is no
+        /// guarrantee that it will be supported in future versions.
+        /// </summary>
         [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {

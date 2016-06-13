@@ -1074,26 +1074,26 @@ namespace TreeLibTest
 
             Tuple<Tuple<int, int>, InvokeAction<IRange2List>>[] actions = new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>[]
             {
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), ContainsAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), ContainsAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300 - 20, 300 + 30), TryInsertAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300     , 300     ), TryDeleteAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), TryGetLengthAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), TrySetLengthAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), TryGetAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300 - 80 , 300 + 100), TryInsertAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300      , 300      ), TryDeleteAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), TryGetLengthAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), TrySetLengthAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), TryGetAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300 - 20, 300 + 30), InsertAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300     , 300     ), DeleteAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), GetLengthAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), SetLengthAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), GetAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300 - 80 , 300 + 100), InsertAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(300      , 300      ), DeleteAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), GetLengthAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), SetLengthAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), GetAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100     , 100     ), GetExtentAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(100      , 100      ), GetExtentAction),
 
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150     , 150     ), NearestLessOrEqualAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150     , 150     ), NearestLessAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150     , 150     ), NearestGreaterOrEqualAction),
-                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150     , 150     ), NearestGreaterAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150      , 150      ), NearestLessOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150      , 150      ), NearestLessAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150      , 150      ), NearestGreaterOrEqualAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2List>>(new Tuple<int, int>(150      , 150      ), NearestGreaterAction),
             };
 
             return StochasticDriver(
