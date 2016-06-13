@@ -32,6 +32,7 @@
 <li><a href="#how-do-i-create-a-tree">How do I create a tree?</a></li>
 <li><a href="#how-do-the-interfaces-work">How do the interfaces work?</a></li>
 <li><a href="#what-about-enumeration">What about enumeration?</a></li>
+<li><a href="#whats-in-treelibutil">What’s in TreeLibUtil?</a></li>
 </ul>
 </li>
 </ul>
@@ -48,6 +49,8 @@
 
 <p>The linked articles discuss the properties of these tree types in detail and that discussion will not be repeated here. Here is the crucial summary: All trees have O(lg N) per-operation complexity over a large number of operations. AVL and Red-Black trees have O(lg N) worst case time for individual operations whereas Splay trees have O(N) worst case time, so their overall O(lg N) is only in an amortized sense. (For scenarios with hard deadlines, Red-Black and AVL are fine, but Splay is inappropriate.) Red-Black is a good general-purpose tree. For access patterns that include many more queries than writes, AVL trees may be faster due to a tighter bound on depth (thus search path length), but they rotate more on insert/delete so may be more expensive in modification-heavy scenarios. Splay trees move recently accessed nodes near the root, so may have better than O(lg N) performance on access patterns with strong referential locality.</p>
 
+
+
 <h2 id="where-did-the-implementations-come-from">Where did the implementations come from?</h2>
 
 <p>The Splay tree comes from code written by the inventor, Daniel Sleator, available in basic form from <a href="http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c">http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c</a>.</p>
@@ -62,21 +65,47 @@
 
 <h2 id="how-do-i-get-treelib">How do I get TreeLib?</h2>
 
-<p>Coming soon: NuGet</p>
+<p>The TreeLib packages can be obtained from <a href="http://nuget.org">http://nuget.org</a> or using the NuGet package manager in Visual Studio. The packages are available here:</p>
+
+<table>
+<thead>
+<tr>
+  <th>Package</th>
+  <th>Link</th>
+</tr>
+</thead>
+<tbody><tr>
+  <td>TreeLibInterface</td>
+  <td><a href="http://www.nuget.org/packages/TreeLibInterface/">http://www.nuget.org/packages/TreeLibInterface/</a></td>
+</tr>
+<tr>
+  <td>TreeLib</td>
+  <td><a href="http://www.nuget.org/packages/TreeLib/">http://www.nuget.org/packages/TreeLib/</a></td>
+</tr>
+<tr>
+  <td>TreeLibArray</td>
+  <td><a href="http://www.nuget.org/packages/TreeLibArray/">http://www.nuget.org/packages/TreeLibArray/</a></td>
+</tr>
+<tr>
+  <td>TreeLibLong</td>
+  <td><a href="http://www.nuget.org/packages/TreeLibLong/">http://www.nuget.org/packages/TreeLibLong/</a></td>
+</tr>
+<tr>
+  <td>TreeLibUtil</td>
+  <td><a href="http://www.nuget.org/packages/TreeLibUtil/">http://www.nuget.org/packages/TreeLibUtil/</a></td>
+</tr>
+</tbody></table>
+
 
 <p>The project is available in source form at <a href="https://github.com/programmatom/TreeLib">https://github.com/programmatom/TreeLib</a>.</p>
 
-
-
 <h2 id="how-is-it-licensed">How is it licensed?</h2>
 
-<p>TreeLib is made available under the GNU Lesser General Public License (LGPL). It may be used,, unmodified, in proprietary software without forcing the source to that software to be disclosed. If it is modified, per the license, the source of the modification must be made available (source for other parts of the software that use the modified library do not need to be made available).</p>
-
-
+<p>TreeLib is made available under the GNU Lesser General Public License (LGPL). It may be used, unmodified, in proprietary software without forcing the source to that software to be disclosed. If it is modified and used in published software, per the license, the source of the modification must be made available (source for other parts of the software that uses the modified library do not need to be made available).</p>
 
 <h2 id="how-do-i-use-it">How do I use it?</h2>
 
-<p>TreeLib comes as four assemblies:</p>
+<p>TreeLib comes as five assemblies:</p>
 
 <table>
 <thead>
@@ -101,12 +130,14 @@
   <td><em>TreeLibArray.dll</em></td>
   <td>Variants of the trees that store their internal nodes in a single array rather than linked heap objects.</td>
 </tr>
+<tr>
+  <td><em>TreeLibUtil.dll</em></td>
+  <td>Contains the <code>HugeList&lt;&gt;</code> implementation.</td>
+</tr>
 </tbody></table>
 
 
 <p>Of these, <em>TreeLibInterface.dll</em> is the only one that is required. Of the other assemblies, you can include only the ones containing implementations you need.</p>
-
-
 
 <h2 id="whats-in-those-assemblies-how-do-i-actually-create-a-tree">What’s in those assemblies? How do I actually create a tree?</h2>
 

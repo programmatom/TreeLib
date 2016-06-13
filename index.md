@@ -23,23 +23,31 @@ The rank-augmentation code was written by [Thomas R. Lawrence][4].
 
 How do I get TreeLib?
 ---
-Coming soon: NuGet
+The TreeLib packages can be obtained from http://nuget.org or using the NuGet package manager in Visual Studio. The packages are available here:
+Package|Link
+---|---
+TreeLibInterface|http://www.nuget.org/packages/TreeLibInterface/
+TreeLib|http://www.nuget.org/packages/TreeLib/
+TreeLibArray|http://www.nuget.org/packages/TreeLibArray/
+TreeLibLong|http://www.nuget.org/packages/TreeLibLong/
+TreeLibUtil|http://www.nuget.org/packages/TreeLibUtil/
 
 The project is available in source form at https://github.com/programmatom/TreeLib.
 
 How is it licensed?
 ---
-TreeLib is made available under the GNU Lesser General Public License (LGPL). It may be used,, unmodified, in proprietary software without forcing the source to that software to be disclosed. If it is modified, per the license, the source of the modification must be made available (source for other parts of the software that use the modified library do not need to be made available).
+TreeLib is made available under the GNU Lesser General Public License (LGPL). It may be used, unmodified, in proprietary software without forcing the source to that software to be disclosed. If it is modified and used in published software, per the license, the source of the modification must be made available (source for other parts of the software that uses the modified library do not need to be made available).
 
 How do I use it?
 ---
-TreeLib comes as four assemblies:
+TreeLib comes as five assemblies:
 Assembly | Description
 ---|---
 *TreeLibInterface.dll*|The public interfaces implemented by specializations.
 *TreeLib.dll*|All implementations of all the trees in a "standard" form.
 *TreeLibLong.dll*|All the rank-augmented trees modified to use 64-bit integers for rank information rather than 32-bit integers.
 *TreeLibArray.dll*|Variants of the trees that store their internal nodes in a single array rather than linked heap objects.
+*TreeLibUtil.dll*|Contains the `HugeList<>` implementation.
 
 Of these, *TreeLibInterface.dll* is the only one that is required. Of the other assemblies, you can include only the ones containing implementations you need.
 
@@ -155,4 +163,5 @@ TreeLibUtil contains `HugeList<>`, an analog of the .NET Framework's `List<>` cl
 [5]: https://stackedit.io/editor
 
 Last updated June 2016. Authored using [stackedit][5].
+
 
