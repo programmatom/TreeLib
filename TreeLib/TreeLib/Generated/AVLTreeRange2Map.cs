@@ -717,7 +717,7 @@ out xLength,
                 /*[Widen]*/
                 int xAdjust = xLength != 0 ? xLength - xLengthOld : 0;
                 /*[Widen]*/
-                int yAdjust = yLength != 0 ?yLength - yLengthOld : 0;
+                int yAdjust = yLength != 0 ? yLength - yLengthOld : 0;
 
                 this.xExtent = checked(this.xExtent + xAdjust);
                 this.yExtent = checked(this.yExtent + yAdjust);
@@ -1189,7 +1189,7 @@ out length))
         //
 
         // Object allocation
-        
+
         [Storage(Storage.Object)]
         private struct AllocateHelper // hack for Roslyn since member removal corrupts following conditional directives
         {
@@ -1294,23 +1294,6 @@ out length))
             return tmp;
         }
 
-        private Node g_tree_last_node()
-        {
-            if (root == Null)
-            {
-                return Null;
-            }
-
-            Node tmp = root;
-
-            while (tmp.right_child)
-            {
-                tmp = tmp.right;
-            }
-
-            return tmp;
-        }
-
         private bool NearestLess(            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             unchecked
@@ -1364,10 +1347,7 @@ out length))
                                 }
                                 next = node.right;
                             }
-                            if (next == Null)
-                            {
-                                break;
-                            }
+                            Debug.Assert(next != Null);
                             node = next;
                         }
                     }
@@ -1438,10 +1418,7 @@ out length))
                                 }
                                 next = node.right;
                             }
-                            if (next == Null)
-                            {
-                                break;
-                            }
+                            Debug.Assert(next != Null);
                             node = next;
                         }
                     }
@@ -2484,7 +2461,6 @@ out length))
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         private void ValidateRanges([Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             if (root != Null)
@@ -2514,10 +2490,7 @@ out length))
                     leftEdge = t.Item3;
                     rightEdge = t.Item4;
 
-                    if ((offset < leftEdge) || (offset >= rightEdge))
-                    {
-                        throw new InvalidOperationException("range containment invariant");
-                    }
+                    Check.Assert((offset >= leftEdge) && (offset < rightEdge), "range containment invariant");
 
                     leftEdge = offset + 1;
                     node = node.right_child ? node.right : Null;
@@ -2574,8 +2547,7 @@ out length))
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
-            object key = null;
-            return key;
+            return null;
         }
 
         /// <summary>
@@ -2609,7 +2581,6 @@ out length))
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Null)
@@ -2621,10 +2592,7 @@ out length))
                 {
                     Node node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (node.left_child)
@@ -2638,7 +2606,7 @@ out length))
                 }
             }
 
-            /*[Feature(Feature.Rank, Feature.MultiRank, Feature.Range, Feature.Range2)]*/
+            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
             ValidateRanges(/*[Feature(Feature.Range2)]*/Side.X);
             /*[Feature(Feature.Range2)]*/
             ValidateRanges(/*[Feature(Feature.Range2)]*/Side.Y);
@@ -2647,7 +2615,6 @@ out length))
             ValidateDepthInvariant();
         }
 
-        [ExcludeFromCodeCoverage]
         private void ValidateDepthInvariant()
         {
             const double phi = 1.618033988749894848204;
@@ -2655,13 +2622,9 @@ out length))
 
             double max = Math.Log((count + 2) * Math.Sqrt(5)) / Math.Log(phi) - 2;
             int depth = root != Null ? MaxDepth(root) : 0;
-            if (depth > max + epsilon)
-            {
-                throw new InvalidOperationException("max depth invariant");
-            }
+            Check.Assert(depth <= max + epsilon, "max depth invariant");
         }
 
-        [ExcludeFromCodeCoverage]
         private int MaxDepth(Node node)
         {
             int ld = node.left_child ? MaxDepth(node.left) : 0;
@@ -2669,7 +2632,6 @@ out length))
             return 1 + Math.Max(ld, rd);
         }
 
-        [ExcludeFromCodeCoverage]
         private void g_tree_node_check(Node node)
         {
             if (node != Null)
@@ -2677,41 +2639,20 @@ out length))
                 if (node.left_child)
                 {
                     Node tmp = g_tree_node_previous(node);
-                    if (!(tmp.right == node))
-                    {
-                        Debug.Assert(false, "program defect");
-                        throw new InvalidOperationException("invariant");
-                    }
+                    Check.Assert(tmp.right == node, "predecessor invariant");
                 }
 
                 if (node.right_child)
                 {
                     Node tmp = g_tree_node_next(node);
-                    if (!(tmp.left == node))
-                    {
-                        Debug.Assert(false, "program defect");
-                        throw new InvalidOperationException("invariant");
-                    }
+                    Check.Assert(tmp.left == node, "successor invariant");
                 }
 
-                int left_height = 0;
-                int right_height = 0;
-
-                if (node.left_child)
-                {
-                    left_height = g_tree_node_height(node.left);
-                }
-                if (node.right_child)
-                {
-                    right_height = g_tree_node_height(node.right);
-                }
+                int left_height = g_tree_node_height(node.left_child ? node.left : Null);
+                int right_height = g_tree_node_height(node.right_child ? node.right : Null);
 
                 int balance = right_height - left_height;
-                if (!(balance == node.balance))
-                {
-                    Debug.Assert(false, "program defect");
-                    throw new InvalidOperationException("invariant");
-                }
+                Check.Assert(balance == node.balance, "balance invariant");
 
                 if (node.left_child)
                 {
@@ -2724,7 +2665,6 @@ out length))
             }
         }
 
-        [ExcludeFromCodeCoverage]
         private int g_tree_node_height(Node node)
         {
             if (node != Null)
@@ -2756,7 +2696,6 @@ out length))
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         [Widen]
         Range2MapEntry[] INonInvasiveRange2MapInspection.GetRanges()
         {
@@ -2803,25 +2742,13 @@ out length))
                         node = node.left_child ? node.left : Null;
                     }
                 }
-                if (!(i == ranges.Length))
-                {
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                }
+                Check.Assert(i == ranges.Length, "count invariant");
 
                 for (i = 1; i < ranges.Length; i++)
                 {
-                    if (!(ranges[i - 1].x.start < ranges[i].x.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranges[i - 1].x.start < ranges[i].x.start, "range sequence invariant (X)");
                     /*[Feature(Feature.Range2)]*/
-                    if (!(ranges[i - 1].y.start < ranges[i].y.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranges[i - 1].y.start < ranges[i].y.start, "range sequence invariant (Y)");
                     ranges[i - 1].x.length = ranges[i].x.start - ranges[i - 1].x.start;
                     /*[Feature(Feature.Range2)]*/
                     ranges[i - 1].y.length = ranges[i].y.start - ranges[i - 1].y.start;
@@ -2841,7 +2768,6 @@ out length))
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         void INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();

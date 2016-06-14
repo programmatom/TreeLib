@@ -33,69 +33,160 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace BuildTool
 {
-    public class CollectUnusedVariablesVisitor : CSharpSyntaxWalker
+    public class CollectUnusedAndConstVariablesWalker : CSharpSyntaxWalker
     {
+        private readonly Dictionary<ISymbol, ExpressionSyntax> constVariables = new Dictionary<ISymbol, ExpressionSyntax>();
+        private readonly Dictionary<ISymbol, bool> unusedVariables = new Dictionary<ISymbol, bool>();
         private readonly SemanticModel semanticModel;
-        private readonly Dictionary<ISymbol, bool> variables = new Dictionary<ISymbol, bool>();
 
-        public CollectUnusedVariablesVisitor(SemanticModel semanticModel)
+        public CollectUnusedAndConstVariablesWalker(SemanticModel semanticModel)
         {
             this.semanticModel = semanticModel;
         }
 
-        public Dictionary<ISymbol, bool> Variables { get { return variables; } }
+        public Dictionary<ISymbol, ExpressionSyntax> ConstVariables { get { return constVariables; } }
+        public Dictionary<ISymbol, bool> UnusedVariables { get { return unusedVariables; } }
+
+
+        public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+        {
+            if (!node.Modifiers.Any(SyntaxKind.ConstKeyword))
+            {
+                foreach (VariableDeclaratorSyntax variable in node.Declaration.Variables)
+                {
+                    ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(node.SemicolonToken.Span.End, null, variable.Identifier.Text);
+                    if (symbols.Count() != 1)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+
+                    //
+                    // Const
+                    //
+
+                    if ((variable.Initializer != null) && semanticModel.GetConstantValue(variable.Initializer.Value).HasValue)
+                    {
+                        constVariables.Add(symbols[0], variable.Initializer.Value);
+                    }
+
+
+                    //
+                    // Unused
+                    //
+
+                    unusedVariables.Add(symbols[0], false);
+
+
+                    //
+                    // Shared
+                    //
+
+                    // visit expressions in case there are references in them
+                    Visit(variable.Initializer);
+                    if (variable.ArgumentList != null)
+                    {
+                        foreach (ArgumentSyntax bracketArgument in variable.ArgumentList.Arguments)
+                        {
+                            Visit(bracketArgument);
+                        }
+                    }
+                }
+            }
+
+            // don't visit using base - since VisitIdentifierName() would get invoked on the identifier
+            // base.VisitLocalDeclarationStatement(node);
+        }
+
+        private readonly static SyntaxKind[] AllModifyingExpressionKinds = new SyntaxKind[]
+        {
+            SyntaxKind.SimpleAssignmentExpression,
+            SyntaxKind.AddAssignmentExpression,
+            SyntaxKind.SubtractAssignmentExpression,
+            SyntaxKind.MultiplyAssignmentExpression,
+            SyntaxKind.DivideAssignmentExpression,
+            SyntaxKind.ModuloAssignmentExpression,
+            SyntaxKind.AndAssignmentExpression,
+            SyntaxKind.ExclusiveOrAssignmentExpression,
+            SyntaxKind.OrAssignmentExpression,
+            SyntaxKind.LeftShiftAssignmentExpression,
+            SyntaxKind.RightShiftAssignmentExpression,
+
+            SyntaxKind.PreIncrementExpression,
+            SyntaxKind.PreDecrementExpression,
+            SyntaxKind.PostIncrementExpression,
+            SyntaxKind.PostDecrementExpression,
+        };
 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
             SymbolInfo info = semanticModel.GetSymbolInfo(node);
+
+
+            //
+            // Const
+            //
+
             if (info.Symbol != null)
             {
-                if (variables.ContainsKey(info.Symbol))
+                bool remove = false;
+
+                remove = remove || (node.Parent.IsKind(SyntaxKind.Argument)
+                    && (((ArgumentSyntax)node.Parent).RefOrOutKeyword != null));
+
+                remove = remove || (Array.IndexOf(AllModifyingExpressionKinds, node.Parent.Kind()) >= 0);
+
+                if (remove)
                 {
-                    variables.Remove(info.Symbol);
+                    constVariables.Remove(info.Symbol);
                 }
             }
-            base.VisitIdentifierName(node);
-        }
 
-        public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-        {
-            foreach (VariableDeclaratorSyntax variable in node.Declaration.Variables)
+
+            //
+            // Unused
+            //
+
+            if (info.Symbol != null)
             {
-                ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(node.SemicolonToken.Span.End, null, variable.Identifier.Text);
-                if (symbols.Count() != 1)
+                if (unusedVariables.ContainsKey(info.Symbol))
                 {
-                    throw new InvalidOperationException();
+                    unusedVariables.Remove(info.Symbol);
                 }
-                variables.Add(symbols[0], false);
-
-                // visit expressions in case there are references in them
-                Visit(variable.Initializer);
-                if (variable.ArgumentList != null)
-                {
-                    foreach (ArgumentSyntax bracketArgument in variable.ArgumentList.Arguments)
-                    {
-                        Visit(bracketArgument);
-                    }
-                }
-                //this.VisitInitializerExpression((InitializerExpressionSyntax)variable.Initializer);
             }
 
-            // DON'T visit using base - since VisitIdentifierName() would get invoked on the identifier
-            // base.VisitLocalDeclarationStatement(node);
+
+            base.VisitIdentifierName(node);
         }
     }
 
     public class RemoveUnusedVariablesRewriter : CSharpSyntaxRewriter
     {
         private readonly SemanticModel semanticModel;
-        private readonly Dictionary<ISymbol, bool> variables;
+        private readonly Dictionary<ISymbol, bool> unusedVariables;
+        private readonly Dictionary<string, bool> unusedVariableNames = new Dictionary<string, bool>();
+        private readonly Dictionary<ISymbol, ExpressionSyntax> constVariables;
+        private readonly Dictionary<string, bool> constVariableNames = new Dictionary<string, bool>();
         private bool changed;
 
-        public RemoveUnusedVariablesRewriter(SemanticModel semanticModel, Dictionary<ISymbol, bool> variables)
+        public RemoveUnusedVariablesRewriter(
+            SemanticModel semanticModel,
+            Dictionary<ISymbol, bool> unusedVariables,
+            Dictionary<ISymbol, ExpressionSyntax> constVariables)
         {
             this.semanticModel = semanticModel;
-            this.variables = variables;
+
+            this.unusedVariables = unusedVariables;
+            foreach (KeyValuePair<ISymbol, bool> unusedVariable in unusedVariables)
+            {
+                unusedVariableNames[unusedVariable.Key.Name] = false;
+            }
+
+            this.constVariables = constVariables;
+            foreach (KeyValuePair<ISymbol, ExpressionSyntax> constVariable in constVariables)
+            {
+                constVariableNames[constVariable.Key.Name] = false;
+            }
         }
 
         public bool Changed { get { return changed; } }
@@ -109,18 +200,21 @@ namespace BuildTool
             int i = 0;
             foreach (VariableDeclaratorSyntax variable in originalVariables)
             {
-                ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(original.SemicolonToken.Span.End, null, variable.Identifier.Text);
-                if (symbols.Count() != 1)
+                if (unusedVariableNames.ContainsKey(variable.Identifier.Text)) // pre-test on name for performance
                 {
-                    throw new InvalidOperationException();
-                }
-                if (variables.ContainsKey(symbols[0]))
-                {
-                    node = node.WithDeclaration(
-                        node.Declaration.WithVariables(
-                            node.Declaration.Variables.RemoveAt(i)));
-                    changed = true;
-                    continue;
+                    ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(original.SemicolonToken.Span.End, null, variable.Identifier.Text);
+                    if (symbols.Count() != 1)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                    if (unusedVariables.ContainsKey(symbols[0]))
+                    {
+                        changed = true;
+                        node = node.WithDeclaration(
+                            node.Declaration.WithVariables(
+                                node.Declaration.Variables.RemoveAt(i)));
+                        continue;
+                    }
                 }
                 i++;
             }
@@ -131,6 +225,25 @@ namespace BuildTool
             }
 
             return node;
+        }
+
+        public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            if (constVariableNames.ContainsKey(node.Identifier.Text)) // pre-test on name for performance
+            {
+                ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(node.Span.End, null, node.Identifier.Text);
+                if (symbols.Count() == 1)
+                {
+                    ExpressionSyntax substitution;
+                    if (constVariables.TryGetValue(symbols[0], out substitution))
+                    {
+                        changed = true;
+                        return substitution.WithTriviaFrom(node);
+                    }
+                }
+            }
+
+            return base.VisitIdentifierName(node);
         }
     }
 }

@@ -20,6 +20,7 @@
  * 
 */
 using System;
+using System.Diagnostics;
 
 #pragma warning disable CS1591 // silence warning about missing Xml documentation
 
@@ -95,6 +96,20 @@ namespace TreeLib.Internal
     {
         public ExcludeFromCodeCoverageAttribute()
         {
+        }
+    }
+
+
+    [ExcludeFromCodeCoverage]
+    public static class Check
+    {
+        public static void Assert(bool condition, string message)
+        {
+            if (!condition)
+            {
+                Debug.Assert(condition, message);
+                throw new InvalidOperationException(message);
+            }
         }
     }
 }

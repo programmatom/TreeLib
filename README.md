@@ -98,7 +98,7 @@ Also, I have run into problems on CPUs with thermal management, especially Intel
 
 Code Coverage
 ===
-The project is currently around 90% covered by the unit and stochastic tests. The goal is 100% coverage.
+The project is currently around 97% covered by the unit and stochastic tests. The goal is 100% coverage.
 
 License
 ===

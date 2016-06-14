@@ -230,6 +230,13 @@ namespace TreeLibTest
             {
                 throw new ArgumentException();
             }
+            if (external != null)
+            {
+                if (unchecked((uint)externalOffset + (uint)count > (uint)external.Length))
+                {
+                    throw new ArgumentException();
+                }
+            }
 
             T[] data = inner.ToArray();
             op(data, 0, external, 0, data.Length);

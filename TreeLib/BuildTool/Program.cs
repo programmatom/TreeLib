@@ -174,6 +174,53 @@ namespace BuildTool
         }
     }
 
+    public class Timing
+    {
+        private readonly List<Tuple<string, double>> intervals = new List<Tuple<string, double>>();
+        private Stopwatch sw;
+        private int current;
+
+        public void Mark(string label)
+        {
+            Finish();
+
+            current = intervals.FindIndex(delegate (Tuple<string, double> candidate) { return String.Equals(candidate.Item1, label); });
+            if (current < 0)
+            {
+                current = intervals.Count;
+                intervals.Add(new Tuple<string, double>(label, 0));
+            }
+
+            sw = Stopwatch.StartNew();
+        }
+
+        public void Finish()
+        {
+            if (sw != null)
+            {
+                intervals[current] = new Tuple<string, double>(intervals[current].Item1, intervals[current].Item2 + sw.ElapsedMilliseconds);
+                sw = null;
+            }
+        }
+
+        public void WriteReport()
+        {
+            int maxLabelLength = 0;
+            for (int i = 0; i < intervals.Count; i++)
+            {
+                maxLabelLength = Math.Max(maxLabelLength, intervals[i].Item1.Length);
+            }
+
+            string formatString = String.Concat("* {0,-", maxLabelLength.ToString(), "} {1,8:F3}");
+            Console.WriteLine(formatString, "Phase", "Seconds");
+            Console.WriteLine(formatString, new String('-', maxLabelLength), new String('-', 8));
+            for (int i = 0; i < intervals.Count; i++)
+            {
+                Console.WriteLine(formatString, intervals[i].Item1, intervals[i].Item2 * 0.001);
+            }
+        }
+    }
+
     public class Program
     {
         private const bool ShowNotepadForErrors = true;
@@ -193,19 +240,55 @@ namespace BuildTool
             semanticModel = compilation.GetSemanticModel(tree);
         }
 
-        private static void EliminateDeadCode(ref SyntaxTree oldTree, ref SyntaxTree tree, ref SyntaxNode root, ref Compilation compilation, out SemanticModel semanticModel)
+        private static bool EliminateDeadCode(ref SyntaxTree oldTree, ref SyntaxTree tree, ref SyntaxNode root, ref Compilation compilation, out SemanticModel semanticModel, bool iterate)
         {
-            while (true)
+            bool everChanged = false;
+
+            bool oneChanged;
+            do
             {
+                oneChanged = false;
+
                 RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
 
                 EliminateDeadBranchesRewriter dead = new EliminateDeadBranchesRewriter(semanticModel);
                 root = dead.Visit(root);
-                if (!dead.Changed)
-                {
-                    break;
-                }
-            }
+                oneChanged = dead.Changed || oneChanged;
+
+                everChanged = everChanged || oneChanged;
+
+            } while (oneChanged && iterate);
+
+            return everChanged;
+        }
+
+        private static bool PropagateConstantsAndRemoveUnusedVariables(ref SyntaxTree oldTree, ref SyntaxTree tree, ref SyntaxNode root, ref Compilation compilation, out SemanticModel semanticModel)
+        {
+            bool everChanged = false;
+
+            bool oneChanged;
+            do
+            {
+                oneChanged = false;
+
+                // clean empty blocks/semicolons after unused variable removal
+                oneChanged = EliminateDeadCode(ref oldTree, ref tree, ref root, ref compilation, out semanticModel, false/*iterate*/) || oneChanged;
+
+                RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
+
+                CollectUnusedAndConstVariablesWalker unusedConstVariables = new CollectUnusedAndConstVariablesWalker(semanticModel);
+                unusedConstVariables.Visit(root);
+
+                RemoveUnusedVariablesRewriter removeUnusuedVariables = new RemoveUnusedVariablesRewriter(semanticModel, unusedConstVariables.UnusedVariables, unusedConstVariables.ConstVariables);
+                root = removeUnusuedVariables.Visit(root);
+
+                oneChanged = removeUnusuedVariables.Changed || oneChanged;
+
+                everChanged = everChanged || oneChanged;
+
+            } while (oneChanged);
+
+            return everChanged;
         }
 
         private static Compilation RemoveIEnumerable(Compilation compilation)
@@ -442,8 +525,10 @@ namespace BuildTool
                 diagnostic.ToString());
         }
 
-        private static void Generate(Config config, Compilation compilation, string sourceFilePath, string targetFilePath)
+        private static void Generate(Config config, Compilation compilation, string sourceFilePath, string targetFilePath, Timing timing)
         {
+            timing.Mark("Generate: misc. init");
+
             // for rebuilding Entry* enumeration types in interface project
             if (config.stripGenerated)
             {
@@ -456,10 +541,14 @@ namespace BuildTool
                 }
             }
 
+            timing.Mark("Generate: remove IEnumerable");
+
             if (!config.keepIEnumerable)
             {
                 compilation = RemoveIEnumerable(compilation);
             }
+
+            timing.Mark("Generate: enable DEBUG");
 
             // always enable DEBUG for code manipulation purposes (this does imply we can't have !DEBUG sections)
             CSharpParseOptions parseOptions = new CSharpParseOptions().WithPreprocessorSymbols("DEBUG");
@@ -469,6 +558,8 @@ namespace BuildTool
             foreach (SyntaxNode node in tree.GetRoot().DescendantNodesAndSelf().Where(delegate (SyntaxNode candidate)
                 { return candidate.IsKind(SyntaxKind.ClassDeclaration) || candidate.IsKind(SyntaxKind.StructDeclaration); }))
             {
+                timing.Mark("Generate: outer loop");
+
                 bool targetTypeMatch;
                 {
                     TypeDeclarationSyntax targetTypeDeclaration = (TypeDeclarationSyntax)node;
@@ -482,6 +573,8 @@ namespace BuildTool
                     SemanticModel semanticModel;
 
 
+                    timing.Mark("Generate: autogenerated warning");
+
                     // add warning about file being autogenerateds
                     {
                         SyntaxTriviaList leadingTrivia = root.GetLeadingTrivia();
@@ -491,6 +584,8 @@ namespace BuildTool
                         root = root.WithLeadingTrivia(leadingTrivia);
                     }
 
+                    timing.Mark("Generate: rename class");
+
                     root = new SyntacticIdentifierRenamer(config.templateClassName, config.targetClassName).Visit(root);
                     string privateEnumEntryName = String.Concat(config.targetClassName, "Entry");
                     root = new SyntacticIdentifierRenamer(String.Concat(config.templateClassName, "Entry"), privateEnumEntryName).Visit(root);
@@ -498,6 +593,8 @@ namespace BuildTool
                     {
                         root = new SyntacticIdentifierRenamer(optionalSyntacticRenames.Key, optionalSyntacticRenames.Value).Visit(root);
                     }
+
+                    timing.Mark("Generate: array/object reduction and narrow/widen");
 
                     // Template reduction I: remove Array/Object distinction.
                     // This is done by itself up front to eliminate duplicate declarations of certain internal
@@ -516,6 +613,8 @@ namespace BuildTool
                         root = new WidenIntWidthRewriter().Visit(root);
                     }
                     RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
+
+                    timing.Mark("Generate: check for blocking errors");
 
                     // TODO: disabled for now because class's interface list causes errors because inappropriate
                     // (non-facet) interfaces are still in tree.
@@ -544,20 +643,26 @@ namespace BuildTool
                         }
                     }
 
+                    timing.Mark("Generate: constant parameter substitution");
+
                     // apply constant substitution for members that are held constant for the current facets
                     if (Array.FindIndex(config.facetAxes, delegate (FacetList candidate) { return String.Equals(candidate.axisTag, "Feature"); }) >= 0)
                     {
-                        root = new ConstSubstitutionRewriter(config.facetAxes, semanticModel).Visit(root);
+                        root = new ConstParameterSubstitutionRewriter(config.facetAxes, semanticModel).Visit(root);
 
                         // eliminate dead comparisons and branches as a result of constant substitution
-                        EliminateDeadCode(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
+                        EliminateDeadCode(ref oldTree, ref tree, ref root, ref compilation, out semanticModel, true/*iterate*/);
                     }
+
+                    timing.Mark("Generate: feature reduction");
 
                     // Template reduction II: remove members that are not appropriate for the currently selected facets
                     root = new SelectFacetRewriter(config.facetAxes).Visit(root);
 
                     // recompile to detect errors due to now-missing variables
                     RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
+
+                    timing.Mark("Generate: remove broken statements");
 
                     //Console.WriteLine("Errors for {0}:", config.className);
                     {
@@ -610,24 +715,13 @@ namespace BuildTool
                         // remove statements containing references to missing variables
                         root = new RemoveBrokenStatementsRewriter(errors).Visit(root);
 
-                        // clean up dead branches and empty blocks/semicolons after elimination of unneded facets
-                        EliminateDeadCode(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
+                        timing.Mark("Generate: propagate constants and remove dead code");
 
-                        // remove now-unreferenced variables
-                        bool changed;
-                        do
-                        {
-                            RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
-                            CollectUnusedVariablesVisitor unusedVariables = new CollectUnusedVariablesVisitor(semanticModel);
-                            unusedVariables.Visit(root);
-                            RemoveUnusedVariablesRewriter removeUnusuedVariables = new RemoveUnusedVariablesRewriter(semanticModel, unusedVariables.Variables);
-                            root = removeUnusuedVariables.Visit(root);
-                            changed = removeUnusuedVariables.Changed;
-                        } while (changed);
-
-                        // clean empty blocks/semicolons after unused variable removal
-                        EliminateDeadCode(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
+                        // clean up dead branches, empty blocks/semicolons, and unused variables after elimination of unneeded facets
+                        PropagateConstantsAndRemoveUnusedVariables(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
                     }
+
+                    timing.Mark("Generate: eliminate no-op array indexing");
 
                     // eliminate no-op array indexing syntax from the "Object" versions
                     RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
@@ -653,12 +747,16 @@ namespace BuildTool
                         //root = new HoistNodeStructRewriter(config.className).Visit(root);
                     }
 
+                    timing.Mark("Generate: meld enum entry");
+
                     // meld private enumeration entry struct into shared enumeration entry struct
                     {
                         Debug.Assert(privateEnumEntryName.StartsWith(config.targetClassName));
                         string targetEnumEntryName = String.Concat("Entry", config.specialization);
                         root = new MeldEntryRewriter(privateEnumEntryName, targetEnumEntryName).Visit(root);
                     }
+
+                    timing.Mark("Generate: final errors");
 
                     // list final errors
                     RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
@@ -695,6 +793,8 @@ namespace BuildTool
                         }
                     }
 
+                    timing.Mark("Generate: propagate documentation");
+
                     // Propagate documentation
                     {
                         TypeDeclarationSyntax targetTypeDeclaration = (TypeDeclarationSyntax)root.DescendantNodes().First(
@@ -705,6 +805,8 @@ namespace BuildTool
                             });
                         root = PropagateDocumentation(compilation, root, targetTypeDeclaration);
                     }
+
+                    timing.Mark("Generate: save");
 
                     File.WriteAllText(targetFilePath, root.ToFullString());
                 }
@@ -769,6 +871,8 @@ namespace BuildTool
 
         private static int MainInner(string[] args)
         {
+            Timing timing = new Timing();
+
             while (args.Length != 0)
             {
                 const int NumArgs = 3;
@@ -798,9 +902,10 @@ namespace BuildTool
 
 
 
+                timing.Mark("Init/Load");
+
                 Solution interfacesSolution, targetSolution;
                 Project interfacesProject, targetProject;
-                Stopwatch loadTime = Stopwatch.StartNew();
                 {
                     Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace workspace = Microsoft.CodeAnalysis.MSBuild.MSBuildWorkspace.Create();
 
@@ -833,8 +938,6 @@ namespace BuildTool
                         }
                     }
                 }
-                loadTime.Stop();
-                Console.WriteLine("Initialization time: {0:F1} seconds", loadTime.ElapsedMilliseconds / 1000d);
 
 
 
@@ -865,10 +968,21 @@ namespace BuildTool
                             interfacesCompilation = interfacesProject.GetCompilationAsync().Result;
                         }
 
-                        Generate(config, interfacesCompilation, templateSourceFilePath, targetFilePath);
+                        Generate(config, interfacesCompilation, templateSourceFilePath, targetFilePath, timing);
                     }
                 }
+
+                if (Debugger.IsAttached) // report after each command line argument group
+                {
+                    timing.Finish();
+
+                    timing.WriteReport();
+                }
             }
+
+            timing.Finish();
+
+            timing.WriteReport();
 
 
 

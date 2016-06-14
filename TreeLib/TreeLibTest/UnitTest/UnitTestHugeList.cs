@@ -550,6 +550,21 @@ namespace TreeLibTest
                         TestTrue("IterateRange", delegate () { return addend[j] == -negatedAddend[j]; });
                     }
                 }
+                // iterate range batch external array bounds check
+                TestThrow(
+                    "IterateRangeBatch",
+                    typeof(ArgumentException),
+                    delegate ()
+                    {
+                        test.IterateRangeBatch(0, new int[5], 5, 1, delegate (int[] v, int vOffset, int[] x, int xOffset, int count) { });
+                    });
+                TestThrow(
+                    "IterateRangeBatch",
+                    typeof(ArgumentException),
+                    delegate ()
+                    {
+                        test.IterateRangeBatch(0, new int[5], 0, 6, delegate (int[] v, int vOffset, int[] x, int xOffset, int count) { });
+                    });
 
                 // ToArray
                 {
@@ -1425,6 +1440,34 @@ namespace TreeLibTest
                 TestClear(reference, test);
             }
 
+            // RemoveAll reentrance checking
+            // (Note, List<> does not handle this case, so avoid testing it on the reference implementation)
+            if (!String.Equals(test.GetType().Name, "ReferenceHugeList`1"))
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    test.Add(rand.Next());
+                }
+
+                int j = 0;
+                TestThrow("RemoveAll(Predicate<T> match)", typeof(InvalidOperationException),
+                    delegate ()
+                    {
+                        test.RemoveAll(
+                            delegate (int candidate)
+                            {
+                                j++;
+                                if (j == 50)
+                                {
+                                    test.Add(rand.Next()); // illegal
+                                }
+                                return candidate % 2 == 0;
+                            });
+                    });
+                SelfValidate(test); // state of data not defined, but internal structure must be consistent
+                test.Clear();
+            }
+
             // CASE A22 [code coverage, randomly derived] - valid only in 512 block size case
             TestOps("A22", test, delegate () { return rand.Next(); }, false/*pruning*/, new Op<Int32>[] {
                 new OpInsertRange<Int32>(0, null, 0, 1293),
@@ -1521,13 +1564,18 @@ namespace TreeLibTest
             }
         }
 
-        private void Validate(List<int> reference, IHugeList<int> test)
+        private void SelfValidate(IHugeList<int> test)
         {
             IHugeListValidation validation = test as IHugeListValidation;
             if (validation != null)
             {
                 validation.Validate();
             }
+        }
+
+        private void Validate(List<int> reference, IHugeList<int> test)
+        {
+            SelfValidate(test);
 
             TestTrue("Count", delegate () { return reference.Count == test.Count; });
             for (int i = 0; i < reference.Count; i++)

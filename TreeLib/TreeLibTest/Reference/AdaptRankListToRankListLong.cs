@@ -32,7 +32,8 @@ namespace TreeLibTest
         IRankList<KeyType>,
         INonInvasiveTreeInspection,
         INonInvasiveMultiRankMapInspection,
-        IEnumerable<EntryRankList<KeyType>>
+        IEnumerable<EntryRankList<KeyType>>,
+        ICloneable
         where KeyType : IComparable<KeyType>
     {
         private readonly IRankListLong<KeyType> inner;
@@ -281,6 +282,16 @@ namespace TreeLibTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+
+
+        //
+        // ICloneable
+        //
+
+        public object Clone()
+        {
+            return new AdaptRankListToRankListLong<KeyType>((IRankListLong<KeyType>)((ICloneable)inner).Clone());
         }
     }
 }

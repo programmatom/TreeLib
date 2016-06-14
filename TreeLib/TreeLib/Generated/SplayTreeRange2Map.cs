@@ -108,12 +108,6 @@ namespace TreeLib
                 }
 
                 string keyText = null;
-                try
-                {
-                }
-                catch (NullReferenceException)
-                {
-                }
 
                 string valueText = null;
                 try
@@ -125,20 +119,8 @@ namespace TreeLib
                 }
 
                 string leftKeyText = null;
-                try
-                {
-                }
-                catch (NullReferenceException)
-                {
-                }
 
                 string rightKeyText = null;
-                try
-                {
-                }
-                catch (NullReferenceException)
-                {
-                }
 
                 return String.Format("({0})*{2}={3}*({1})", leftKeyText, rightKeyText, keyText, valueText);
             }
@@ -1575,7 +1557,6 @@ namespace TreeLib
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         private void ValidateRanges([Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             if (root != Nil)
@@ -1605,10 +1586,7 @@ namespace TreeLib
                     leftEdge = t.Item3;
                     rightEdge = t.Item4;
 
-                    if ((offset < leftEdge) || (offset >= rightEdge))
-                    {
-                        throw new InvalidOperationException("range containment invariant");
-                    }
+                    Check.Assert((offset >= leftEdge) && (offset < rightEdge), "range containment invariant");
 
                     leftEdge = offset + 1;
                     node = node.right;
@@ -1665,8 +1643,7 @@ namespace TreeLib
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
-            object key = null;
-            return key;
+            return null;
         }
 
         /// <summary>
@@ -1699,7 +1676,6 @@ namespace TreeLib
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -1711,10 +1687,7 @@ namespace TreeLib
                 {
                     Node node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (node.left != Nil)
@@ -1742,7 +1715,6 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         [Widen]
         Range2MapEntry[] INonInvasiveRange2MapInspection.GetRanges()
         {
@@ -1789,25 +1761,13 @@ namespace TreeLib
                         node = node.left;
                     }
                 }
-                if (!(i == ranges.Length))
-                {
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                }
+                Check.Assert(i == ranges.Length, "count invariant");
 
                 for (i = 1; i < ranges.Length; i++)
                 {
-                    if (!(ranges[i - 1].x.start < ranges[i].x.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranges[i - 1].x.start < ranges[i].x.start, "range sequence invariant (X)");
                     /*[Feature(Feature.Range2)]*/
-                    if (!(ranges[i - 1].y.start < ranges[i].y.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranges[i - 1].y.start < ranges[i].y.start, "range sequence invariant (Y)");
                     ranges[i - 1].x.length = ranges[i].x.start - ranges[i - 1].x.start;
                     /*[Feature(Feature.Range2)]*/
                     ranges[i - 1].y.length = ranges[i].y.start - ranges[i - 1].y.start;
@@ -1827,7 +1787,6 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         void INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();

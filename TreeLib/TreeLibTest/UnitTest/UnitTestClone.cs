@@ -77,6 +77,8 @@ namespace TreeLibTest
         [Flags]
         private enum KeyAxis { None = 0, Value = 1, Rank = 2, Count = 4 };
 
+        private enum CloneMethod { Constructor, IClonable };
+
         private abstract class KeyedTestHarness<KeyType, ValueType> where KeyType : IComparable<KeyType>
         {
             public abstract object Tree { get; }
@@ -85,7 +87,7 @@ namespace TreeLibTest
             public abstract bool ContainsKey(KeyType key);
             public abstract void Remove(KeyType key);
 
-            public abstract KeyedTestHarness<KeyType, ValueType> Clone();
+            public abstract KeyedTestHarness<KeyType, ValueType> Clone(CloneMethod method);
 
             public abstract MultiRankMapEntry[] ToArray();
         }
@@ -119,155 +121,158 @@ namespace TreeLibTest
             MakeNewValue<ValueType> makeValue,
             KeyAxis axes) where KeyType : IComparable<KeyType>
         {
-            foreach (int i in TestCaseSizes)
+            foreach (CloneMethod cloneMethod in new CloneMethod[] { CloneMethod.Constructor, CloneMethod.IClonable })
             {
-                KeyedTestHarness<KeyType, ValueType> reference1 = makeReference();
-                KeyedTestHarness<KeyType, ValueType> reference2 = makeReference();
-                KeyedTestHarness<KeyType, ValueType> tree1 = makeTree();
-
-                Tally(tree1);
-
-                // create initial data
-                for (int j = 0; j < i; j++)
+                foreach (int i in TestCaseSizes)
                 {
+                    KeyedTestHarness<KeyType, ValueType> reference1 = makeReference();
+                    KeyedTestHarness<KeyType, ValueType> reference2 = makeReference();
+                    KeyedTestHarness<KeyType, ValueType> tree1 = makeTree();
+
+                    Tally(tree1);
+
+                    // create initial data
+                    for (int j = 0; j < i; j++)
+                    {
+                        IncrementIteration();
+
+                        KeyType[] notFromThese = Array.ConvertAll(reference1.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; });
+                        KeyType key = makeKey(random, notFromThese);
+
+                        ValueType value = default(ValueType);
+                        if ((axes & KeyAxis.Value) != 0)
+                        {
+                            value = makeValue(random);
+                        }
+
+                        int count = 0;
+                        if ((axes & KeyAxis.Count) != 0)
+                        {
+                            count = random.Next() % 100 + 1;
+                        }
+
+                        reference1.Add(key, value, count);
+                        reference2.Add(key, value, count);
+                        tree1.Add(key, value, count);
+                    }
                     IncrementIteration();
 
-                    KeyType[] notFromThese = Array.ConvertAll(reference1.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; });
-                    KeyType key = makeKey(random, notFromThese);
-
-                    ValueType value = default(ValueType);
-                    if ((axes & KeyAxis.Value) != 0)
+                    // verify trees are equivalent
                     {
-                        value = makeValue(random);
+                        MultiRankMapEntry[] reference1Items = reference1.ToArray();
+                        MultiRankMapEntry[] tree1Items = tree1.ToArray();
+                        ValidateKeyedEquivalence<KeyType, ValueType>(reference1Items, tree1Items, axes);
                     }
 
-                    int count = 0;
-                    if ((axes & KeyAxis.Count) != 0)
+                    // clone
+                    KeyedTestHarness<KeyType, ValueType> tree2 = tree1.Clone(cloneMethod);
+
+                    // make some updates
+                    for (int j = 0; j < i; j++)
                     {
-                        count = random.Next() % 100 + 1;
+                        KeyType[] notFromThese;
+                        KeyType key;
+                        ValueType value;
+                        int count;
+
+                        IncrementIteration();
+
+
+                        // modify originals
+
+                        notFromThese = Array.ConvertAll(reference1.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; });
+                        key = notFromThese[random.Next() % notFromThese.Length];
+
+                        reference1.Remove(key);
+                        tree1.Remove(key);
+
+                        key = makeKey(random, notFromThese);
+
+                        value = default(ValueType);
+                        if ((axes & KeyAxis.Value) != 0)
+                        {
+                            value = makeValue(random);
+                        }
+
+                        count = 0;
+                        if ((axes & KeyAxis.Count) != 0)
+                        {
+                            count = random.Next() % 100 + 1;
+                        }
+
+                        reference1.Add(key, value, count);
+                        tree1.Add(key, value, count);
+
+
+                        // modify copies
+
+                        notFromThese = Array.ConvertAll(reference2.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; });
+                        key = notFromThese[random.Next() % notFromThese.Length];
+
+                        reference2.Remove(key);
+                        tree2.Remove(key);
+
+                        key = makeKey(random, notFromThese);
+
+                        value = default(ValueType);
+                        if ((axes & KeyAxis.Value) != 0)
+                        {
+                            value = makeValue(random);
+                        }
+
+                        count = 0;
+                        if ((axes & KeyAxis.Count) != 0)
+                        {
+                            count = random.Next() % 100 + 1;
+                        }
+
+                        reference2.Add(key, value, count);
+                        tree2.Add(key, value, count);
                     }
-
-                    reference1.Add(key, value, count);
-                    reference2.Add(key, value, count);
-                    tree1.Add(key, value, count);
-                }
-                IncrementIteration();
-
-                // verify trees are equivalent
-                {
-                    MultiRankMapEntry[] reference1Items = reference1.ToArray();
-                    MultiRankMapEntry[] tree1Items = tree1.ToArray();
-                    ValidateKeyedEquivalence<KeyType, ValueType>(reference1Items, tree1Items, axes);
-                }
-
-                // clone
-                KeyedTestHarness<KeyType, ValueType> tree2 = tree1.Clone();
-
-                // make some updates
-                for (int j = 0; j < i; j++)
-                {
-                    KeyType[] notFromThese;
-                    KeyType key;
-                    ValueType value;
-                    int count;
-
                     IncrementIteration();
 
-
-                    // modify originals
-
-                    notFromThese = Array.ConvertAll(reference1.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; });
-                    key = notFromThese[random.Next() % notFromThese.Length];
-
-                    reference1.Remove(key);
-                    tree1.Remove(key);
-
-                    key = makeKey(random, notFromThese);
-
-                    value = default(ValueType);
-                    if ((axes & KeyAxis.Value) != 0)
+                    // verify tree1 and reference1 are the same
                     {
-                        value = makeValue(random);
+                        MultiRankMapEntry[] referenceItems = reference1.ToArray();
+                        MultiRankMapEntry[] treeItems = tree1.ToArray();
+                        ValidateKeyedEquivalence<KeyType, ValueType>(referenceItems, treeItems, axes);
                     }
 
-                    count = 0;
-                    if ((axes & KeyAxis.Count) != 0)
+                    // verify tree2 and reference2 are the same
                     {
-                        count = random.Next() % 100 + 1;
+                        MultiRankMapEntry[] referenceItems = reference2.ToArray();
+                        MultiRankMapEntry[] treeItems = tree2.ToArray();
+                        ValidateKeyedEquivalence<KeyType, ValueType>(referenceItems, treeItems, axes);
                     }
 
-                    reference1.Add(key, value, count);
-                    tree1.Add(key, value, count);
-
-
-                    // modify copies
-
-                    notFromThese = Array.ConvertAll(reference2.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; });
-                    key = notFromThese[random.Next() % notFromThese.Length];
-
-                    reference2.Remove(key);
-                    tree2.Remove(key);
-
-                    key = makeKey(random, notFromThese);
-
-                    value = default(ValueType);
-                    if ((axes & KeyAxis.Value) != 0)
+                    // check for allocation overflow equivalency
                     {
-                        value = makeValue(random);
+                        List<KeyType> notFromThese = new List<KeyType>(Array.ConvertAll(reference1.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; }));
+                        notFromThese.AddRange(Array.ConvertAll(reference2.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; }));
+                        KeyType key = makeKey(random, notFromThese.ToArray());
+
+                        bool tree1Succeeded = true;
+                        try
+                        {
+                            tree1.Add(key, default(ValueType), 1);
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            tree1Succeeded = false;
+                        }
+
+                        bool tree2Succeeded = true;
+                        try
+                        {
+                            tree2.Add(key, default(ValueType), 1);
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            tree2Succeeded = false;
+                        }
+
+                        TestTrue("clone capacity limit", delegate () { return tree1Succeeded == tree2Succeeded; });
                     }
-
-                    count = 0;
-                    if ((axes & KeyAxis.Count) != 0)
-                    {
-                        count = random.Next() % 100 + 1;
-                    }
-
-                    reference2.Add(key, value, count);
-                    tree2.Add(key, value, count);
-                }
-                IncrementIteration();
-
-                // verify tree1 and reference1 are the same
-                {
-                    MultiRankMapEntry[] referenceItems = reference1.ToArray();
-                    MultiRankMapEntry[] treeItems = tree1.ToArray();
-                    ValidateKeyedEquivalence<KeyType, ValueType>(referenceItems, treeItems, axes);
-                }
-
-                // verify tree2 and reference2 are the same
-                {
-                    MultiRankMapEntry[] referenceItems = reference2.ToArray();
-                    MultiRankMapEntry[] treeItems = tree2.ToArray();
-                    ValidateKeyedEquivalence<KeyType, ValueType>(referenceItems, treeItems, axes);
-                }
-
-                // check for allocation overflow equivalency
-                {
-                    List<KeyType> notFromThese = new List<KeyType>(Array.ConvertAll(reference1.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; }));
-                    notFromThese.AddRange(Array.ConvertAll(reference2.ToArray(), delegate (MultiRankMapEntry entry) { return (KeyType)entry.key; }));
-                    KeyType key = makeKey(random, notFromThese.ToArray());
-
-                    bool tree1Succeeded = true;
-                    try
-                    {
-                        tree1.Add(key, default(ValueType), 1);
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                        tree1Succeeded = false;
-                    }
-
-                    bool tree2Succeeded = true;
-                    try
-                    {
-                        tree2.Add(key, default(ValueType), 1);
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                        tree2Succeeded = false;
-                    }
-
-                    TestTrue("clone capacity limit", delegate () { return tree1Succeeded == tree2Succeeded; });
                 }
             }
         }
@@ -335,9 +340,18 @@ namespace TreeLibTest
                 tree.Remove(key);
             }
 
-            public override KeyedTestHarness<KeyType, ValueType> Clone()
+            public override KeyedTestHarness<KeyType, ValueType> Clone(CloneMethod method)
             {
-                return new MapTestHarness<KeyType, ValueType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new MapTestHarness<KeyType, ValueType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new MapTestHarness<KeyType, ValueType>((IOrderedMap<KeyType, ValueType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override MultiRankMapEntry[] ToArray()
@@ -375,9 +389,18 @@ namespace TreeLibTest
                 tree.Remove(key);
             }
 
-            public override KeyedTestHarness<KeyType, KeyType> Clone()
+            public override KeyedTestHarness<KeyType, KeyType> Clone(CloneMethod method)
             {
-                return new ListTestHarness<KeyType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new ListTestHarness<KeyType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new ListTestHarness<KeyType>((IOrderedList<KeyType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override MultiRankMapEntry[] ToArray()
@@ -429,9 +452,18 @@ namespace TreeLibTest
                 tree.Remove(key);
             }
 
-            public override KeyedTestHarness<KeyType, ValueType> Clone()
+            public override KeyedTestHarness<KeyType, ValueType> Clone(CloneMethod method)
             {
-                return new RankMapTestHarness<KeyType, ValueType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new RankMapTestHarness<KeyType, ValueType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new RankMapTestHarness<KeyType, ValueType>((IRankMap<KeyType, ValueType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override MultiRankMapEntry[] ToArray()
@@ -469,9 +501,18 @@ namespace TreeLibTest
                 tree.Remove(key);
             }
 
-            public override KeyedTestHarness<KeyType, KeyType> Clone()
+            public override KeyedTestHarness<KeyType, KeyType> Clone(CloneMethod method)
             {
-                return new RankListTestHarness<KeyType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new RankListTestHarness<KeyType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new RankListTestHarness<KeyType>((IRankList<KeyType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override MultiRankMapEntry[] ToArray()
@@ -523,9 +564,18 @@ namespace TreeLibTest
                 tree.Remove(key);
             }
 
-            public override KeyedTestHarness<KeyType, ValueType> Clone()
+            public override KeyedTestHarness<KeyType, ValueType> Clone(CloneMethod method)
             {
-                return new MultiRankMapTestHarness<KeyType, ValueType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new MultiRankMapTestHarness<KeyType, ValueType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new MultiRankMapTestHarness<KeyType, ValueType>((IMultiRankMap<KeyType, ValueType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override MultiRankMapEntry[] ToArray()
@@ -563,9 +613,18 @@ namespace TreeLibTest
                 tree.Remove(key);
             }
 
-            public override KeyedTestHarness<KeyType, KeyType> Clone()
+            public override KeyedTestHarness<KeyType, KeyType> Clone(CloneMethod method)
             {
-                return new MultiRankListTestHarness<KeyType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new MultiRankListTestHarness<KeyType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new MultiRankListTestHarness<KeyType>((IMultiRankList<KeyType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override MultiRankMapEntry[] ToArray()
@@ -592,7 +651,7 @@ namespace TreeLibTest
             public abstract bool NearestLessOrEqual(int xStart, out int nearestXStart);
             public abstract void Delete(int xStart);
 
-            public abstract RangeTestHarness<ValueType> Clone();
+            public abstract RangeTestHarness<ValueType> Clone(CloneMethod method);
 
             public abstract Range2MapEntry[] ToArray();
         }
@@ -623,157 +682,160 @@ namespace TreeLibTest
             MakeNewValue<ValueType> makeValue,
             RangeAxis axes)
         {
-            foreach (int i in TestCaseSizes)
+            foreach (CloneMethod cloneMethod in new CloneMethod[] { CloneMethod.Constructor, CloneMethod.IClonable })
             {
-                RangeTestHarness<ValueType> reference1 = makeReference();
-                RangeTestHarness<ValueType> reference2 = makeReference();
-                RangeTestHarness<ValueType> tree1 = makeTree();
-
-                Tally(tree1);
-
-                // create initial data
-                for (int j = 0; j < i; j++)
+                foreach (int i in TestCaseSizes)
                 {
+                    RangeTestHarness<ValueType> reference1 = makeReference();
+                    RangeTestHarness<ValueType> reference2 = makeReference();
+                    RangeTestHarness<ValueType> tree1 = makeTree();
+
+                    Tally(tree1);
+
+                    // create initial data
+                    for (int j = 0; j < i; j++)
+                    {
+                        IncrementIteration();
+
+                        int xStart = reference1.Extent != 0 ? random.Next() % reference1.Extent : 0;
+                        reference1.NearestLessOrEqual(xStart, out xStart);
+
+                        ValueType value = default(ValueType);
+                        if ((axes & RangeAxis.Value) != 0)
+                        {
+                            value = makeValue(random);
+                        }
+
+                        int xLength = random.Next() % 100 + 1;
+
+                        int yLength = 0;
+                        if ((axes & RangeAxis.Range2) != 0)
+                        {
+                            yLength = random.Next() % 100 + 1;
+                        }
+
+                        reference1.Insert(xStart, xLength, yLength, value);
+                        reference2.Insert(xStart, xLength, yLength, value);
+                        tree1.Insert(xStart, xLength, yLength, value);
+                    }
                     IncrementIteration();
 
-                    int xStart = reference1.Extent != 0 ? random.Next() % reference1.Extent : 0;
-                    reference1.NearestLessOrEqual(xStart, out xStart);
-
-                    ValueType value = default(ValueType);
-                    if ((axes & RangeAxis.Value) != 0)
+                    // verify trees are equivalent
                     {
-                        value = makeValue(random);
+                        Range2MapEntry[] referenceItems = reference1.ToArray();
+                        Range2MapEntry[] treeItems = tree1.ToArray();
+                        ValidateRangeEquivalence<ValueType>(referenceItems, treeItems, axes);
                     }
 
-                    int xLength = random.Next() % 100 + 1;
+                    // clone
+                    RangeTestHarness<ValueType> tree2 = tree1.Clone(cloneMethod);
 
-                    int yLength = 0;
-                    if ((axes & RangeAxis.Range2) != 0)
+                    // make some updates
+                    for (int j = 0; j < i; j++)
                     {
-                        yLength = random.Next() % 100 + 1;
+                        int xStart, xLength, yLength;
+                        ValueType value;
+
+                        IncrementIteration();
+
+
+                        // modify originals
+
+                        xStart = random.Next() % reference1.Extent;
+                        reference1.NearestLessOrEqual(xStart, out xStart);
+
+                        reference1.Delete(xStart);
+                        tree1.Delete(xStart);
+
+                        xStart = reference1.Extent != 0 ? random.Next() % reference1.Extent : 0;
+                        reference1.NearestLessOrEqual(xStart, out xStart);
+
+                        value = default(ValueType);
+                        if ((axes & RangeAxis.Value) != 0)
+                        {
+                            value = makeValue(random);
+                        }
+
+                        xLength = random.Next() % 100 + 1;
+
+                        yLength = 0;
+                        if ((axes & RangeAxis.Range2) != 0)
+                        {
+                            yLength = random.Next() % 100 + 1;
+                        }
+
+                        reference1.Insert(xStart, xLength, yLength, value);
+                        tree1.Insert(xStart, xLength, yLength, value);
+
+
+                        // modify copies
+
+                        xStart = random.Next() % reference2.Extent;
+                        reference2.NearestLessOrEqual(xStart, out xStart);
+
+                        reference2.Delete(xStart);
+                        tree2.Delete(xStart);
+
+                        xStart = reference2.Extent != 0 ? random.Next() % reference2.Extent : 0;
+                        reference2.NearestLessOrEqual(xStart, out xStart);
+
+                        value = default(ValueType);
+                        if ((axes & RangeAxis.Value) != 0)
+                        {
+                            value = makeValue(random);
+                        }
+
+                        xLength = random.Next() % 100 + 1;
+
+                        yLength = 0;
+                        if ((axes & RangeAxis.Range2) != 0)
+                        {
+                            yLength = random.Next() % 100 + 1;
+                        }
+
+                        reference2.Insert(xStart, xLength, yLength, value);
+                        tree2.Insert(xStart, xLength, yLength, value);
                     }
-
-                    reference1.Insert(xStart, xLength, yLength, value);
-                    reference2.Insert(xStart, xLength, yLength, value);
-                    tree1.Insert(xStart, xLength, yLength, value);
-                }
-                IncrementIteration();
-
-                // verify trees are equivalent
-                {
-                    Range2MapEntry[] referenceItems = reference1.ToArray();
-                    Range2MapEntry[] treeItems = tree1.ToArray();
-                    ValidateRangeEquivalence<ValueType>(referenceItems, treeItems, axes);
-                }
-
-                // clone
-                RangeTestHarness<ValueType> tree2 = tree1.Clone();
-
-                // make some updates
-                for (int j = 0; j < i; j++)
-                {
-                    int xStart, xLength, yLength;
-                    ValueType value;
-
                     IncrementIteration();
 
-
-                    // modify originals
-
-                    xStart = random.Next() % reference1.Extent;
-                    reference1.NearestLessOrEqual(xStart, out xStart);
-
-                    reference1.Delete(xStart);
-                    tree1.Delete(xStart);
-
-                    xStart = reference1.Extent != 0 ? random.Next() % reference1.Extent : 0;
-                    reference1.NearestLessOrEqual(xStart, out xStart);
-
-                    value = default(ValueType);
-                    if ((axes & RangeAxis.Value) != 0)
+                    // verify tree1 and reference1 are the same
                     {
-                        value = makeValue(random);
+                        Range2MapEntry[] referenceItems = reference1.ToArray();
+                        Range2MapEntry[] treeItems = tree1.ToArray();
+                        ValidateRangeEquivalence<ValueType>(referenceItems, treeItems, axes);
                     }
 
-                    xLength = random.Next() % 100 + 1;
-
-                    yLength = 0;
-                    if ((axes & RangeAxis.Range2) != 0)
+                    // verify tree2 and reference2 are the same
                     {
-                        yLength = random.Next() % 100 + 1;
+                        Range2MapEntry[] referenceItems = reference2.ToArray();
+                        Range2MapEntry[] treeItems = tree2.ToArray();
+                        ValidateRangeEquivalence<ValueType>(referenceItems, treeItems, axes);
                     }
 
-                    reference1.Insert(xStart, xLength, yLength, value);
-                    tree1.Insert(xStart, xLength, yLength, value);
-
-
-                    // modify copies
-
-                    xStart = random.Next() % reference2.Extent;
-                    reference2.NearestLessOrEqual(xStart, out xStart);
-
-                    reference2.Delete(xStart);
-                    tree2.Delete(xStart);
-
-                    xStart = reference2.Extent != 0 ? random.Next() % reference2.Extent : 0;
-                    reference2.NearestLessOrEqual(xStart, out xStart);
-
-                    value = default(ValueType);
-                    if ((axes & RangeAxis.Value) != 0)
+                    // check for allocation overflow equivalency
                     {
-                        value = makeValue(random);
+                        bool tree1Succeeded = true;
+                        try
+                        {
+                            tree1.Insert(0, 1, 1, default(ValueType));
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            tree1Succeeded = false;
+                        }
+
+                        bool tree2Succeeded = true;
+                        try
+                        {
+                            tree2.Insert(0, 1, 1, default(ValueType));
+                        }
+                        catch (OutOfMemoryException)
+                        {
+                            tree2Succeeded = false;
+                        }
+
+                        TestTrue("clone capacity limit", delegate () { return tree1Succeeded == tree2Succeeded; });
                     }
-
-                    xLength = random.Next() % 100 + 1;
-
-                    yLength = 0;
-                    if ((axes & RangeAxis.Range2) != 0)
-                    {
-                        yLength = random.Next() % 100 + 1;
-                    }
-
-                    reference2.Insert(xStart, xLength, yLength, value);
-                    tree2.Insert(xStart, xLength, yLength, value);
-                }
-                IncrementIteration();
-
-                // verify tree1 and reference1 are the same
-                {
-                    Range2MapEntry[] referenceItems = reference1.ToArray();
-                    Range2MapEntry[] treeItems = tree1.ToArray();
-                    ValidateRangeEquivalence<ValueType>(referenceItems, treeItems, axes);
-                }
-
-                // verify tree2 and reference2 are the same
-                {
-                    Range2MapEntry[] referenceItems = reference2.ToArray();
-                    Range2MapEntry[] treeItems = tree2.ToArray();
-                    ValidateRangeEquivalence<ValueType>(referenceItems, treeItems, axes);
-                }
-
-                // check for allocation overflow equivalency
-                {
-                    bool tree1Succeeded = true;
-                    try
-                    {
-                        tree1.Insert(0, 1, 1, default(ValueType));
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                        tree1Succeeded = false;
-                    }
-
-                    bool tree2Succeeded = true;
-                    try
-                    {
-                        tree2.Insert(0, 1, 1, default(ValueType));
-                    }
-                    catch (OutOfMemoryException)
-                    {
-                        tree2Succeeded = false;
-                    }
-
-                    TestTrue("clone capacity limit", delegate () { return tree1Succeeded == tree2Succeeded; });
                 }
             }
         }
@@ -811,9 +873,18 @@ namespace TreeLibTest
                 tree.Delete(xStart);
             }
 
-            public override RangeTestHarness<ValueType> Clone()
+            public override RangeTestHarness<ValueType> Clone(CloneMethod method)
             {
-                return new RangeMapTestHarness<ValueType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new RangeMapTestHarness<ValueType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new RangeMapTestHarness<ValueType>((IRangeMap<ValueType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override Range2MapEntry[] ToArray()
@@ -855,9 +926,18 @@ namespace TreeLibTest
                 tree.Delete(xStart);
             }
 
-            public override RangeTestHarness<object> Clone()
+            public override RangeTestHarness<object> Clone(CloneMethod method)
             {
-                return new RangeListTestHarness(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new RangeListTestHarness(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new RangeListTestHarness((IRangeList)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override Range2MapEntry[] ToArray()
@@ -899,9 +979,18 @@ namespace TreeLibTest
                 tree.Delete(xStart, Side.X);
             }
 
-            public override RangeTestHarness<ValueType> Clone()
+            public override RangeTestHarness<ValueType> Clone(CloneMethod method)
             {
-                return new Range2MapTestHarness<ValueType>(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new Range2MapTestHarness<ValueType>(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new Range2MapTestHarness<ValueType>((IRange2Map<ValueType>)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override Range2MapEntry[] ToArray()
@@ -943,9 +1032,18 @@ namespace TreeLibTest
                 tree.Delete(xStart, Side.X);
             }
 
-            public override RangeTestHarness<object> Clone()
+            public override RangeTestHarness<object> Clone(CloneMethod method)
             {
-                return new Range2ListTestHarness(clone(tree), clone);
+                switch (method)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case CloneMethod.Constructor:
+                        return new Range2ListTestHarness(clone(tree), clone);
+                    case CloneMethod.IClonable:
+                        return new Range2ListTestHarness((IRange2List)((ICloneable)tree).Clone(), clone);
+                }
             }
 
             public override Range2MapEntry[] ToArray()

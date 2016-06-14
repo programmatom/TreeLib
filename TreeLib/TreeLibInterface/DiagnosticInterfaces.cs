@@ -61,6 +61,7 @@ namespace TreeLib.Internal
     /// guarrantee that it will be supported in future versions.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public struct Range
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -88,6 +89,7 @@ namespace TreeLib.Internal
     /// guarrantee that it will be supported in future versions.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public struct RangeLong
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -116,6 +118,7 @@ namespace TreeLib.Internal
     /// guarrantee that it will be supported in future versions.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public struct Range2MapEntry
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -154,6 +157,7 @@ namespace TreeLib.Internal
     /// guarrantee that it will be supported in future versions.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public struct Range2MapEntryLong
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -229,6 +233,7 @@ namespace TreeLib.Internal
     /// guarrantee that it will be supported in future versions.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public struct MultiRankMapEntry
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -267,6 +272,7 @@ namespace TreeLib.Internal
     /// guarrantee that it will be supported in future versions.
     /// </summary>
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public struct MultiRankMapEntryLong
     {
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

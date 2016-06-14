@@ -34,7 +34,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace BuildTool
 {
-    public class ConstSubstitutionRewriter : CSharpSyntaxRewriter
+    public class ConstParameterSubstitutionRewriter : CSharpSyntaxRewriter
     {
         private readonly FacetList featureFacetAxis;
         private readonly SemanticModel semanticModel;
@@ -42,8 +42,9 @@ namespace BuildTool
 
         // substitution done at syntactic level - so ensure template does not declare multiple fields with same identifier!
         private readonly Dictionary<ISymbol, ExpressionSyntax> substitutions = new Dictionary<ISymbol, ExpressionSyntax>();
+        private readonly Dictionary<string, bool> substitutionNames = new Dictionary<string, bool>();
 
-        public ConstSubstitutionRewriter(FacetList[] facetAxes, SemanticModel semanticModel)
+        public ConstParameterSubstitutionRewriter(FacetList[] facetAxes, SemanticModel semanticModel)
         {
             facetAxes = Array.FindAll(facetAxes, delegate (FacetList candidate) { return String.Equals(candidate.axisTag, "Feature"); });
             if (facetAxes.Length != 1)
@@ -78,7 +79,7 @@ namespace BuildTool
 
         // accumulate constant substitution mapping activated by current feature facet selection
 
-        private readonly static string[] ConstAttributeAliases = new string[] { "Const" , "Const2" };
+        private readonly static string[] ConstAttributeAliases = new string[] { "Const", "Const2" };
         private bool TestConstSubstAttribute(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax substConst)
         {
             return AttributeMatchUtil.TestEnumeratedFaceAttribute(attributeLists, out substConst, ConstAttributeAliases, featureFacetAxis);
@@ -134,6 +135,7 @@ namespace BuildTool
                     if (!substitutions.ContainsKey(identifierSymbol))
                     {
                         substitutions.Add(identifierSymbol, substConst);
+                        substitutionNames[identifierSymbol.Name] = false;
 #pragma warning disable CS0162 // unreachable
                         if (trace)
                         {
@@ -184,25 +186,27 @@ namespace BuildTool
                 return node;
             }
 
-            ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(position, null, node.Identifier.Text);
-            if (symbols.Length != 1)
-            {
-                Debug.Assert(false);
-                throw new ArgumentException(String.Format("Template contains none or multiple symbols in scope for \"{0}\" which ought to be impossible (but could happen due to template code errors)", node.Identifier.Text));
-            }
-            ISymbol identifierSymbol = symbols[0];
-
-            if (substitutions.ContainsKey(identifierSymbol))
-            {
-                throw new ArgumentException(String.Format("template contains multiple field names \"{0}\"", identifierSymbol.Name));
-            }
-
             ExpressionSyntax substConst;
             if (TestConstSubstAttribute(node.AttributeLists, out substConst) && !TestConstSubstSuppressionAttribute(node.AttributeLists))
             {
+                ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(position, null, node.Identifier.Text);
+                if (symbols.Length != 1)
+                {
+                    Debug.Assert(false);
+                    throw new ArgumentException(String.Format("Template contains none or multiple symbols in scope for \"{0}\" which ought to be impossible (but could happen due to template code errors)", node.Identifier.Text));
+                }
+                ISymbol identifierSymbol = symbols[0];
+
+                if (substitutions.ContainsKey(identifierSymbol))
+                {
+                    throw new ArgumentException(String.Format("template contains multiple field names \"{0}\"", identifierSymbol.Name));
+                }
+
+
                 if (!substitutions.ContainsKey(identifierSymbol))
                 {
                     substitutions.Add(identifierSymbol, substConst);
+                    substitutionNames[identifierSymbol.Name] = false;
 #pragma warning disable CS0162 // unreachable
                     if (trace)
                     {
@@ -227,19 +231,22 @@ namespace BuildTool
 
         public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
         {
-            ISymbol identifierSymbol = semanticModel.GetSymbolInfo(node).Symbol;
-            if (identifierSymbol != null)
+            if (substitutionNames.ContainsKey(node.Name.Identifier.Text)) // pre-test on name for performance
             {
-                ExpressionSyntax constValue;
-                if (substitutions.TryGetValue(identifierSymbol, out constValue))
+                ISymbol identifierSymbol = semanticModel.GetSymbolInfo(node).Symbol;
+                if (identifierSymbol != null)
                 {
-#pragma warning disable CS0162 // unreachable
-                    if (trace)
+                    ExpressionSyntax constValue;
+                    if (substitutions.TryGetValue(identifierSymbol, out constValue))
                     {
-                        Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), constValue.ToFullString());
-                    }
+#pragma warning disable CS0162 // unreachable
+                        if (trace)
+                        {
+                            Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), constValue.ToFullString());
+                        }
 #pragma warning restore CS0162
-                    return constValue.WithTriviaFrom(node);
+                        return constValue.WithTriviaFrom(node);
+                    }
                 }
             }
 
@@ -248,12 +255,14 @@ namespace BuildTool
 
         public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
         {
-            ISymbol identifierSymbol = semanticModel.GetSymbolInfo(node.Right).Symbol;
-            if (identifierSymbol != null)
+            IdentifierNameSyntax rhsExpression = node.Right as IdentifierNameSyntax;
+            if ((rhsExpression != null) && substitutionNames.ContainsKey(rhsExpression.Identifier.Text)) // pre-test on name for performance
             {
-                IdentifierNameSyntax rhsExpression;
-                if ((rhsExpression = node.Right as IdentifierNameSyntax) != null)
+                ISymbol identifierSymbol = semanticModel.GetSymbolInfo(node.Right).Symbol;
+                if (identifierSymbol != null)
                 {
+                    Debug.Assert(rhsExpression != null);
+
                     ExpressionSyntax constValue;
                     if (substitutions.TryGetValue(identifierSymbol, out constValue))
                     {
@@ -271,6 +280,7 @@ namespace BuildTool
                     }
                 }
             }
+
             return base.VisitAssignmentExpression(node);
         }
 
@@ -291,17 +301,20 @@ namespace BuildTool
                 IdentifierNameSyntax nodeExpression;
                 if ((nodeExpression = argument.Expression as IdentifierNameSyntax) != null)
                 {
-                    ISymbol identifierSymbol = semanticModel.GetSymbolInfo(originalArguments[i]).Symbol;
-                    if (identifierSymbol != null)
+                    if (substitutionNames.ContainsKey(nodeExpression.Identifier.Text)) // pre-test on name for performance
                     {
-                        ExpressionSyntax constValue;
-                        if (substitutions.TryGetValue(identifierSymbol, out constValue))
+                        ISymbol identifierSymbol = semanticModel.GetSymbolInfo(originalArguments[i]).Symbol;
+                        if (identifierSymbol != null)
                         {
-                            changed = true;
-                            node = node.Update(
-                                node.OpenParenToken,
-                                node.Arguments.Replace(argument, SyntaxFactory.Argument(constValue).WithTriviaFrom(argument)),
-                                node.CloseParenToken);
+                            ExpressionSyntax constValue;
+                            if (substitutions.TryGetValue(identifierSymbol, out constValue))
+                            {
+                                changed = true;
+                                node = node.Update(
+                                    node.OpenParenToken,
+                                    node.Arguments.Replace(argument, SyntaxFactory.Argument(constValue).WithTriviaFrom(argument)),
+                                    node.CloseParenToken);
+                            }
                         }
                     }
                 }
@@ -318,19 +331,22 @@ namespace BuildTool
 
         public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
         {
-            ISymbol identifierSymbol = semanticModel.GetSymbolInfo(node).Symbol;
-            if (identifierSymbol != null)
+            if (substitutionNames.ContainsKey(node.Identifier.Text)) // pre-rest on name for performance
             {
-                ExpressionSyntax constValue;
-                if (substitutions.TryGetValue(identifierSymbol, out constValue))
+                ISymbol identifierSymbol = semanticModel.GetSymbolInfo(node).Symbol;
+                if (identifierSymbol != null)
                 {
-#pragma warning disable CS0162 // unreachable
-                    if (trace)
+                    ExpressionSyntax constValue;
+                    if (substitutions.TryGetValue(identifierSymbol, out constValue))
                     {
-                        Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), constValue.ToFullString());
-                    }
+#pragma warning disable CS0162 // unreachable
+                        if (trace)
+                        {
+                            Console.WriteLine("CONSTSUBST: {0}: {1} ==> {2}", GetTraceParent(node).ToFullString(), node.ToFullString(), constValue.ToFullString());
+                        }
 #pragma warning restore CS0162
-                    return constValue.WithTriviaFrom(node);
+                        return constValue.WithTriviaFrom(node);
+                    }
                 }
             }
 

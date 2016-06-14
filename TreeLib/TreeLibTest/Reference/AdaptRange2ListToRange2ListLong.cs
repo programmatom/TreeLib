@@ -32,7 +32,8 @@ namespace TreeLibTest
         IRange2List,
         INonInvasiveTreeInspection,
         INonInvasiveRange2MapInspection,
-        IEnumerable<EntryRange2List>
+        IEnumerable<EntryRange2List>,
+        ICloneable
     {
         private readonly IRange2ListLong inner;
 
@@ -301,6 +302,16 @@ namespace TreeLibTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+
+
+        //
+        // ICloneable
+        //
+
+        public object Clone()
+        {
+            return new AdaptRange2ListToRange2ListLong((IRange2ListLong)((ICloneable)inner).Clone());
         }
     }
 }

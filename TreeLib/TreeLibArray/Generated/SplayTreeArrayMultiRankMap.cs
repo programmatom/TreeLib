@@ -2091,7 +2091,6 @@ uint countNew = checked(this.count + 1);
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         private void ValidateRanges()
         {
             if (root != Nil)
@@ -2121,10 +2120,7 @@ uint countNew = checked(this.count + 1);
                     leftEdge = t.Item3;
                     rightEdge = t.Item4;
 
-                    if ((offset < leftEdge) || (offset >= rightEdge))
-                    {
-                        throw new InvalidOperationException("range containment invariant");
-                    }
+                    Check.Assert((offset >= leftEdge) && (offset < rightEdge), "range containment invariant");
 
                     leftEdge = offset + 1;
                     node = nodes[node].right;
@@ -2217,7 +2213,6 @@ uint countNew = checked(this.count + 1);
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -2229,28 +2224,19 @@ uint countNew = checked(this.count + 1);
                 {
                     NodeRef node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (nodes[node].left != Nil)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].left);
                     }
                     if (nodes[node].right != Nil)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].right);
                     }
                 }
@@ -2268,7 +2254,6 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        [ExcludeFromCodeCoverage]
         [Widen]
         MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
         {
@@ -2312,19 +2297,11 @@ uint countNew = checked(this.count + 1);
                         node = nodes[node].left;
                     }
                 }
-                if (!(i == ranks.Length))
-                {
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                }
+                Check.Assert(i == ranks.Length, "count invariant");
 
                 for (i = 1; i < ranks.Length; i++)
                 {
-                    if (!(ranks[i - 1].rank.start < ranks[i].rank.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranks[i - 1].rank.start < ranks[i].rank.start, "range sequence invariant");
                     ranks[i - 1].rank.length = ranks[i].rank.start - ranks[i - 1].rank.start;
                 }
 
@@ -2340,7 +2317,6 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        [ExcludeFromCodeCoverage]
         void INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();

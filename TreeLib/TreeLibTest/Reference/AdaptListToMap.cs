@@ -31,7 +31,8 @@ namespace TreeLibTest
     public class AdaptListToMap<KeyType, ValueType> :
         IOrderedMap<KeyType, ValueType>,
         INonInvasiveTreeInspection,
-        IEnumerable<EntryMap<KeyType, ValueType>>
+        IEnumerable<EntryMap<KeyType, ValueType>>,
+        ICloneable
         where KeyType : IComparable<KeyType>
     {
         private readonly IOrderedList<KeyValue<KeyType, ValueType>> inner;
@@ -307,6 +308,16 @@ namespace TreeLibTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+
+
+        //
+        // ICloneable
+        //
+
+        public object Clone()
+        {
+            return new AdaptListToMap<KeyType, ValueType>((IOrderedList<KeyValue<KeyType, ValueType>>)((ICloneable)inner).Clone());
         }
     }
 }

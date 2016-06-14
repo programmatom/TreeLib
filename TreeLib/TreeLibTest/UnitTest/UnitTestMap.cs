@@ -182,6 +182,24 @@ namespace TreeLibTest
                 "AdaptSetToMap<int,string>:SplayTreeArrayList",
                 delegate () { return new AdaptListToMap<int, string>(new SplayTreeArrayList<KeyValue<int, string>>()); });
 
+            // with explicit comparer
+
+            MapBasicCoverageSpecific(
+                "SplayTreeMap<int,string>",
+                delegate () { return new SplayTreeMap<int, string>(Comparer<int>.Default); });
+
+            MapBasicCoverageSpecific(
+                "SplayTreeArrayMap<int,string>",
+                delegate () { return new SplayTreeArrayMap<int, string>(Comparer<int>.Default); });
+
+            MapBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:SplayTreeList",
+                delegate () { return new AdaptListToMap<int, string>(new SplayTreeList<KeyValue<int, string>>(Comparer<KeyValue<int, string>>.Default)); });
+
+            MapBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:SplayTreeArrayList",
+                delegate () { return new AdaptListToMap<int, string>(new SplayTreeArrayList<KeyValue<int, string>>(Comparer<KeyValue<int, string>>.Default)); });
+
 
 
             MapBasicCoverageSpecific(
@@ -200,6 +218,24 @@ namespace TreeLibTest
                 "AdaptSetToMap<int,string>:RedBlackTreeArrayList",
                 delegate () { return new AdaptListToMap<int, string>(new RedBlackTreeArrayList<KeyValue<int, string>>()); });
 
+            // with explicit comparer
+
+            MapBasicCoverageSpecific(
+                "RedBlackTreeMap<int,string>",
+                delegate () { return new RedBlackTreeMap<int, string>(Comparer<int>.Default); });
+
+            MapBasicCoverageSpecific(
+                "RedBlackTreeArrayMap<int,string>",
+                delegate () { return new RedBlackTreeArrayMap<int, string>(Comparer<int>.Default); });
+
+            MapBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:RedBlackTreeList",
+                delegate () { return new AdaptListToMap<int, string>(new RedBlackTreeList<KeyValue<int, string>>(Comparer<KeyValue<int, string>>.Default)); });
+
+            MapBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:RedBlackTreeArrayList",
+                delegate () { return new AdaptListToMap<int, string>(new RedBlackTreeArrayList<KeyValue<int, string>>(Comparer<KeyValue<int, string>>.Default)); });
+
 
 
             MapBasicCoverageSpecific(
@@ -217,6 +253,24 @@ namespace TreeLibTest
             MapBasicCoverageSpecific(
                 "AdaptSetToMap<int,string>:AVLTreeArrayList",
                 delegate () { return new AdaptListToMap<int, string>(new AVLTreeArrayList<KeyValue<int, string>>()); });
+
+            // with explicit comparer
+
+            MapBasicCoverageSpecific(
+                "AVLTreeMap<int,string>",
+                delegate () { return new AVLTreeMap<int, string>(Comparer<int>.Default); });
+
+            MapBasicCoverageSpecific(
+                "AVLTreeArrayMap<int,string>",
+                delegate () { return new AVLTreeArrayMap<int, string>(Comparer<int>.Default); });
+
+            MapBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:AVLTreeList",
+                delegate () { return new AdaptListToMap<int, string>(new AVLTreeList<KeyValue<int, string>>(Comparer<KeyValue<int, string>>.Default)); });
+
+            MapBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:AVLTreeArrayList",
+                delegate () { return new AdaptListToMap<int, string>(new AVLTreeArrayList<KeyValue<int, string>>(Comparer<KeyValue<int, string>>.Default)); });
         }
 
         private void MapBasicCoverageSpecific(
