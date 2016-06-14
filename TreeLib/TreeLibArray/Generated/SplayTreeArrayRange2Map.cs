@@ -1559,7 +1559,6 @@ uint countNew = checked(this.count + 1);
         // Helpers
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         private void ValidateRanges([Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             if (root != Nil)
@@ -1589,10 +1588,7 @@ uint countNew = checked(this.count + 1);
                     leftEdge = t.Item3;
                     rightEdge = t.Item4;
 
-                    if ((offset < leftEdge) || (offset >= rightEdge))
-                    {
-                        throw new InvalidOperationException("range containment invariant");
-                    }
+                    Check.Assert((offset >= leftEdge) && (offset < rightEdge), "range containment invariant");
 
                     leftEdge = offset + 1;
                     node = nodes[node].right;
@@ -1649,8 +1645,7 @@ uint countNew = checked(this.count + 1);
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetKey(object node)
         {
-            object key = null;
-            return key;
+            return null;
         }
 
         /// <summary>
@@ -1683,7 +1678,6 @@ uint countNew = checked(this.count + 1);
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -1695,10 +1689,7 @@ uint countNew = checked(this.count + 1);
                 {
                     NodeRef node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (nodes[node].left != Nil)
@@ -1726,7 +1717,6 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         [Widen]
         Range2MapEntry[] INonInvasiveRange2MapInspection.GetRanges()
         {
@@ -1773,25 +1763,13 @@ uint countNew = checked(this.count + 1);
                         node = nodes[node].left;
                     }
                 }
-                if (!(i == ranges.Length))
-                {
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                }
+                Check.Assert(i == ranges.Length, "count invariant");
 
                 for (i = 1; i < ranges.Length; i++)
                 {
-                    if (!(ranges[i - 1].x.start < ranges[i].x.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranges[i - 1].x.start < ranges[i].x.start, "range sequence invariant (X)");
                     /*[Feature(Feature.Range2)]*/
-                    if (!(ranges[i - 1].y.start < ranges[i].y.start))
-                    {
-                        Debug.Assert(false);
-                        throw new InvalidOperationException();
-                    }
+                    Check.Assert(ranges[i - 1].y.start < ranges[i].y.start, "range sequence invariant (Y)");
                     ranges[i - 1].x.length = ranges[i].x.start - ranges[i - 1].x.start;
                     /*[Feature(Feature.Range2)]*/
                     ranges[i - 1].y.length = ranges[i].y.start - ranges[i - 1].y.start;
@@ -1811,7 +1789,6 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        [ExcludeFromCodeCoverage]
         void INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();

@@ -436,7 +436,7 @@ namespace TreeLibTest
         public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
         {
             value = default(ValueType);
-            rank = 0;
+            rank = (int)Count;
             bool f = NearestGreaterOrEqual(key, out nearestKey);
             if (f)
             {
@@ -449,7 +449,7 @@ namespace TreeLibTest
         public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
         {
             value = default(ValueType);
-            rank = 0;
+            rank = (int)Count;
             bool f = NearestGreater(key, out nearestKey);
             if (f)
             {

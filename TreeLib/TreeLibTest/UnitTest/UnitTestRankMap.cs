@@ -222,6 +222,32 @@ namespace TreeLibTest
                 "AdaptSetToMap<int,string>:SplayTreeListLong",
                 delegate () { return new AdaptRankListToRankMap<int, float>(new AdaptRankListToRankListLong<KeyValue<int, float>>(new SplayTreeRankListLong<KeyValue<int, float>>())); });
 
+            // with explicit comparer
+
+            RankTreeBasicCoverageSpecific(
+                "SplayTreeRankMap<int,string>",
+                delegate () { return new SplayTreeRankMap<int, float>(Comparer<int>.Default); });
+
+            RankTreeBasicCoverageSpecific(
+                "SplayTreeArrayRankMap<int,string>",
+                delegate () { return new SplayTreeArrayRankMap<int, float>(Comparer<int>.Default); });
+
+            RankTreeBasicCoverageSpecific(
+                "SplayTreeRankMapLong<int,string>",
+                delegate () { return new AdaptRankMapToRankMapLong<int, float>(new SplayTreeRankMapLong<int, float>(Comparer<int>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:SplayTreeList",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new SplayTreeRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:SplayTreeArrayList",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new SplayTreeArrayRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:SplayTreeListLong",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new AdaptRankListToRankListLong<KeyValue<int, float>>(new SplayTreeRankListLong<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default))); });
+
 
 
             RankTreeBasicCoverageSpecific(
@@ -248,6 +274,32 @@ namespace TreeLibTest
                 "AdaptSetToMap<int,string>:RedBlackTreeListLong",
                 delegate () { return new AdaptRankListToRankMap<int, float>(new AdaptRankListToRankListLong<KeyValue<int, float>>(new RedBlackTreeRankListLong<KeyValue<int, float>>())); });
 
+            // with explicit comparer
+
+            RankTreeBasicCoverageSpecific(
+                "RedBlackTreeRankMap<int,string>",
+                delegate () { return new RedBlackTreeRankMap<int, float>(Comparer<int>.Default); });
+
+            RankTreeBasicCoverageSpecific(
+                "RedBlackTreeArrayRankMap<int,string>",
+                delegate () { return new RedBlackTreeArrayRankMap<int, float>(Comparer<int>.Default); });
+
+            RankTreeBasicCoverageSpecific(
+                "RedBlackTreeRankMapLong<int,string>",
+                delegate () { return new AdaptRankMapToRankMapLong<int, float>(new RedBlackTreeRankMapLong<int, float>(Comparer<int>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:RedBlackTreeList",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new RedBlackTreeRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:RedBlackTreeArrayList",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new RedBlackTreeArrayRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:RedBlackTreeListLong",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new AdaptRankListToRankListLong<KeyValue<int, float>>(new RedBlackTreeRankListLong<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default))); });
+
 
 
             RankTreeBasicCoverageSpecific(
@@ -273,6 +325,32 @@ namespace TreeLibTest
             RankTreeBasicCoverageSpecific(
                 "AdaptSetToMap<int,string>:AVLTreeListLong",
                 delegate () { return new AdaptRankListToRankMap<int, float>(new AdaptRankListToRankListLong<KeyValue<int, float>>(new AVLTreeRankListLong<KeyValue<int, float>>())); });
+
+            // with explicit comparer
+
+            RankTreeBasicCoverageSpecific(
+                "AVLTreeRankMap<int,string>",
+                delegate () { return new AVLTreeRankMap<int, float>(Comparer<int>.Default); });
+
+            RankTreeBasicCoverageSpecific(
+                "AVLTreeArrayRankMap<int,string>",
+                delegate () { return new AVLTreeArrayRankMap<int, float>(Comparer<int>.Default); });
+
+            RankTreeBasicCoverageSpecific(
+                "AVLTreeRankMapLong<int,string>",
+                delegate () { return new AdaptRankMapToRankMapLong<int, float>(new AVLTreeRankMapLong<int, float>(Comparer<int>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:AVLTreeList",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new AVLTreeRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:AVLTreeArrayList",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new AVLTreeArrayRankList<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default)); });
+
+            RankTreeBasicCoverageSpecific(
+                "AdaptSetToMap<int,string>:AVLTreeListLong",
+                delegate () { return new AdaptRankListToRankMap<int, float>(new AdaptRankListToRankListLong<KeyValue<int, float>>(new AVLTreeRankListLong<KeyValue<int, float>>(Comparer<KeyValue<int, float>>.Default))); });
         }
 
         private void RankTreeBasicCoverageSpecific(

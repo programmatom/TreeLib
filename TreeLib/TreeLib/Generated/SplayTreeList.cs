@@ -103,12 +103,6 @@ namespace TreeLib
                 }
 
                 string valueText = null;
-                try
-                {
-                }
-                catch (NullReferenceException)
-                {
-                }
 
                 string leftKeyText = null;
                 try
@@ -1055,8 +1049,7 @@ namespace TreeLib
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            object value = null;
-            return value;
+            return null;
         }
 
         /// <summary>
@@ -1075,7 +1068,6 @@ namespace TreeLib
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -1087,28 +1079,19 @@ namespace TreeLib
                 {
                     Node node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (node.left != Nil)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(node.left.key, node.key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(node.left.key, node.key) < 0, "ordering invariant");
                         worklist.Enqueue(node.left);
                     }
                     if (node.right != Nil)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(node.key, node.right.key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(node.key, node.right.key) < 0, "ordering invariant");
                         worklist.Enqueue(node.right);
                     }
                 }

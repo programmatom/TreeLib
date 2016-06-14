@@ -32,7 +32,8 @@ namespace TreeLibTest
         IRangeMap<ValueType>,
         INonInvasiveTreeInspection,
         INonInvasiveRange2MapInspection,
-        IEnumerable<EntryRangeMap<ValueType>>
+        IEnumerable<EntryRangeMap<ValueType>>,
+        ICloneable
     {
         private readonly IRangeMapLong<ValueType> inner;
 
@@ -305,6 +306,16 @@ namespace TreeLibTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+
+
+        //
+        // ICloneable
+        //
+
+        public object Clone()
+        {
+            return new AdaptRangeMapToRangeMapLong<ValueType>((IRangeMapLong<ValueType>)((ICloneable)inner).Clone());
         }
     }
 }

@@ -1022,7 +1022,7 @@ namespace TreeLibTest
             }
         }
 
-        private delegate bool EquivalenceActionVariant1<KeyType, ValueType>(IRankMap<KeyType, ValueType> collection, KeyType key, out KeyType keyOut, out ValueType valueOut) where KeyType : IComparable<KeyType>;
+        private delegate bool EquivalenceActionVariant1<KeyType, ValueType>(IRankMap<KeyType, ValueType> collection, KeyType key, out KeyType keyOut, out ValueType valueOut, out int rankOut) where KeyType : IComparable<KeyType>;
         private void EquivalenceActionVariant1Util(IRankMap<int, float>[] collections, Random rnd, ref string description, EquivalenceActionVariant1<int, float> variantMethod)
         {
             string descriptionPrefix = description;
@@ -1053,16 +1053,19 @@ namespace TreeLibTest
 
             int modelKey = 0;
             float modelValue = 0;
+            int modelRank = 0;
             bool f = false;
             for (int i = 0; i < collections.Length; i++)
             {
                 int instanceKey;
                 float instanceValue;
-                bool f1 = variantMethod(collections[i], queryKey, out instanceKey, out instanceValue);
+                int instanceRank;
+                bool f1 = variantMethod(collections[i], queryKey, out instanceKey, out instanceValue, out instanceRank);
                 if (i == 0)
                 {
                     modelKey = instanceKey;
                     modelValue = instanceValue;
+                    modelRank = instanceRank;
                     f = f1;
                 }
                 else
@@ -1072,6 +1075,10 @@ namespace TreeLibTest
                         Fault(collections[i], description + "key");
                     }
                     if (modelValue != instanceValue)
+                    {
+                        Fault(collections[i], description + "value");
+                    }
+                    if (modelRank != instanceRank)
                     {
                         Fault(collections[i], description + "value");
                     }
@@ -1086,20 +1093,25 @@ namespace TreeLibTest
         private void NearestLessOrEqualAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestLessOrEqual";
-            switch (rnd.Next() % 2)
+            switch (rnd.Next() % 3)
             {
                 default:
                     Debug.Assert(false);
                     throw new InvalidOperationException();
                 case 0:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { valueOut = default(float); return collection.NearestLessOrEqual(queryKey, out instanceKey); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { valueOut = default(float); rankOut = 0; return collection.NearestLessOrEqual(queryKey, out instanceKey); });
                     break;
                 case 1:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { return collection.NearestLessOrEqual(queryKey, out instanceKey, out valueOut); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { rankOut = 0; return collection.NearestLessOrEqual(queryKey, out instanceKey, out valueOut); });
+                    break;
+                case 2:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { return collection.NearestLessOrEqual(queryKey, out instanceKey, out valueOut, out rankOut); });
                     break;
             }
         }
@@ -1107,20 +1119,25 @@ namespace TreeLibTest
         private void NearestLessAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestLess";
-            switch (rnd.Next() % 2)
+            switch (rnd.Next() % 3)
             {
                 default:
                     Debug.Assert(false);
                     throw new InvalidOperationException();
                 case 0:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { valueOut = default(float); return collection.NearestLess(queryKey, out instanceKey); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { valueOut = default(float); rankOut = 0; return collection.NearestLess(queryKey, out instanceKey); });
                     break;
                 case 1:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { return collection.NearestLess(queryKey, out instanceKey, out valueOut); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { rankOut = 0; return collection.NearestLess(queryKey, out instanceKey, out valueOut); });
+                    break;
+                case 2:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { return collection.NearestLess(queryKey, out instanceKey, out valueOut, out rankOut); });
                     break;
             }
         }
@@ -1128,20 +1145,25 @@ namespace TreeLibTest
         private void NearestGreaterOrEqualAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestGreaterOrEqual";
-            switch (rnd.Next() % 2)
+            switch (rnd.Next() % 3)
             {
                 default:
                     Debug.Assert(false);
                     throw new InvalidOperationException();
                 case 0:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { valueOut = default(float); return collection.NearestGreaterOrEqual(queryKey, out instanceKey); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { valueOut = default(float); rankOut = 0; return collection.NearestGreaterOrEqual(queryKey, out instanceKey); });
                     break;
                 case 1:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { return collection.NearestGreaterOrEqual(queryKey, out instanceKey, out valueOut); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { rankOut = 0; return collection.NearestGreaterOrEqual(queryKey, out instanceKey, out valueOut); });
+                    break;
+                case 2:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { return collection.NearestGreaterOrEqual(queryKey, out instanceKey, out valueOut, out rankOut); });
                     break;
             }
         }
@@ -1149,20 +1171,25 @@ namespace TreeLibTest
         private void NearestGreaterAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
         {
             description = "NearestGreater";
-            switch (rnd.Next() % 2)
+            switch (rnd.Next() % 3)
             {
                 default:
                     Debug.Assert(false);
                     throw new InvalidOperationException();
                 case 0:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { valueOut = default(float); return collection.NearestGreater(queryKey, out instanceKey); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { valueOut = default(float); rankOut = 0; return collection.NearestGreater(queryKey, out instanceKey); });
                     break;
                 case 1:
                     EquivalenceActionVariant1Util(collections, rnd, ref description,
-                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut)
-                        { return collection.NearestGreater(queryKey, out instanceKey, out valueOut); });
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { rankOut = 0; return collection.NearestGreater(queryKey, out instanceKey, out valueOut); });
+                    break;
+                case 2:
+                    EquivalenceActionVariant1Util(collections, rnd, ref description,
+                        delegate (IRankMap<int, float> collection, int queryKey, out int instanceKey, out float valueOut, out int rankOut)
+                        { return collection.NearestGreater(queryKey, out instanceKey, out valueOut, out rankOut); });
                     break;
             }
         }

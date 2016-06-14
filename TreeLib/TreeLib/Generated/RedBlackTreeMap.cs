@@ -1669,7 +1669,6 @@ namespace TreeLib
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Null)
@@ -1681,28 +1680,19 @@ namespace TreeLib
                 {
                     Node node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (node.left != Null)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(node.left.key, node.key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(node.left.key, node.key) < 0, "ordering invariant");
                         worklist.Enqueue(node.left);
                     }
                     if (node.right != Null)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(node.key, node.right.key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(node.key, node.right.key) < 0, "ordering invariant");
                         worklist.Enqueue(node.right);
                     }
                 }
@@ -1711,7 +1701,6 @@ namespace TreeLib
             ValidateDepthInvariant();
         }
 
-        [ExcludeFromCodeCoverage]
         private void ValidateDepthInvariant()
         {
             int min = Int32.MaxValue;
@@ -1720,19 +1709,14 @@ namespace TreeLib
             min++;
             int max = depth + 1;
 
-            if ((2 * min < max) || (depth > 2 * Math.Log(this.count + 1) / Math.Log(2)))
-            {
-                throw new InvalidOperationException("depth invariant");
-            }
+            Check.Assert((2 * min >= max) && (depth <= 2 * Math.Log(this.count + 1) / Math.Log(2)), "depth invariant");
         }
 
-        [ExcludeFromCodeCoverage]
         private int MaxDepth(Node root)
         {
             return (root == Null) ? 0 : (1 + Math.Max(MaxDepth(root.left), MaxDepth(root.right)));
         }
 
-        [ExcludeFromCodeCoverage]
         private void MinDepth(Node root,int depth,ref int min)
         {
             if (root == Null)

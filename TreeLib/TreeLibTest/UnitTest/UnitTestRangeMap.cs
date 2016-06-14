@@ -365,6 +365,9 @@ namespace TreeLibTest
             TestNoThrow(label + " TrySet.1b", delegate () { tree.TrySet(0, 2, "bar"); });
             TestThrow(label + " TrySet.1c", typeof(ArgumentOutOfRangeException), delegate () { tree.TrySet(0, -1, "bar"); });
             TestNoThrow(label + " TrySet.1d", delegate () { tree.TrySet(0, 0, "bar"); });
+            tree = makeTree();
+            TestFalse(label + " TrySet.1gi", delegate () { return tree.TrySet(1, 1, "baz"); });
+            TestTrue(label + " TrySet.1gii", delegate () { return tree.Count == 0; });
 
             tree = makeTree();
             TestNoThrow(label + " Insert.1", delegate () { tree.Insert(0, 1, "foo"); });
@@ -389,6 +392,9 @@ namespace TreeLibTest
             TestNoThrow(label + " Set.1b", delegate () { tree.Set(0, 2, "bar"); });
             TestThrow(label + " Set.1c", typeof(ArgumentOutOfRangeException), delegate () { tree.Set(0, -1, "bar"); });
             TestNoThrow(label + " Set.1f", delegate () { tree.Set(0, 0, "bar"); });
+            tree = makeTree();
+            TestThrow(label + " TrySet.1gi", typeof(ArgumentException), delegate () { tree.Set(1, 1, "baz"); });
+            TestTrue(label + " TrySet.1gii", delegate () { return tree.Count == 0; });
 
             tree = makeTree();
             TestTrue(label + " GetExtent degenerate", delegate () { return tree.GetExtent() == 0; });

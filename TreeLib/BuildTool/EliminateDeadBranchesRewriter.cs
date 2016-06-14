@@ -195,6 +195,16 @@ namespace BuildTool
             return EliminateIfUseless(node);
         }
 
+        public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
+        {
+            if ((node.Block.Statements.Count == 0) && ((node.Finally == null) || (node.Finally.Block.Statements.Count == 0)))
+            {
+                return SyntaxFactory.EmptyStatement();
+            }
+
+            return base.VisitTryStatement(node);
+        }
+
         public override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
         {
             node = (ExpressionStatementSyntax)base.VisitExpressionStatement(node);

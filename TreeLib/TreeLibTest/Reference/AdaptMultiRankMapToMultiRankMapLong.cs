@@ -32,7 +32,8 @@ namespace TreeLibTest
         IMultiRankMap<KeyType, ValueType>,
         INonInvasiveTreeInspection,
         INonInvasiveMultiRankMapInspection,
-        IEnumerable<EntryMultiRankMap<KeyType, ValueType>>
+        IEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
+        ICloneable
         where KeyType : IComparable<KeyType>
     {
         private readonly IMultiRankMapLong<KeyType, ValueType> inner;
@@ -394,6 +395,16 @@ namespace TreeLibTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
+        }
+
+
+        //
+        // ICloneable
+        //
+
+        public object Clone()
+        {
+            return new AdaptMultiRankMapToMultiRankMapLong<KeyType, ValueType>((IMultiRankMapLong<KeyType, ValueType>)((ICloneable)inner).Clone());
         }
     }
 }

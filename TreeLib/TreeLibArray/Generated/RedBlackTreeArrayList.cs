@@ -1452,8 +1452,7 @@ uint countNew;
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            object value = null;
-            return value;
+            return null;
         }
 
         /// <summary>
@@ -1473,7 +1472,6 @@ uint countNew;
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Null)
@@ -1485,28 +1483,19 @@ uint countNew;
                 {
                     NodeRef node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (nodes[node].left != Null)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].left);
                     }
                     if (nodes[node].right != Null)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].right);
                     }
                 }
@@ -1515,7 +1504,6 @@ uint countNew;
             ValidateDepthInvariant();
         }
 
-        [ExcludeFromCodeCoverage]
         private void ValidateDepthInvariant()
         {
             int min = Int32.MaxValue;
@@ -1524,19 +1512,14 @@ uint countNew;
             min++;
             int max = depth + 1;
 
-            if ((2 * min < max) || (depth > 2 * Math.Log(this.count + 1) / Math.Log(2)))
-            {
-                throw new InvalidOperationException("depth invariant");
-            }
+            Check.Assert((2 * min >= max) && (depth <= 2 * Math.Log(this.count + 1) / Math.Log(2)), "depth invariant");
         }
 
-        [ExcludeFromCodeCoverage]
         private int MaxDepth(NodeRef root)
         {
             return (root == Null) ? 0 : (1 + Math.Max(MaxDepth(nodes[root].left), MaxDepth(nodes[root].right)));
         }
 
-        [ExcludeFromCodeCoverage]
         private void MinDepth(NodeRef root,int depth,ref int min)
         {
             if (root == Null)

@@ -1040,8 +1040,7 @@ uint countNew = checked(this.count + 1);
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            object value = null;
-            return value;
+            return null;
         }
 
         /// <summary>
@@ -1060,7 +1059,6 @@ uint countNew = checked(this.count + 1);
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Nil)
@@ -1072,28 +1070,19 @@ uint countNew = checked(this.count + 1);
                 {
                     NodeRef node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (nodes[node].left != Nil)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].left);
                     }
                     if (nodes[node].right != Nil)
                     {
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                        if (!(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0))
-                        {
-                            throw new InvalidOperationException("ordering invariant");
-                        }
+                        Check.Assert(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].right);
                     }
                 }

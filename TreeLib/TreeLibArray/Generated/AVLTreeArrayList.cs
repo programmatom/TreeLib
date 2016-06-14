@@ -663,6 +663,7 @@ namespace TreeLib
             return tmp;
         }
 
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private NodeRef g_tree_last_node()
         {
             if (root == Null)
@@ -731,10 +732,7 @@ namespace TreeLib
                                 }
                                 next = nodes[node].right;
                             }
-                            if (next == Null)
-                            {
-                                break;
-                            }
+                            Debug.Assert(next != Null);
                             node = next;
                         }
                     }
@@ -803,10 +801,7 @@ namespace TreeLib
                                 }
                                 next = nodes[node].right;
                             }
-                            if (next == Null)
-                            {
-                                break;
-                            }
+                            Debug.Assert(next != Null);
                             node = next;
                         }
                     }
@@ -1561,8 +1556,7 @@ uint countNew = checked(this.count + 1);
         [ExcludeFromCodeCoverage]
         object INonInvasiveTreeInspection.GetValue(object node)
         {
-            object value = null;
-            return value;
+            return null;
         }
 
         /// <summary>
@@ -1582,7 +1576,6 @@ uint countNew = checked(this.count + 1);
         /// during unit testing. It is not intended for consumption by users of the library and there is no
         /// guarrantee that it will be supported in future versions.
         /// </summary>
-        [ExcludeFromCodeCoverage]
         void INonInvasiveTreeInspection.Validate()
         {
             if (root != Null)
@@ -1594,18 +1587,19 @@ uint countNew = checked(this.count + 1);
                 {
                     NodeRef node = worklist.Dequeue();
 
-                    if (visited.ContainsKey(node))
-                    {
-                        throw new InvalidOperationException("cycle");
-                    }
+                    Check.Assert(!visited.ContainsKey(node), "cycle");
                     visited.Add(node, false);
 
                     if (nodes[node].left_child)
                     {
+                        /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                        Check.Assert(comparer.Compare(nodes[nodes[node].left].key, nodes[node].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].left);
                     }
                     if (nodes[node].right_child)
                     {
+                        /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                        Check.Assert(comparer.Compare(nodes[node].key, nodes[nodes[node].right].key) < 0, "ordering invariant");
                         worklist.Enqueue(nodes[node].right);
                     }
                 }
@@ -1615,7 +1609,6 @@ uint countNew = checked(this.count + 1);
             ValidateDepthInvariant();
         }
 
-        [ExcludeFromCodeCoverage]
         private void ValidateDepthInvariant()
         {
             const double phi = 1.618033988749894848204;
@@ -1623,13 +1616,9 @@ uint countNew = checked(this.count + 1);
 
             double max = Math.Log((count + 2) * Math.Sqrt(5)) / Math.Log(phi) - 2;
             int depth = root != Null ? MaxDepth(root) : 0;
-            if (depth > max + epsilon)
-            {
-                throw new InvalidOperationException("max depth invariant");
-            }
+            Check.Assert(depth <= max + epsilon, "max depth invariant");
         }
 
-        [ExcludeFromCodeCoverage]
         private int MaxDepth(NodeRef node)
         {
             int ld = nodes[node].left_child ? MaxDepth(nodes[node].left) : 0;
@@ -1637,7 +1626,6 @@ uint countNew = checked(this.count + 1);
             return 1 + Math.Max(ld, rd);
         }
 
-        [ExcludeFromCodeCoverage]
         private void g_tree_node_check(NodeRef node)
         {
             if (node != Null)
@@ -1645,41 +1633,20 @@ uint countNew = checked(this.count + 1);
                 if (nodes[node].left_child)
                 {
                     NodeRef tmp = g_tree_node_previous(node);
-                    if (!(nodes[tmp].right == node))
-                    {
-                        Debug.Assert(false, "program defect");
-                        throw new InvalidOperationException("invariant");
-                    }
+                    Check.Assert(nodes[tmp].right == node, "predecessor invariant");
                 }
 
                 if (nodes[node].right_child)
                 {
                     NodeRef tmp = g_tree_node_next(node);
-                    if (!(nodes[tmp].left == node))
-                    {
-                        Debug.Assert(false, "program defect");
-                        throw new InvalidOperationException("invariant");
-                    }
+                    Check.Assert(nodes[tmp].left == node, "successor invariant");
                 }
 
-                int left_height = 0;
-                int right_height = 0;
-
-                if (nodes[node].left_child)
-                {
-                    left_height = g_tree_node_height(nodes[node].left);
-                }
-                if (nodes[node].right_child)
-                {
-                    right_height = g_tree_node_height(nodes[node].right);
-                }
+                int left_height = g_tree_node_height(nodes[node].left_child ? nodes[node].left : Null);
+                int right_height = g_tree_node_height(nodes[node].right_child ? nodes[node].right : Null);
 
                 int balance = right_height - left_height;
-                if (!(balance == nodes[node].balance))
-                {
-                    Debug.Assert(false, "program defect");
-                    throw new InvalidOperationException("invariant");
-                }
+                Check.Assert(balance == nodes[node].balance, "balance invariant");
 
                 if (nodes[node].left_child)
                 {
@@ -1692,7 +1659,6 @@ uint countNew = checked(this.count + 1);
             }
         }
 
-        [ExcludeFromCodeCoverage]
         private int g_tree_node_height(NodeRef node)
         {
             if (node != Null)
