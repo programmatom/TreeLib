@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>TreeLibInterface</id>
+    <version>1.0.0</version>
+    <title>TreeLibInterface</title>
+    <authors>Thomas R. Lawrence</authors>
+    <owners>Thomas R. Lawrence</owners>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl-3.0.html</licenseUrl>
+    <projectUrl>http://programmatom.github.io/TreeLib/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>TreeLib: Balanced Binary Trees, Rank Augmented provides binary tree collections (AVL, red-black and splay) with optional rank information for fast indexing and sparse indexing applications. This package contains the interface definition assembly.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2016 Thomas R. Lawrence</copyright>
+    <tags>binary search tree bst avl red-black splay rank augmented sparse</tags>
+  </metadata>
+  <files>
+    <file src="bin\Release\TreeLibInterface.dll" target="lib" />
+    <file src="bin\Release\TreeLibInterface.XML" target="lib" />
+  </files>
+</package>
