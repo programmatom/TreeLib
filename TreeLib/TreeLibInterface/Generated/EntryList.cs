@@ -22,6 +22,7 @@
  * 
 */
 using System;
+using System.Collections.Generic;
 
 using TreeLib.Internal;
 
@@ -49,6 +50,42 @@ namespace TreeLib
         public EntryList(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key)
         {
             this.key = key;
+        }
+
+        public override bool Equals(object obj)
+        {
+            EntryList</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/KeyType> other
+                = (EntryList</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/KeyType>)obj;
+
+            int keyOrder = 0;
+            keyOrder = Comparer<KeyType>.Default.Compare(this.key, other.key);
+            if (keyOrder != 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 0;
+            try
+            {
+                // key may be a reference type
+                hashCode = unchecked(hashCode + this.key.GetHashCode());
+            }
+            catch (NullReferenceException)
+            {
+            }
+            return hashCode;
+        }
+
+        public override string ToString()
+        {
+            List<string> fields = new List<string>();
+            fields.Add(Convert.ToString(key));
+            return String.Join(", ", fields.ToArray());
         }
     }
 }

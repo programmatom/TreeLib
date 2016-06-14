@@ -22,6 +22,7 @@
  * 
 */
 using System;
+using System.Collections.Generic;
 
 using TreeLib.Internal;
 
@@ -60,6 +61,58 @@ namespace TreeLib
         {
             this.key = key;
             this.value = value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            EntryMap</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ KeyType, /*[Payload(Payload.Value)]*/ ValueType> other
+                = (EntryMap</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ KeyType, /*[Payload(Payload.Value)]*/ ValueType>)obj;
+
+            int keyOrder = 0;
+            keyOrder = Comparer<KeyType>.Default.Compare(this.key, other.key);
+            if (keyOrder != 0)
+            {
+                return false;
+            }
+
+            int valueOrder = 0;
+            valueOrder = Comparer<ValueType>.Default.Compare(this.value, other.value);
+            if (valueOrder != 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 0;
+            try
+            {
+                // key may be a reference type
+                hashCode = unchecked(hashCode + this.key.GetHashCode());
+            }
+            catch (NullReferenceException)
+            {
+            }
+            try
+            {
+                // value may be a reference type
+                hashCode = unchecked(hashCode + this.value.GetHashCode());
+            }
+            catch (NullReferenceException)
+            {
+            }
+            return hashCode;
+        }
+
+        public override string ToString()
+        {
+            List<string> fields = new List<string>();
+            fields.Add(Convert.ToString(key));
+            fields.Add(Convert.ToString(value));
+            return String.Join(", ", fields.ToArray());
         }
     }
 }

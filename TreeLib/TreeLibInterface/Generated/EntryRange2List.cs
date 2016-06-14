@@ -22,6 +22,7 @@
  * 
 */
 using System;
+using System.Collections.Generic;
 
 using TreeLib.Internal;
 
@@ -93,6 +94,62 @@ namespace TreeLib
             this.xLength = xLength;
             this.yStart = yStart;
             this.yLength = yLength;
+        }
+
+        public override bool Equals(object obj)
+        {
+            EntryRange2List other
+                = (EntryRange2List)obj;
+
+            bool xStartEqual = true;
+            xStartEqual = this.xStart == other.xStart;
+            if (!xStartEqual)
+            {
+                return false;
+            }
+
+            bool xLengthEqual = true;
+            xLengthEqual = this.xLength == other.xLength;
+            if (!xLengthEqual)
+            {
+                return false;
+            }
+
+            bool yStartEqual = true;
+            yStartEqual = this.yStart == other.yStart;
+            if (!yStartEqual)
+            {
+                return false;
+            }
+
+            bool yLengthEqual = true;
+            yLengthEqual = this.yLength == other.yLength;
+            if (!yLengthEqual)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 0;
+            hashCode = unchecked(hashCode + this.xStart.GetHashCode());
+            hashCode = unchecked(hashCode + this.xLength.GetHashCode());
+            hashCode = unchecked(hashCode + this.yStart.GetHashCode());
+            hashCode = unchecked(hashCode + this.yLength.GetHashCode());
+            return hashCode;
+        }
+
+        public override string ToString()
+        {
+            List<string> fields = new List<string>();
+            fields.Add(Convert.ToString(xStart));
+            fields.Add(Convert.ToString(xLength));
+            fields.Add(Convert.ToString(yStart));
+            fields.Add(Convert.ToString(yLength));
+            return String.Join(", ", fields.ToArray());
         }
     }
 }

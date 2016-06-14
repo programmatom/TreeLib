@@ -22,6 +22,7 @@
  * 
 */
 using System;
+using System.Collections.Generic;
 
 using TreeLib.Internal;
 
@@ -79,6 +80,60 @@ namespace TreeLib
             this.value = value;
             this.xStart = xStart;
             this.xLength = xLength;
+        }
+
+        public override bool Equals(object obj)
+        {
+            EntryRangeMapLong</*[Payload(Payload.Value)]*/ValueType> other
+                = (EntryRangeMapLong</*[Payload(Payload.Value)]*/ValueType>)obj;
+
+            int valueOrder = 0;
+            valueOrder = Comparer<ValueType>.Default.Compare(this.value, other.value);
+            if (valueOrder != 0)
+            {
+                return false;
+            }
+
+            bool xStartEqual = true;
+            xStartEqual = this.xStart == other.xStart;
+            if (!xStartEqual)
+            {
+                return false;
+            }
+
+            bool xLengthEqual = true;
+            xLengthEqual = this.xLength == other.xLength;
+            if (!xLengthEqual)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 0;
+            try
+            {
+                // value may be a reference type
+                hashCode = unchecked(hashCode + this.value.GetHashCode());
+            }
+            catch (NullReferenceException)
+            {
+            }
+            hashCode = unchecked(hashCode + this.xStart.GetHashCode());
+            hashCode = unchecked(hashCode + this.xLength.GetHashCode());
+            return hashCode;
+        }
+
+        public override string ToString()
+        {
+            List<string> fields = new List<string>();
+            fields.Add(Convert.ToString(value));
+            fields.Add(Convert.ToString(xStart));
+            fields.Add(Convert.ToString(xLength));
+            return String.Join(", ", fields.ToArray());
         }
     }
 }
