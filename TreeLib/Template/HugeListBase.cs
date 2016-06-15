@@ -702,7 +702,7 @@ namespace TreeLib
             {
                 throw new ArgumentOutOfRangeException();
             }
-            if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)this.Count)) // TODO: verify bbuild toool converts (uint) cast to (ulong)
+            if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)this.Count))
             {
                 throw new ArgumentException();
             }

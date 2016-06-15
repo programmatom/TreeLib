@@ -166,7 +166,7 @@ namespace TreeLib
         private readonly AllocationMode allocationMode;
         private NodeRef freelist;
 
-        private const int MAX_GTREE_HEIGHT = 40; // TODO: not valid for greater than 32 bits addressing
+        private const int MAX_GTREE_HEIGHT = 92;
         private readonly WeakReference<NodeRef[]> path = new WeakReference<NodeRef[]>(null);
 
         // Array
