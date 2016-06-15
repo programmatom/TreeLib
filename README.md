@@ -94,7 +94,7 @@ After changes are made, rerun the performance test:
 
 The tolerances are fairly strict at this time, so there may be spurious failures reported. However, deviations should be investigated before being dismissed.
 
-Also, I have run into problems on CPUs with thermal management, especially Intel Turbo-Boost. This is particularly an issue if testing on a laptop. Specifically, the warmer the weather, the slower the processor runs under load, which skews the performance results. Try to run the baseline and the actual test at similar ambient temperatures!
+Also, I have run into problems on CPUs with thermal management, especially AMD's Turbo Core but also Intel's Turbo-Boost. I'd recommend disabling this feature during performance test runs. There can also be an issue with ambient temperature, where the warmer the weather, the slower the processor runs under load. This is particularly an issue if testing on a laptop. Try to run the baseline and the actual test at similar ambient temperatures.
 
 Code Coverage
 ===

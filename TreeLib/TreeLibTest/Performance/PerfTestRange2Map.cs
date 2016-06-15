@@ -20,6 +20,7 @@
  * 
 */
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using TreeLib;
@@ -33,6 +34,42 @@ namespace TreeLibTest
         private readonly int count;
 
         private IRange2Map<int> tree;
+        private Preparation preparation;
+
+        private const int Seed = 1;
+
+
+        private class Preparation
+        {
+            public readonly STuple<int, int, int>[] inserts;
+            public readonly int[] deletes;
+
+            public Preparation(int count)
+            {
+                // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
+                // sequence of keys (with uniform distribution). The perf test will use the same set of keys and therefore the
+                // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
+                ParkAndMiller random = new ParkAndMiller(Seed);
+
+                inserts = new STuple<int, int, int>[count];
+                int[] xExtents = new int[count];
+                deletes = new int[count];
+                int xExtent = 0;
+                for (int i = 0; i < count; i++)
+                {
+                    int xStart = random.Next() % Math.Max(1, xExtent);
+                    int xLength = random.Next() % 100 + 1;
+                    int yLength = random.Next() % 100 + 1;
+                    inserts[i] = new STuple<int, int, int>(xStart, xLength, yLength);
+                    xExtent += xLength;
+                    xExtents[i] = xExtent;
+                }
+                for (int i = 0; i < count; i++)
+                {
+                    deletes[i] = random.Next() % xExtents[count - 1 - i];
+                }
+            }
+        }
 
 
         public delegate IRange2Map<int> Range2MapFactory(int capacity);
@@ -46,19 +83,19 @@ namespace TreeLibTest
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public override void UntimedPrepare()
         {
+            if (preparation == null)
+            {
+                preparation = new Preparation(count);
+            }
+
             tree = makeTree(count);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public override void TimedIteration()
         {
-            // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
-            // sequence of keys (with uniform distribution). The perf test will use the same set of keys and therefore the
-            // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
-            ParkAndMiller random = new ParkAndMiller(Seed);
-
-            LoadTree(tree, count, ref random);
-            UnloadTree(tree, null, ref random);
+            LoadTree(tree, count, preparation.inserts);
+            UnloadTree(tree, null, preparation.deletes);
 
             if (tree.Count != 0)
             {
@@ -67,28 +104,25 @@ namespace TreeLibTest
         }
 
 
-        private const int Seed = 1;
-
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private static void LoadTree(IRange2Map<int> tree, int count, ref ParkAndMiller random)
+        private static void LoadTree(IRange2Map<int> tree, int count, STuple<int, int, int>[] inserts)
         {
             for (int i = 0; i < count; i++)
             {
-                int start = random.Next() % Math.Max(1, tree.GetExtent(Side.X));
+                STuple<int, int, int> insert = inserts[i];
+                int start = insert.Item1;
                 tree.NearestLessOrEqual(start, Side.X, out start);
-                int xLength = random.Next() % 100 + 1;
-                int yLength = random.Next() % 100 + 1;
-                tree.Insert(start, Side.X, xLength, yLength, random.Next());
+                tree.Insert(start, Side.X, insert.Item2, insert.Item3, insert.Item1);
             }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private static void UnloadTree(IRange2Map<int> tree, int? count, ref ParkAndMiller random)
+        private static void UnloadTree(IRange2Map<int> tree, int? count, int[] deletes)
         {
             int i = 0;
             while ((count.HasValue && (i < count.Value)) || (!count.HasValue && (tree.Count != 0)))
             {
-                int start = random.Next() % tree.GetExtent(Side.X);
+                int start = deletes[i];
                 tree.NearestLessOrEqual(start, Side.X, out start);
                 tree.Delete(start, Side.X);
                 i++;

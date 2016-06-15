@@ -34,16 +34,17 @@ namespace TreeLibTest
 {
     public static class PerfTestDriver
     {
-        public const int SmallNumTrials = 121;
-        public const int MediumNumTrials = 41;
-        public const int LargeNumTrials = 21;
-        //public const int SmallNumTrials = 51;
-        //public const int MediumNumTrials = 21;
-        //public const int LargeNumTrials = 11;
+        //public const int SmallNumTrials = 121;
+        //public const int MediumNumTrials = 41;
+        //public const int LargeNumTrials = 21;
+        public const int SmallNumTrials = 51;
+        public const int MediumNumTrials = 21;
+        public const int LargeNumTrials = 11;
 
         private const int SmallCount = 10000;
         private const int MediumCount = 100000;
         private const int LargeCount = 1000000;
+
 
         //
         // Templates
@@ -109,30 +110,30 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IOrderedMap<int, int>>[] MapCreators = new CreateTreeInfo<IOrderedMap<int, int>>[]
         {
             new CreateTreeInfo<IOrderedMap<int, int>>(
-                "SplayTreeMap",
-                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            new CreateTreeInfo<IOrderedMap<int, int>>(
-                "SplayTreeArrayMap",
-                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeMap",
+                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            //new CreateTreeInfo<IOrderedMap<int, int>>(
+            //    "AVLTreeArrayMap",
+            //    new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IOrderedMap<int, int>>(
                 "RedBlackTreeMap",
                 new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new RedBlackTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            new CreateTreeInfo<IOrderedMap<int, int>>(
-                "RedBlackTreeArrayMap",
-                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            //new CreateTreeInfo<IOrderedMap<int, int>>(
+            //    "RedBlackTreeArrayMap",
+            //    new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IOrderedMap<int, int>>(
-                "AVLTreeMap",
-                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            new CreateTreeInfo<IOrderedMap<int, int>>(
-                "AVLTreeArrayMap",
-                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeMap",
+                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            //new CreateTreeInfo<IOrderedMap<int, int>>(
+            //    "SplayTreeArrayMap",
+            //    new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IOrderedMap<int, int>>[] MapTests = new TestInfo<IOrderedMap<int, int>>[]
         {
-            new TestInfo<IOrderedMap<int, int>>("Small", 3, SmallCount, SmallNumTrials, MakePerfTestMapMaker),
+            new TestInfo<IOrderedMap<int, int>>("Small", 15, SmallCount, SmallNumTrials, MakePerfTestMapMaker),
             new TestInfo<IOrderedMap<int, int>>("Med", 1, MediumCount, MediumNumTrials, MakePerfTestMapMaker),
             new TestInfo<IOrderedMap<int, int>>("Large", 1, LargeCount, LargeNumTrials, MakePerfTestMapMaker),
         };
@@ -150,25 +151,25 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IRankMap<int, int>>[] RankMapCreators = new CreateTreeInfo<IRankMap<int, int>>[]
         {
             new CreateTreeInfo<IRankMap<int,int>>(
-                "SplayTreeRankMap",
-                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            new CreateTreeInfo<IRankMap<int,int>>(
-                "SplayTreeArrayRankMap",
-                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeRankMap",
+                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            //new CreateTreeInfo<IRankMap<int,int>>(
+            //    "AVLTreeArrayRankMap",
+            //    new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRankMap<int,int>>(
                 "RedBlackTreeRankMap",
                 new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new RedBlackTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            new CreateTreeInfo<IRankMap<int,int>>(
-                "RedBlackTreeArrayRankMap",
-                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            //new CreateTreeInfo<IRankMap<int,int>>(
+            //    "RedBlackTreeArrayRankMap",
+            //    new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRankMap<int,int>>(
-                "AVLTreeRankMap",
-                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            new CreateTreeInfo<IRankMap<int,int>>(
-                "AVLTreeArrayRankMap",
-                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeRankMap",
+                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            //new CreateTreeInfo<IRankMap<int,int>>(
+            //    "SplayTreeArrayRankMap",
+            //    new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IRankMap<int, int>>[] RankMapTests = new TestInfo<IRankMap<int, int>>[]
@@ -191,11 +192,11 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IMultiRankMap<int, int>>[] MultiRankMapCreators = new CreateTreeInfo<IMultiRankMap<int, int>>[]
         {
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "SplayTreeMultiRankMap",
-                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new SplayTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeMultiRankMap",
+                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new AVLTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "SplayTreeArrayMultiRankMap",
-                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeArrayMultiRankMap",
+                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IMultiRankMap<int, int>>(
                 "RedBlackTreeMultiRankMap",
@@ -205,11 +206,11 @@ namespace TreeLibTest
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "AVLTreeMultiRankMap",
-                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new AVLTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeMultiRankMap",
+                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new SplayTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "AVLTreeArrayMultiRankMap",
-                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeArrayMultiRankMap",
+                new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IMultiRankMap<int, int>>[] MultiRankMapTests = new TestInfo<IMultiRankMap<int, int>>[]
@@ -232,11 +233,11 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IRangeMap<int>>[] RangeMapCreators = new CreateTreeInfo<IRangeMap<int>>[]
         {
             new CreateTreeInfo<IRangeMap<int>>(
-                "SplayTreeRangeMap",
-                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new SplayTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeRangeMap",
+                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new AVLTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRangeMap<int>>(
-                "SplayTreeArrayRangeMap",
-                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new SplayTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeArrayRangeMap",
+                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new AVLTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRangeMap<int>>(
                 "RedBlackTreeRangeMap",
@@ -246,11 +247,11 @@ namespace TreeLibTest
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new RedBlackTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRangeMap<int>>(
-                "AVLTreeRangeMap",
-                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new AVLTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeRangeMap",
+                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new SplayTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRangeMap<int>>(
-                "AVLTreeArrayRangeMap",
-                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new AVLTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeArrayRangeMap",
+                new TreeFactory<IRangeMap<int>>(delegate (int count) { return new SplayTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IRangeMap<int>>[] RangeMapTests = new TestInfo<IRangeMap<int>>[]
@@ -273,11 +274,11 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IRange2Map<int>>[] Range2MapCreators = new CreateTreeInfo<IRange2Map<int>>[]
         {
             new CreateTreeInfo<IRange2Map<int>>(
-                "SplayTreeRange2Map",
-                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeRange2Map",
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRange2Map<int>>(
-                "SplayTreeArrayRange2Map",
-                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "AVLTreeArrayRange2Map",
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRange2Map<int>>(
                 "RedBlackTreeRange2Map",
@@ -287,11 +288,11 @@ namespace TreeLibTest
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new RedBlackTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRange2Map<int>>(
-                "AVLTreeRange2Map",
-                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeRange2Map",
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRange2Map<int>>(
-                "AVLTreeArrayRange2Map",
-                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+                "SplayTreeArrayRange2Map",
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IRange2Map<int>>[] Range2MapTests = new TestInfo<IRange2Map<int>>[]
@@ -472,7 +473,7 @@ namespace TreeLibTest
             IEnumerable<TestInfo<ITree>> tests,
             ref bool success,
             bool resetBaseline,
-            List<Measurement.Result> baselineResults,
+            Dictionary<string, Measurement.Result> baselineResults,
             List<Measurement.Result> results)
         {
             foreach (CreateTreeInfo<ITree> createTreeInfo in creators)
@@ -486,8 +487,8 @@ namespace TreeLibTest
                         test.multiplier);
                     if (run == Kind.Real)
                     {
-                        Measurement.Result baseline = baselineResults.Find(
-                            delegate (Measurement.Result candidate) { return String.Equals(candidate.label, result.label); });
+                        Measurement.Result baseline;
+                        baselineResults.TryGetValue(result.label, out baseline);
                         bool success1 = DisplayResult(result, baseline) && ((baseline != null) || resetBaseline);
                         success = success1 && (success || resetBaseline);
                     }
@@ -518,18 +519,17 @@ namespace TreeLibTest
                     Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
                     Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
 
-                    string baselinePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TreeLibTest", "perfmark.txt");
+                    string baselinePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TreeLibTest", "perfbaseline.txt");
 
                     List<Measurement.Result> results = new List<Measurement.Result>();
 
                     success = true;
 
-                    List<Measurement.Result> baselineResults = new List<Measurement.Result>();
+                    Dictionary<string, Measurement.Result> baselineResults = new Dictionary<string, Measurement.Result>();
                     if (!resetBaseline)
                     {
                         if (File.Exists(baselinePath))
                         {
-                            baselineResults = new List<Measurement.Result>();
                             using (TextReader reader = new StreamReader(baselinePath))
                             {
                                 string line = reader.ReadLine();
@@ -539,7 +539,8 @@ namespace TreeLibTest
                                     reader.ReadLine(); // headers
                                     while ((line = reader.ReadLine()) != null)
                                     {
-                                        baselineResults.Add(Measurement.Result.FromString(line));
+                                        Measurement.Result result = Measurement.Result.FromString(line);
+                                        baselineResults.Add(result.label, result);
                                     }
                                 }
                                 else
@@ -556,6 +557,8 @@ namespace TreeLibTest
 
                     foreach (Kind phase in new Kind[] { Kind.Dry, Kind.Real })
                     {
+                        results.Clear();
+
                         TextWriter savedOutput = null;
                         if (phase == Kind.Dry)
                         {
@@ -565,8 +568,8 @@ namespace TreeLibTest
 
                         RunTestCategory(phase, MapCreators, MapTests, ref success, resetBaseline, baselineResults, results);
                         RunTestCategory(phase, RankMapCreators, RankMapTests, ref success, resetBaseline, baselineResults, results);
-                        RunTestCategory(phase, MultiRankMapCreators, MultiRankMapTests, ref success, resetBaseline, baselineResults, results);
-                        RunTestCategory(phase, RangeMapCreators, RangeMapTests, ref success, resetBaseline, baselineResults, results);
+                        // redundant: RunTestCategory(phase, MultiRankMapCreators, MultiRankMapTests, ref success, resetBaseline, baselineResults, results);
+                        // redundant: RunTestCategory(phase, RangeMapCreators, RangeMapTests, ref success, resetBaseline, baselineResults, results);
                         RunTestCategory(phase, Range2MapCreators, Range2MapTests, ref success, resetBaseline, baselineResults, results);
 
                         if (savedOutput != null)

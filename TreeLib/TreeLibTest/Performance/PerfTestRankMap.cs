@@ -20,6 +20,7 @@
  * 
 */
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using TreeLib;
@@ -33,7 +34,36 @@ namespace TreeLibTest
         private readonly int count;
 
         private IRankMap<int, int> tree;
+        private Preparation preparation;
 
+        private const int Seed = 1;
+
+
+        private class Preparation
+        {
+            public readonly int[] keys;
+            public readonly int[] indices;
+
+            public Preparation(int count)
+            {
+                // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
+                // sequence of keys (with uniform distribution). The perf test will use the same set of keys and therefore the
+                // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
+                ParkAndMiller random = new ParkAndMiller(Seed);
+
+                keys = new int[count];
+                indices = new int[count];
+                AVLTreeList<int> used = new AVLTreeList<int>((uint)count, AllocationMode.DynamicRetainFreelist);
+                for (int i = 0; i < count; i++)
+                {
+                    do
+                    {
+                        keys[i] = random.Next();
+                    } while (used.ContainsKey(keys[i]));
+                    indices[i] = random.Next() % (i - count);
+                }
+            }
+        }
 
         public delegate IRankMap<int, int> RankMapFactory(int capacity);
 
@@ -46,19 +76,19 @@ namespace TreeLibTest
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public override void UntimedPrepare()
         {
+            if (preparation == null)
+            {
+                preparation = new Preparation(count);
+            }
+
             tree = makeTree(count);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public override void TimedIteration()
         {
-            // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
-            // sequence of keys (with uniform distribution). The perf test will use the same set of keys and therefore the
-            // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
-            ParkAndMiller random = new ParkAndMiller(Seed);
-
-            LoadTree(tree, count, ref random);
-            UnloadTree(tree, null, ref random);
+            LoadTree(tree, count, preparation.keys);
+            UnloadTree(tree, null, preparation.indices);
 
             if (tree.Count != 0)
             {
@@ -67,14 +97,12 @@ namespace TreeLibTest
         }
 
 
-        private const int Seed = 1;
-
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private static void LoadTree(IRankMap<int, int> tree, int count, ref ParkAndMiller random)
+        private static void LoadTree(IRankMap<int, int> tree, int count, int[] keys)
         {
             for (int i = 0; i < count; i++)
             {
-                int key = random.Next();
+                int key = keys[i];
                 tree.TryAdd(key, key);
             }
             if (tree.Count < .999 * count)
@@ -84,12 +112,12 @@ namespace TreeLibTest
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        private static void UnloadTree(IRankMap<int, int> tree, int? count, ref ParkAndMiller random)
+        private static void UnloadTree(IRankMap<int, int> tree, int? count, int[] indices)
         {
             int i = 0;
             while ((count.HasValue && (i < count.Value)) || (!count.HasValue && (tree.Count != 0)))
             {
-                int rank = random.Next() % unchecked((int)tree.Count);
+                int rank = indices[i];
                 int key = tree.GetKeyByRank(rank);
                 tree.Remove(key);
                 i++;
