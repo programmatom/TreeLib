@@ -48,7 +48,7 @@ namespace TreeLib
 
 
         [Payload(Payload.Value)]
-        private ValueType value;
+        private readonly ValueType value;
 
         /// <summary>
         /// Returns the value associated with a key-value pair mapping.
