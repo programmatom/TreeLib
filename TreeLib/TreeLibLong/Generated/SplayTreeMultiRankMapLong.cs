@@ -160,8 +160,6 @@ namespace TreeLib
         private readonly Node Nil = Node.CreateNil();
         [Storage(Storage.Object)]
         private readonly Node N = new Node();
-        //[Storage(Storage.Array)]
-        //private Node2[] nodes2;
 
         //
         // State for both array & object form
