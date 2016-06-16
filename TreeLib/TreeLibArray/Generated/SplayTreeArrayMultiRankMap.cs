@@ -77,16 +77,6 @@ namespace TreeLib
         // Array form data structure
         //
 
-        //[Storage(Storage.Array)]
-        //[StructLayout(LayoutKind.Auto)] // defaults to LayoutKind.Sequential; use .Auto to allow framework to pack key & value optimally
-        //private struct Node2
-        //{
-        //    [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        //    public KeyType key;
-        //    [Payload(Payload.Value)]
-        //    public ValueType value;
-        //}
-
         [Storage(Storage.Array)]
         [StructLayout(LayoutKind.Auto)] // defaults to LayoutKind.Sequential; use .Auto to allow framework to pack key & value optimally
         private struct Node
@@ -197,8 +187,6 @@ namespace TreeLib
 
         [Storage(Storage.Array)]
         private Node[] nodes;
-        //[Storage(Storage.Array)]
-        //private Node2[] nodes2;
 
         //
         // State for both array & object form
@@ -249,9 +237,6 @@ namespace TreeLib
             this.allocationMode = allocationMode;
             this.freelist = Nil;
             EnsureFree(capacity);
-            //#if DEBUG
-            //            nodes[N].scratch_debug = true;
-            //#endif
         }
 
         /// <summary>
@@ -1719,22 +1704,6 @@ uint countNew = checked(this.count + 1);
                 uint newLength = checked(capacity + ReservedElements);
 
                 Array.Resize(ref nodes, unchecked((int)newLength));
-
-                // TODO:was attempt at reducing array bounds checks
-                //Node[] nodesNew = nodes;
-                //Node2[] nodes2New = nodes2;
-                //Array.Resize(ref nodesNew, unchecked((int)newCount));
-                //bool key = false, payload = false;
-                ///*[Payload(Payload.Value)]*/
-                //payload = true;
-                ///*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                //key = true;
-                //if (payload || key)
-                //{
-                //    Array.Resize(ref nodes2New, unchecked((int)newCount));
-                //}
-                //nodes = nodesNew;
-                //nodes2 = nodes2New;
 
                 for (long i = (long)newLength - 1; i >= oldLength; i--)
                 {

@@ -116,6 +116,15 @@ namespace TreeLib
         private Node freelist;
 
         private const int MAX_GTREE_HEIGHT = 92;
+        // 'path' is a stack of nodes used during insert and delete in lieu of recursion.
+        // Rationale for weak reference:
+        // - After insertion or deletion, 'path' will contain references to nodes, which may cause the garbage collector to keep
+        //   alive arbitrary amounts of memory referenced from key/value field of now-dead nodes. It has been observed that zeroing
+        //   the used parts of 'path' causes a 15% loss of performance. By making this weak, 'path' itself will be collected on
+        //   the next GC, so the references do not cause memory leaks, and we can avoid having to zero 'path' after an operation.
+        // - If the tree is infrequently used, the 'path' array does not need to be kept around. This is especially useful if there
+        //   are many trees, as each tree instance has it's own instance of 'path'.
+        // - It is very cheap to recreate and consumes only approx. 750 bytes.
         private readonly WeakReference<Node[]> path = new WeakReference<Node[]>(null);
 
 
@@ -2182,8 +2191,7 @@ out xPosition,
                         Node predecessor = node.left;
                         successor = node.right;
                         Node successorParent = node;
-                        int old_idx = idx + 1;
-                        idx++;
+                        int old_idx = ++idx;
                         xPositionSuccessor = xPositionNode + successor.xOffset;
 
                         /* path[idx] == parent */

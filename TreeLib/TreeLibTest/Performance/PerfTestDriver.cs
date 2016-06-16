@@ -387,7 +387,7 @@ namespace TreeLibTest
             ConsoleColor oldForeground = Console.ForegroundColor;
             ConsoleColor oldBackground = Console.BackgroundColor;
 
-            Console.Write(" {0,-37} - ", label);
+            Console.Write(" {0,-37} {1} ", label, !String.IsNullOrEmpty(label) ? "-" : " ");
 
             char c = SetTheme(medianTheme);
             Console.Write("{2,3} {0,6:F3}{1}", median, c, medianLabel);
@@ -444,7 +444,7 @@ namespace TreeLibTest
                 baseline != null ? Theme.Normal : Theme.Red,
                 baseline != null ? String.Empty : "NB");
 
-            if ((!accepted || improved) && (baseline != null))
+            if (baseline != null)
             {
                 DisplayLine(
                     String.Empty,
