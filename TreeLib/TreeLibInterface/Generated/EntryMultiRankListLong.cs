@@ -49,7 +49,7 @@ namespace TreeLib
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
-        private long xStart;
+        private readonly long xStart;
 
         /// <summary>
         /// Returns the rank of an item in a rank collection, or the start of a range in a range collection
@@ -62,7 +62,7 @@ namespace TreeLib
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
-        private long xLength;
+        private readonly long xLength;
 
         /// <summary>
         /// Returns the count of an item in a multi-rank collection, or the length of a range in a range collection
