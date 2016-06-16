@@ -40,6 +40,7 @@ TreeLib is made available under the GNU Lesser General Public License (LGPL). It
 
 How do I use it?
 ---
+###Packaging
 TreeLib comes as five assemblies:
 Assembly | Description
 ---|---
@@ -50,6 +51,10 @@ Assembly | Description
 *TreeLibUtil.dll*|Contains the `HugeList<>` implementation.
 
 Of these, *TreeLibInterface.dll* is the only one that is required. Of the other assemblies, you can include only the ones containing implementations you need.
+
+###Referencing in Code
+
+The namespace for TreeLib is `TreeLib` for all assemblies, so add a `using Treelib;` (C#) statement to the source files that need to access the interfaces or classes.
 
 What's in those assemblies? How do I actually create a tree?
 ---
@@ -163,5 +168,3 @@ TreeLibUtil contains `HugeList<>`, an analog of the .NET Framework's `List<>` cl
 [5]: https://stackedit.io/editor
 
 Last updated June 2016. Authored using [stackedit][5].
-
-
