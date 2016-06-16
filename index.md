@@ -104,14 +104,18 @@ AllocationMode|Description
 `DynamicDiscard`|Nodes are allocated on the heap and discarded upon removal. At that point, the garbage collector can immediately reclaim the memory used by the node.
 `DynamicRetainFreelist`|Nodes are allocated from a free list, if not empty, with fallback to the heap. Upon removal, the node object is returned to the free list.
 `PreallocatedFixed`|The specified number of nodes is allocated upon tree creation and added to the free list. Allocations obtain node objects from the free list and deletions return the objects to the free list. If the free list is exhausted (i.e. the tree already contains the specified number of elements and an insert is attempted) an `OutOfMemory` exception is thrown.
-The mode typically used in most scenarios would be `DynamicDiscard`. The other modes are provided to allow control over timing of allocations. `PreallocatedFixed` is used when the size of the tree is known to be limited and allocations during use of the tree cannot be tolerated, such as in the case where the application must meet hard deadlines (e.g. real-time scenarios). This is also the only storage mode permitted for the `Array` storage mechanism. `DynamicRetainFreelist` can be used make a certain number of allocations occur up front during tree construction while permitting the tree to grow beyond the initial capacity.
+The mode typically used in most scenarios would be `DynamicDiscard`. The other modes are provided to allow control over timing of allocations. `DynamicRetainFreelist` can be used make a certain number of allocations occur up front during tree construction while permitting the tree to grow beyond the initial capacity.  `PreallocatedFixed` is used when the size of the tree is known to be limited and allocations during use of the tree cannot be tolerated, such as in the case where the application must meet hard deadlines (e.g. real-time scenarios).
+>**Regarding allocation modes with the `Array` storage mechanism:**
+>The `DynamicDiscard` mode does not make sense for trees stored in an internal array. Instead, only the latter two modes apply. `DynamicRetainFreelist` permits the internal array length to be increased as needed, while `PreallocatedFixed` does not.
 
 The following constructors are available:
-- **`new Tree<...>`** - create an empty tree using `DynamicDiscard` as it's allocation mode (except for the `Array` storage mechanism, which must use `PreallocatedFixed`). Keys are compared using the default comparer (`Comparer<TKey>.Default`).
+
+- **`new Tree<...>`** - create an empty tree using `DynamicDiscard` as it's allocation mode (except for the `Array` storage mechanism, which defaults to `DynamicRetainFreelist`). Keys are compared using the default comparer (`Comparer<TKey>.Default`).
 - **`new Tree<TKey, ...>(IComparer<TKey> comparer)`** - create an empty tree using the specified comparer for keys and the default allocation mode described above.
 - **`new Tree<>(uint capacity, AllocationMode allocationMode)`** - create an empty tree, preallocating `capacity` nodes using the specified allocation mode and with the default comparer.
 - **`new Tree<TKey, ...>(IComparer<TKey> comparer, uint capacity, AllocationMode allocationMode)`** - create an empty tree, preallocating `capacity` nodes using the specified allocation mode and with the specified comparer.
-- **`new Tree<>(Tree<> original)`** - create a tree that is an exact clone of the provided tree.
+- **`new Tree<>(Tree<> original)`** - create a tree that is an exact clone of the provided tree, including allocation mode, capacity and comparer.
+
 Any type parameters for key or value (if applicable) are specified in the type name of the construction. Constructors taking an explicit comparer are not available for the range collections, as they do not have keys.
 
 How do the interfaces work?

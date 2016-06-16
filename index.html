@@ -19,7 +19,11 @@
 <li><a href="#where-did-the-implementations-come-from">Where did the implementations come from?</a></li>
 <li><a href="#how-do-i-get-treelib">How do I get TreeLib?</a></li>
 <li><a href="#how-is-it-licensed">How is it licensed?</a></li>
-<li><a href="#how-do-i-use-it">How do I use it?</a></li>
+<li><a href="#how-do-i-use-it">How do I use it?</a><ul>
+<li><a href="#packaging">Packaging</a></li>
+<li><a href="#referencing-in-code">Referencing in Code</a></li>
+</ul>
+</li>
 <li><a href="#whats-in-those-assemblies-how-do-i-actually-create-a-tree">What’s in those assemblies? How do I actually create a tree?</a><ul>
 <li><a href="#base-tree-type">Base Tree Type</a></li>
 <li><a href="#storage-mechanism">Storage Mechanism</a></li>
@@ -152,6 +156,8 @@
 <h3 id="referencing-in-code">Referencing in Code</h3>
 
 <p>The namespace for TreeLib is <code>TreeLib</code> for all assemblies, so add a <code>using Treelib;</code> (C#) statement to the source files that need to access the interfaces or classes.</p>
+
+
 
 <h2 id="whats-in-those-assemblies-how-do-i-actually-create-a-tree">What’s in those assemblies? How do I actually create a tree?</h2>
 
@@ -318,17 +324,24 @@
 </tbody></table>
 
 
-<p>The mode typically used in most scenarios would be <code>DynamicDiscard</code>. The other modes are provided to allow control over timing of allocations. <code>PreallocatedFixed</code> is used when the size of the tree is known to be limited and allocations during use of the tree cannot be tolerated, such as in the case where the application must meet hard deadlines (e.g. real-time scenarios). This is also the only storage mode permitted for the <code>Array</code> storage mechanism. <code>DynamicRetainFreelist</code> can be used make a certain number of allocations occur up front during tree construction while permitting the tree to grow beyond the initial capacity.</p>
+<p>The mode typically used in most scenarios would be <code>DynamicDiscard</code>. The other modes are provided to allow control over timing of allocations. <code>DynamicRetainFreelist</code> can be used make a certain number of allocations occur up front during tree construction while permitting the tree to grow beyond the initial capacity.  <code>PreallocatedFixed</code> is used when the size of the tree is known to be limited and allocations during use of the tree cannot be tolerated, such as in the case where the application must meet hard deadlines (e.g. real-time scenarios).</p>
 
-<p>The following constructors are available: <br>
-- <strong><code>new Tree&lt;...&gt;</code></strong> - create an empty tree using <code>DynamicDiscard</code> as it’s allocation mode (except for the <code>Array</code> storage mechanism, which must use <code>PreallocatedFixed</code>). Keys are compared using the default comparer (<code>Comparer&lt;TKey&gt;.Default</code>). <br>
-- <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer)</code></strong> - create an empty tree using the specified comparer for keys and the default allocation mode described above. <br>
-- <strong><code>new Tree&lt;&gt;(uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the default comparer. <br>
-- <strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer, uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the specified comparer. <br>
-- <strong><code>new Tree&lt;&gt;(Tree&lt;&gt; original)</code></strong> - create a tree that is an exact clone of the provided tree. <br>
-Any type parameters for key or value (if applicable) are specified in the type name of the construction. Constructors taking an explicit comparer are not available for the range collections, as they do not have keys.</p>
+<blockquote>
+  <p><strong>Regarding allocation modes with the <code>Array</code> storage mechanism:</strong> <br>
+  The <code>DynamicDiscard</code> mode does not make sense for trees stored in an internal array. Instead, only the latter two modes apply. <code>DynamicRetainFreelist</code> permits the internal array length to be increased as needed, while <code>PreallocatedFixed</code> does not.</p>
+</blockquote>
 
+<p>The following constructors are available:</p>
 
+<ul>
+<li><strong><code>new Tree&lt;...&gt;</code></strong> - create an empty tree using <code>DynamicDiscard</code> as it’s allocation mode (except for the <code>Array</code> storage mechanism, which defaults to <code>DynamicRetainFreelist</code>). Keys are compared using the default comparer (<code>Comparer&lt;TKey&gt;.Default</code>).</li>
+<li><strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer)</code></strong> - create an empty tree using the specified comparer for keys and the default allocation mode described above.</li>
+<li><strong><code>new Tree&lt;&gt;(uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the default comparer.</li>
+<li><strong><code>new Tree&lt;TKey, ...&gt;(IComparer&lt;TKey&gt; comparer, uint capacity, AllocationMode allocationMode)</code></strong> - create an empty tree, preallocating <code>capacity</code> nodes using the specified allocation mode and with the specified comparer.</li>
+<li><strong><code>new Tree&lt;&gt;(Tree&lt;&gt; original)</code></strong> - create a tree that is an exact clone of the provided tree, including allocation mode, capacity and comparer.</li>
+</ul>
+
+<p>Any type parameters for key or value (if applicable) are specified in the type name of the construction. Constructors taking an explicit comparer are not available for the range collections, as they do not have keys.</p>
 
 <h2 id="how-do-the-interfaces-work">How do the interfaces work?</h2>
 
