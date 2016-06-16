@@ -107,40 +107,6 @@ namespace TreeLibTest
             return Math.Min(c, extent);
         }
 
-#if false // TODO: remove
-        private static int InsertRangeCountGenerator(Random rnd, int extent)
-        {
-            switch (rnd.Next() % 3)
-            {
-                default:
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                case 0:
-                    return rnd.Next() % 20 + 1;
-                case 1:
-                    return (int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1);
-                case 2:
-                    return (int)(Math.Pow(rnd.NextDouble(), 5) * 5000);
-            }
-        }
-
-        private static int RemoveRangeCountGenerator(Random rnd, int extent)
-        {
-            switch (rnd.Next() % 3)
-            {
-                default:
-                    Debug.Assert(false);
-                    throw new InvalidOperationException();
-                case 0:
-                    return Math.Min(rnd.Next() % 20 + 1, extent);
-                case 1:
-                    return Math.Min((int)(Math.Pow(rnd.NextDouble(), 5) * 100 + 1), extent);
-                case 2:
-                    return (int)(Math.Pow(rnd.NextDouble(), 5) * extent);
-            }
-        }
-#endif
-
 
         private int index;
 
