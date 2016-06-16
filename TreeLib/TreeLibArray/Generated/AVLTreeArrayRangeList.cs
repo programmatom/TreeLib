@@ -421,9 +421,12 @@ out xLength)
                     xAdjust = adjust;
                 }
 
-                this.xExtent = checked(this.xExtent + xAdjust);
+                // throw OverflowException before modifying anything
+                /*[Widen]*/
+                int newXExtent = checked(this.xExtent + xAdjust);
+                this.xExtent = newXExtent;
 
-                ShiftRightOfPath(start + 1, xAdjust);
+                ShiftRightOfPath(unchecked(start + 1), xAdjust);
 
                 return true;
             }
@@ -462,9 +465,12 @@ out xLength)
                 /*[Widen]*/
                 int xAdjust = xLength != 0 ? xLength - xLengthOld : 0;
 
-                this.xExtent = checked(this.xExtent + xAdjust);
+                // throw OverflowException before modifying anything
+                /*[Widen]*/
+                int newXExtent = checked(this.xExtent + xAdjust);
+                this.xExtent = newXExtent;
 
-                ShiftRightOfPath(start + 1, xAdjust);
+                ShiftRightOfPath(unchecked(start + 1), xAdjust);
 
                 return true;
             }
@@ -804,6 +810,64 @@ out length))
                 Debug.Assert(g);
             }
             return f;
+        }
+
+        
+        /// <summary>
+        /// Adjust the length of the range starting at 'start' by adding 'adjust' to the current length of the
+        /// range. If the length would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
+        /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
+        [Feature(Feature.Range, Feature.Range2)]
+        public void AdjustLength([Widen] int startIndex,[Widen] int xAdjust)
+        {
+            unchecked
+            {
+                NodeRef node;
+                /*[Widen]*/
+                int xPosition;
+                /*[Widen]*/
+                int xLength = 1;
+                if (!FindPosition(startIndex, out node, out xPosition, out xLength)
+                    || (startIndex != (xPosition)))
+                {
+                    throw new ArgumentException();
+                }
+
+                /*[Widen]*/
+                int newXLength = checked(xLength + xAdjust);
+
+                if (newXLength < 0)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+
+                if (newXLength != 0)
+                {
+                    // adjust
+
+                    // throw OverflowException before modifying anything
+                    /*[Widen]*/
+                    int newXExtent = checked(this.xExtent + xAdjust);
+                    this.xExtent = newXExtent;
+
+                    ShiftRightOfPath(startIndex + 1, xAdjust);
+                }
+                else
+                {
+                    // delete
+
+                    Debug.Assert(xAdjust < 0);
+                    Debug.Assert(newXLength == 0);
+
+                    g_tree_remove_internal(
+                        startIndex);
+                }
+            }
         }
 
         // Array allocation

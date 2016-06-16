@@ -3059,6 +3059,17 @@ namespace TreeLib
         void Set(int start, int length, ValueType value);
 
         /// <summary>
+        /// Adjust the length of the range starting at 'start' by adding 'adjust' to the current length of the
+        /// range. If the length would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
+        /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
+        void AdjustLength(int start, int adjust);
+
+        /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
         /// </summary>
         /// <returns>the extent of the ranges</returns>
@@ -3279,6 +3290,17 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index</exception>
         /// <exception cref="OverflowException">the sum of lengths would have exceeded Int32.MaxValue</exception>
         void SetLength(int start, int length);
+
+        /// <summary>
+        /// Adjust the length of the range starting at 'start' by adding 'adjust' to the current length of the
+        /// range. If the length would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
+        /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
+        void AdjustLength(int start, int adjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -3572,6 +3594,17 @@ namespace TreeLib
         void Set(long start, long length, ValueType value);
 
         /// <summary>
+        /// Adjust the length of the range starting at 'start' by adding 'adjust' to the current length of the
+        /// range. If the length would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
+        /// <exception cref="OverflowException">the extent would become larger than Int64.MaxValue</exception>
+        void AdjustLength(long start, long adjust);
+
+        /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
         /// </summary>
         /// <returns>the extent of the ranges</returns>
@@ -3792,6 +3825,17 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index</exception>
         /// <exception cref="OverflowException">the sum of lengths would have exceeded Int64.MaxValue</exception>
         void SetLength(long start, long length);
+
+        /// <summary>
+        /// Adjust the length of the range starting at 'start' by adding 'adjust' to the current length of the
+        /// range. If the length would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
+        /// <exception cref="OverflowException">the extent would become larger than Int64.MaxValue</exception>
+        void AdjustLength(long start, long adjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -4143,6 +4187,20 @@ namespace TreeLib
         void Set(int start, Side side, int xLength, int yLength, ValueType value);
 
         /// <summary>
+        /// Adjust the lengths of the range starting at 'start' by adding xAdjust and yAdjust to the current lengths of the
+        /// range. If the lengths would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="side">which side (X or Y) the start parameter applies</param>
+        /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
+        /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
+        /// one side would become 0 while the length on the other side would not be 0.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
+        /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
+        void AdjustLength(int start, Side side, int xAdjust, int yAdjust);
+
+        /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
         /// </summary>
         /// <param name="side">the side (X or Y) to which the query applies.</param>
@@ -4448,6 +4506,20 @@ namespace TreeLib
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
         void Set(int start, Side side, int xLength, int yLength);
+
+        /// <summary>
+        /// Adjust the lengths of the range starting at 'start' by adding xAdjust and yAdjust to the current lengths of the
+        /// range. If the lengths would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="side">which side (X or Y) the start parameter applies</param>
+        /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
+        /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
+        /// one side would become 0 while the length on the other side would not be 0.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
+        /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
+        void AdjustLength(int start, Side side, int xAdjust, int yAdjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -4796,6 +4868,20 @@ namespace TreeLib
         void Set(long start, Side side, long xLength, long yLength, ValueType value);
 
         /// <summary>
+        /// Adjust the lengths of the range starting at 'start' by adding xAdjust and yAdjust to the current lengths of the
+        /// range. If the lengths would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="side">which side (X or Y) the start parameter applies</param>
+        /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
+        /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
+        /// one side would become 0 while the length on the other side would not be 0.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
+        /// <exception cref="OverflowException">the X or Y extent would become larger than Int64.MaxValue</exception>
+        void AdjustLength(long start, Side side, long xAdjust, long yAdjust);
+
+        /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
         /// </summary>
         /// <param name="side">the side (X or Y) to which the query applies.</param>
@@ -5101,6 +5187,20 @@ namespace TreeLib
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
         void Set(long start, Side side, long xLength, long yLength);
+
+        /// <summary>
+        /// Adjust the lengths of the range starting at 'start' by adding xAdjust and yAdjust to the current lengths of the
+        /// range. If the lengths would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="side">which side (X or Y) the start parameter applies</param>
+        /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
+        /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
+        /// one side would become 0 while the length on the other side would not be 0.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
+        /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
+        void AdjustLength(long start, Side side, long xAdjust, long yAdjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.

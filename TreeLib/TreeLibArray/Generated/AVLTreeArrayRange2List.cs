@@ -468,10 +468,15 @@ out xLength,
                     yAdjust = adjust;
                 }
 
-                this.xExtent = checked(this.xExtent + xAdjust);
-                this.yExtent = checked(this.yExtent + yAdjust);
+                // throw OverflowException before modifying anything
+                /*[Widen]*/
+                int newXExtent = checked(this.xExtent + xAdjust);
+                /*[Widen]*/
+                int newYExtent = checked(this.yExtent + yAdjust);
+                this.xExtent = newXExtent;
+                this.yExtent = newYExtent;
 
-                ShiftRightOfPath(start + 1, /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+                ShiftRightOfPath(unchecked(start + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
 
                 return true;
             }
@@ -548,10 +553,15 @@ out xLength,
                 /*[Widen]*/
                 int yAdjust = yLength != 0 ? yLength - yLengthOld : 0;
 
-                this.xExtent = checked(this.xExtent + xAdjust);
-                this.yExtent = checked(this.yExtent + yAdjust);
+                // throw OverflowException before modifying anything
+                /*[Widen]*/
+                int newXExtent = checked(this.xExtent + xAdjust);
+                /*[Widen]*/
+                int newYExtent = checked(this.yExtent + yAdjust);
+                this.xExtent = newXExtent;
+                this.yExtent = newYExtent;
 
-                ShiftRightOfPath(start + 1, /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+                ShiftRightOfPath(unchecked(start + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
 
                 return true;
             }
@@ -957,6 +967,82 @@ out length))
                 Debug.Assert(g);
             }
             return f;
+        }
+
+        
+        /// <summary>
+        /// Adjust the lengths of the range starting at 'start' by adding xAdjust and yAdjust to the current lengths of the
+        /// range. If the lengths would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="side">which side (X or Y) the start parameter applies</param>
+        /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
+        /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
+        /// one side would become 0 while the length on the other side would not be 0.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
+        /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
+        [Feature(Feature.Range, Feature.Range2)]
+        public void AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust,[Feature(Feature.Range2)] [Widen] int yAdjust)
+        {
+            unchecked
+            {
+                NodeRef node;
+                /*[Widen]*/
+                int xPosition, yPosition;
+                /*[Widen]*/
+                int xLength = 1, yLength = 1;
+                if (!FindPosition(startIndex, /*[Feature(Feature.Range2)]*/side, out node, out xPosition, /*[Feature(Feature.Range2)]*/out yPosition, out xLength, /*[Feature(Feature.Range2)]*/out yLength)
+                    || (startIndex != (side == Side.X ? xPosition : yPosition)))
+                {
+                    throw new ArgumentException();
+                }
+
+                /*[Widen]*/
+                int newXLength = checked(xLength + xAdjust);
+                /*[Widen]*/
+                int newYLength = 0;
+                newYLength = checked(yLength + yAdjust);
+
+                if ((newXLength < 0) || (newYLength < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                /*[Feature(Feature.Range2)]*/
+                if ((newXLength == 0) != (newYLength == 0))
+                {
+                    throw new ArgumentException();
+                }
+
+                if (newXLength != 0)
+                {
+                    // adjust
+
+                    // throw OverflowException before modifying anything
+                    /*[Widen]*/
+                    int newXExtent = checked(this.xExtent + xAdjust);
+                    /*[Widen]*/
+                    int newYExtent = checked(this.yExtent + yAdjust);
+                    this.xExtent = newXExtent;
+                    this.yExtent = newYExtent;
+
+                    ShiftRightOfPath(startIndex + 1, /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+                }
+                else
+                {
+                    // delete
+
+                    Debug.Assert(xAdjust < 0);
+                    Debug.Assert(yAdjust < 0);
+                    Debug.Assert(newXLength == 0);
+                    /*[Feature(Feature.Range2)]*/
+                    Debug.Assert(newYLength == 0);
+
+                    g_tree_remove_internal(
+                        startIndex,
+                        /*[Feature(Feature.Range2)]*/side);
+                }
+            }
         }
 
         // Array allocation

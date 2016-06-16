@@ -1168,6 +1168,119 @@ namespace TreeLib
             return NearestGreater(position, /*[Feature(Feature.Range2)]*/side, out nearestStart, false/*orEqual*/);
         }
 
+        
+        /// <summary>
+        /// Adjust the lengths of the range starting at 'start' by adding xAdjust and yAdjust to the current lengths of the
+        /// range. If the lengths would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="side">which side (X or Y) the start parameter applies</param>
+        /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
+        /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
+        /// one side would become 0 while the length on the other side would not be 0.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
+        /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
+        [Feature(Feature.Range, Feature.Range2)]
+        public void AdjustLength([Widen] long startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xAdjust,[Feature(Feature.Range2)] [Widen] long yAdjust)
+        {
+            unchecked
+            {
+                Splay2(ref root, startIndex, /*[Feature(Feature.Range2)]*/side);
+                if ((root == Nil) || (startIndex != (side == Side.X ? root.xOffset : root.yOffset)))
+                {
+                    throw new ArgumentException();
+                }
+
+                Splay2(ref root.right, 0, /*[Feature(Feature.Range2)]*/side);
+                Debug.Assert((root.right == Nil) || (root.right.left == Nil));
+
+                /*[Widen]*/
+                long oldXLength = root.right != Nil ? root.right.xOffset : this.xExtent - root.xOffset ;
+                /*[Widen]*/
+                long oldYLength = root.right != Nil ? root.right.yOffset : this.yExtent - root.yOffset ;
+
+                /*[Widen]*/
+                long newXLength = checked(oldXLength + xAdjust) ;
+                /*[Widen]*/
+                long newYLength = 0 ;
+                newYLength = checked(oldYLength + yAdjust);
+
+                if ((newXLength < 0) || (newYLength < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                /*[Feature(Feature.Range2)]*/
+                if ((newXLength == 0) != (newYLength == 0))
+                {
+                    throw new ArgumentException();
+                }
+
+                if (newXLength != 0)
+                {
+                    // adjust
+
+                    // throw OverflowException before modifying anything
+                    /*[Widen]*/
+                    long newXExtent = checked(this.xExtent + xAdjust) ;
+                    /*[Widen]*/
+                    long newYExtent = checked(this.yExtent + yAdjust) ;
+                    this.xExtent = newXExtent;
+                    this.yExtent = newYExtent;
+
+                    if (root.right != Nil)
+                    {
+                        root.right.xOffset += xAdjust;
+                        root.right.yOffset += yAdjust;
+                    }
+                }
+                else
+                {
+                    // delete
+
+                    Debug.Assert(xAdjust < 0);
+                    Debug.Assert(yAdjust < 0);
+                    Debug.Assert(newXLength == 0);
+                    /*[Feature(Feature.Range2)]*/
+                    Debug.Assert(newYLength == 0);
+
+                    Node dead, x;
+
+                    dead = root;
+                    if (root.left == Nil)
+                    {
+                        x = root.right;
+                        if (x != Nil)
+                        {
+                            Debug.Assert(root.xOffset == 0);
+                            x.xOffset = 0; //nodes[x].xOffset = nodes[root].xOffset;
+                            x.yOffset = 0; //nodes[x].yOffset = nodes[root].yOffset;
+                        }
+                    }
+                    else
+                    {
+                        x = root.left;
+                        x.xOffset += root.xOffset;
+                        x.yOffset += root.yOffset;
+                        Splay2(ref x, startIndex, /*[Feature(Feature.Range2)]*/side);
+                        Debug.Assert(x.right == Nil);
+                        if (root.right != Nil)
+                        {
+                            root.right.xOffset += root.xOffset - x.xOffset + xAdjust;
+                            root.right.yOffset += root.yOffset - x.yOffset + yAdjust;
+                        }
+                        x.right = root.right;
+                    }
+                    root = x;
+
+                    this.count = unchecked(this.count - 1);
+                    this.xExtent = unchecked(this.xExtent - oldXLength);
+                    this.yExtent = unchecked(this.yExtent - oldYLength);
+                    Free(dead);
+                }
+            }
+        }
+
 
         //
         // Internals

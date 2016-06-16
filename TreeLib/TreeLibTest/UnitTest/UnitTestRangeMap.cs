@@ -397,6 +397,13 @@ namespace TreeLibTest
             TestTrue(label + " TrySet.1gii", delegate () { return tree.Count == 0; });
 
             tree = makeTree();
+            TestTrue(label + " AdjustLength.1a", delegate () { return tree.TryInsert(0, 2, "foo"); });
+            TestThrow(label + " AdjustLength.1b", typeof(ArgumentException), delegate () { tree.AdjustLength(1, 1); });
+            TestThrow(label + " AdjustLength.1c", typeof(ArgumentException), delegate () { tree.AdjustLength(-1, 1); });
+            TestThrow(label + " AdjustLength.1d", typeof(ArgumentOutOfRangeException), delegate () { tree.AdjustLength(0, -3); });
+            TestTrue(label + " AdjustLength.1h", delegate () { return (tree.Count == 1) && (tree.GetExtent() == 2); });
+
+            tree = makeTree();
             TestTrue(label + " GetExtent degenerate", delegate () { return tree.GetExtent() == 0; });
             TestFalse(label + " NearestLessOrEqual degenerate 1", delegate () { int nearest; return tree.NearestLessOrEqual(1, out nearest); });
             TestTrue(label + " NearestLessOrEqual degenerate 2", delegate () { int nearest; tree.NearestLessOrEqual(1, out nearest); return nearest == 0; });
@@ -668,6 +675,29 @@ namespace TreeLibTest
                 BuildTree(tree, sequence);
                 TestNoThrow(label + " Set.X.2", delegate () { tree.Set(ranges[i].x.start, 0, "foo"); });
                 ValidateRangesEqual(reference2, tree);
+
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                {
+                    int extent = 0;
+                    uint count = 0;
+                    TestNoThrow("AdjustLength.1", delegate () { extent = tree.GetExtent(); count = tree.Count; });
+                    TestNoThrow("prereq", delegate () { reference2.AdjustLength(ranges[i].x.start, 10); });
+                    TestNoThrow("AdjustLength.2", delegate () { tree.AdjustLength(ranges[i].x.start, 10); });
+                    TestTrue("AdjustLength.3", delegate () { return (count == tree.Count) && (extent + 10 == tree.GetExtent()); });
+                    ValidateRangesEqual(reference2, tree);
+                    //
+                    TestNoThrow("prereq", delegate () { reference2.AdjustLength(ranges[i].x.start, -10); });
+                    TestNoThrow("AdjustLength.4", delegate () { tree.AdjustLength(ranges[i].x.start, -10); });
+                    TestTrue("AdjustLength.5", delegate () { return (count == tree.Count) && (extent == tree.GetExtent()); });
+                    ValidateRangesEqual(reference2, tree);
+                    //
+                    TestNoThrow("prereq", delegate () { reference2.AdjustLength(ranges[i].x.start, -ranges[i].x.length); });
+                    TestNoThrow("AdjustLength.6", delegate () { tree.AdjustLength(ranges[i].x.start, -ranges[i].x.length); });
+                    TestTrue("AdjustLength.7", delegate () { return (count - 1 == tree.Count) && (extent - ranges[i].x.length == tree.GetExtent()); });
+                    ValidateRangesEqual(reference2, tree);
+                }
 
 
                 tree = makeTree();

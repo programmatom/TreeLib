@@ -1021,6 +1021,95 @@ uint countNew = checked(this.count + 1);
             return NearestGreater(position, out nearestStart, false/*orEqual*/);
         }
 
+        
+        /// <summary>
+        /// Adjust the length of the range starting at 'start' by adding 'adjust' to the current length of the
+        /// range. If the length would become 0, the range is removed.
+        /// </summary>
+        /// <param name="start">the start index of the range to adjust</param>
+        /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
+        /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
+        [Feature(Feature.Range, Feature.Range2)]
+        public void AdjustLength([Widen] int startIndex,[Widen] int xAdjust)
+        {
+            unchecked
+            {
+                Splay2(ref root, startIndex);
+                if ((root == Nil) || (startIndex != (nodes[root].xOffset)))
+                {
+                    throw new ArgumentException();
+                }
+
+                Splay2(ref nodes[root].right, 0);
+                Debug.Assert((nodes[root].right == Nil) || (nodes[nodes[root].right].left == Nil));
+
+                /*[Widen]*/
+                int oldXLength = nodes[root].right != Nil ? nodes[nodes[root].right].xOffset : this.xExtent - nodes[root].xOffset;
+
+                /*[Widen]*/
+                int newXLength = checked(oldXLength + xAdjust);
+
+                if (newXLength < 0)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+
+                if (newXLength != 0)
+                {
+                    // adjust
+
+                    // throw OverflowException before modifying anything
+                    /*[Widen]*/
+                    int newXExtent = checked(this.xExtent + xAdjust);
+                    this.xExtent = newXExtent;
+
+                    if (nodes[root].right != Nil)
+                    {
+                        nodes[nodes[root].right].xOffset += xAdjust;
+                    }
+                }
+                else
+                {
+                    // delete
+
+                    Debug.Assert(xAdjust < 0);
+                    Debug.Assert(newXLength == 0);
+
+                    NodeRef dead, x;
+
+                    dead = root;
+                    if (nodes[root].left == Nil)
+                    {
+                        x = nodes[root].right;
+                        if (x != Nil)
+                        {
+                            Debug.Assert(nodes[root].xOffset == 0);
+                            nodes[x].xOffset = 0; //nodes[x].xOffset = nodes[root].xOffset;
+                        }
+                    }
+                    else
+                    {
+                        x = nodes[root].left;
+                        nodes[x].xOffset += nodes[root].xOffset;
+                        Splay2(ref x, startIndex);
+                        Debug.Assert(nodes[x].right == Nil);
+                        if (nodes[root].right != Nil)
+                        {
+                            nodes[nodes[root].right].xOffset += nodes[root].xOffset - nodes[x].xOffset + xAdjust;
+                        }
+                        nodes[x].right = nodes[root].right;
+                    }
+                    root = x;
+
+                    this.count = unchecked(this.count - 1);
+                    this.xExtent = unchecked(this.xExtent - oldXLength);
+                    Free(dead);
+                }
+            }
+        }
+
         // Array allocation
 
         [Storage(Storage.Array)]
