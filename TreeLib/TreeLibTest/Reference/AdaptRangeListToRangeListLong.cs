@@ -110,6 +110,11 @@ namespace TreeLibTest
             inner.SetLength(IntLong.ToLong(start), IntLong.ToLong(length));
         }
 
+        public void AdjustLength(int start, int adjust)
+        {
+            inner.AdjustLength(IntLong.ToLong(start), IntLong.ToLong(adjust));
+        }
+
         public int GetExtent()
         {
             return IntLong.ToInt(inner.GetExtent());

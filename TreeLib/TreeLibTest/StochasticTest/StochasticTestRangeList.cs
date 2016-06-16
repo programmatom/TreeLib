@@ -687,6 +687,92 @@ namespace TreeLibTest
             }
         }
 
+        private void AdjustLengthAction(IRangeList[] collections, Random rnd, ref string description)
+        {
+            Range2MapEntry[] items = ((INonInvasiveRange2MapInspection)collections[0]).GetRanges();
+            int extent = items.Length != 0 ? Length(items[items.Length - 1]) + Length(items[items.Length - 1]) : 0;
+
+            int start, xLength;
+            bool valid;
+            if ((rnd.Next() % 2 == 0) && (extent != 0))
+            {
+                // existing start
+                valid = true;
+                int index = rnd.Next() % items.Length;
+                start = items[index].x.start;
+                bool remove = rnd.Next() % 4 == 0;
+                if (!remove)
+                {
+                    xLength = rnd.Next(-items[index].x.length + 1, 100);
+                }
+                else
+                {
+                    xLength = -items[index].x.length;
+                }
+                if (rnd.Next() % 5 == 0)
+                {
+                    valid = false;
+                    switch (rnd.Next() % 3)
+                    {
+                        default:
+                            Debug.Assert(false);
+                            throw new InvalidOperationException();
+                        case 0:
+                            start = rnd.Next(-2, 0/*exclusive*/);
+                            break;
+                        case 1:
+                            start = rnd.Next(extent, extent + 2/*exclusive*/);
+                            break;
+                        case 2:
+                            xLength = Int32.MaxValue;
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                // non-existing start
+                valid = false;
+                do
+                {
+                    start = rnd.Next(Math.Min(-1, -extent / 40), extent + Math.Max(1 + 1/*upper bound is exclusive*/, extent / 40));
+                }
+                while (((start == 0) && (extent != 0))
+                    || (start == extent)
+                    || (Array.FindIndex(items, delegate (Range2MapEntry candidate) { return Start(candidate) == start; }) >= 0));
+                xLength = rnd.Next(-10, 100);
+            }
+            description = String.Format("AdjustLength {0} ({1}, {2})", valid ? "valid" : "invalid", start, xLength);
+
+            for (int i = 0; i < collections.Length; i++)
+            {
+                try
+                {
+                    collections[i].AdjustLength(start, xLength);
+                    if (!valid)
+                    {
+                        Fault(collections[i], description + " - invalid input but did not throw exception");
+                    }
+                }
+                catch (ArgumentException) when (!valid)
+                {
+                    // expected
+                }
+                catch (ArgumentOutOfRangeException) when (!valid)
+                {
+                    // expected
+                }
+                catch (OverflowException) when (!valid)
+                {
+                    // expected
+                }
+                catch (Exception exception)
+                {
+                    Fault(collections[i], description + " - threw exception", exception);
+                }
+            }
+        }
+
         private void GetExtentAction(IRangeList[] collections, Random rnd, ref string description)
         {
             Range2MapEntry[] items = ((INonInvasiveRange2MapInspection)collections[0]).GetRanges();
@@ -889,6 +975,8 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(300     , 300      ), DeleteAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(100     , 100      ), GetLengthAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(100     , 100      ), SetLengthAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(150     , 150      ), AdjustLengthAction),
 
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(100     , 100      ), GetExtentAction),
 

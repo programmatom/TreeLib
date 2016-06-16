@@ -1671,6 +1671,71 @@ namespace TreeLib
             return f;
         }
 
+        [Feature(Feature.Range, Feature.Range2)]
+        public void AdjustLength([Widen] int startIndex, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int xAdjust, [Feature(Feature.Range2)] [Widen] int yAdjust)
+        {
+            unchecked
+            {
+                NodeRef node;
+                /*[Widen]*/
+                int xPosition, yPosition;
+                /*[Widen]*/
+                int xLength = 1, yLength = 1;
+                if (!FindPosition(startIndex, /*[Feature(Feature.Range2)]*/side, out node, out xPosition, /*[Feature(Feature.Range2)]*/out yPosition, out xLength, /*[Feature(Feature.Range2)]*/out yLength)
+                    || (startIndex != (side == Side.X ? xPosition : yPosition)))
+                {
+                    throw new ArgumentException();
+                }
+
+                /*[Widen]*/
+                int newXLength = checked(xLength + xAdjust);
+                /*[Widen]*/
+                int newYLength = 0;
+                newYLength = checked(yLength + yAdjust);
+
+                if ((newXLength < 0) || (newYLength < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                /*[Feature(Feature.Range2)]*/
+                if ((newXLength == 0) != (newYLength == 0))
+                {
+                    throw new ArgumentException();
+                }
+
+                if (newXLength != 0)
+                {
+                    // adjust
+
+                    // throw OverflowException before modifying anything
+                    /*[Widen]*/
+                    int newXExtent = checked(this.xExtent + xAdjust);
+                    /*[Widen]*/
+                    int newYExtent = checked(this.yExtent + yAdjust);
+                    this.xExtent = newXExtent;
+                    this.yExtent = newYExtent;
+
+                    ShiftRightOfPath(unchecked(startIndex + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+                }
+                else
+                {
+                    // delete
+
+                    Debug.Assert(xAdjust < 0);
+                    Debug.Assert(yAdjust < 0);
+                    Debug.Assert(newXLength == 0);
+                    /*[Feature(Feature.Range2)]*/
+                    Debug.Assert(newYLength == 0);
+
+                    DeleteInternal(
+                        /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/default(KeyType),
+                        startIndex,
+                        /*[Feature(Feature.Range2)]*/side,
+                        /*[Feature()]*/CompareKeyMode.Position);
+                }
+            }
+        }
+
 
         //
         // IRankMap, IMultiRankMap, IRankList, IMultiRankList

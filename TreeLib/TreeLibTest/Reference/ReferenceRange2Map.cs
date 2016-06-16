@@ -286,6 +286,45 @@ namespace TreeLibTest
             }
         }
 
+        public void AdjustLength(int start, Side side, int xAdjust, int yAdjust)
+        {
+            int index, xStart, yStart;
+            if (!Find(start, side, out index, out xStart, out yStart, false/*includeEnd*/))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            Tuple<int, int, ValueType> old = items[index];
+
+            int newXLength = checked(old.Item1 + xAdjust);
+            int newYLength = checked(old.Item2 + yAdjust);
+
+            if ((newXLength < 0) || (newYLength < 0))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            if ((newXLength == 0) != (newYLength == 0))
+            {
+                throw new ArgumentException();
+            }
+
+            if (newXLength != 0)
+            {
+                // throw OverflowException before modifying anything
+                int overflowX = checked(GetExtent(Side.X) + xAdjust);
+                int overflowY = checked(GetExtent(Side.Y) + yAdjust);
+
+                items[index] = new Tuple<int, int, ValueType>(
+                    newXLength,
+                    newYLength,
+                    old.Item3);
+            }
+            else
+            {
+                items.RemoveAt(index);
+            }
+        }
+
         public int GetExtent(Side side)
         {
             int index, xStart, yStart;
