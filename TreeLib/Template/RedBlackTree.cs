@@ -1290,10 +1290,15 @@ namespace TreeLib
                     yAdjust = adjust;
                 }
 
-                this.xExtent = checked(this.xExtent + xAdjust);
-                this.yExtent = checked(this.yExtent + yAdjust);
+                // throw OverflowException before modifying anything
+                /*[Widen]*/
+                int newXExtent = checked(this.xExtent + xAdjust);
+                /*[Widen]*/
+                int newYExtent = checked(this.yExtent + yAdjust);
+                this.xExtent = newXExtent;
+                this.yExtent = newYExtent;
 
-                ShiftRightOfPath(start + 1, /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+                ShiftRightOfPath(unchecked(start + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
 
                 return true;
             }
@@ -1386,10 +1391,15 @@ namespace TreeLib
                 /*[Widen]*/
                 int yAdjust = yLength != 0 ? yLength - yLengthOld : 0;
 
-                this.xExtent = checked(this.xExtent + xAdjust);
-                this.yExtent = checked(this.yExtent + yAdjust);
+                // throw OverflowException before modifying anything
+                /*[Widen]*/
+                int newXExtent = checked(this.xExtent + xAdjust);
+                /*[Widen]*/
+                int newYExtent = checked(this.yExtent + yAdjust);
+                this.xExtent = newXExtent;
+                this.yExtent = newYExtent;
 
-                ShiftRightOfPath(start + 1, /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+                ShiftRightOfPath(unchecked(start + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
 
                 nodes[node].value = value;
 
