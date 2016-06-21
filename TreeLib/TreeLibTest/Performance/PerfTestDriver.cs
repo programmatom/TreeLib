@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -45,29 +46,34 @@ namespace TreeLibTest
         private const int MediumCount = 100000;
         private const int LargeCount = 1000000;
 
+        public readonly static string[] CategoryTokens = new string[] { "basic", "enum" };
 
         //
         // Templates
         //
 
-        public struct CreateTreeInfo<ITree>
+        public enum Group { Priority = 0, Full = 1 };
+
+        public class CreateTreeInfo<TreeType>
         {
             public readonly string kind;
-            public readonly TreeFactory<ITree> treeFactory;
+            public readonly Group group;
+            public readonly TreeFactory<TreeType> treeFactory;
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-            public CreateTreeInfo(string kind, TreeFactory<ITree> treeFactory)
+            public CreateTreeInfo(string kind, Group group, TreeFactory<TreeType> treeFactory)
             {
                 this.kind = kind;
+                this.group = group;
                 this.treeFactory = treeFactory;
             }
         }
 
-        public class TreeFactory<ITree>
+        public class TreeFactory<TreeType>
         {
             private readonly MakeTree makeTree;
 
-            public delegate ITree MakeTree(int capacity);
+            public delegate TreeType MakeTree(int capacity);
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
             public TreeFactory(MakeTree makeTree)
@@ -76,26 +82,28 @@ namespace TreeLibTest
             }
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-            public ITree Create(int capacity)
+            public TreeType Create(int capacity)
             {
                 return makeTree(capacity);
             }
         }
 
-        private class TestInfo<ITree>
+        private class TestInfo<TreeType>
         {
             public readonly string label;
+            public readonly Group group;
             public readonly int multiplier;
             public readonly int count;
             public readonly int trials;
             public readonly PerfTestFactoryMaker makePerfTestFactory;
 
-            public delegate Measurement.MakePerfTest PerfTestFactoryMaker(TreeFactory<ITree> treeFactory, int count);
+            public delegate Measurement.MakePerfTest PerfTestFactoryMaker(TreeFactory<TreeType> treeFactory, int count);
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-            public TestInfo(string label, int multiplier, int count, int trials, PerfTestFactoryMaker makePerfTestFactory)
+            public TestInfo(string label, Group group, int multiplier, int count, int trials, PerfTestFactoryMaker makePerfTestFactory)
             {
                 this.label = label;
+                this.group = group;
                 this.multiplier = multiplier;
                 this.count = count;
                 this.trials = trials;
@@ -110,32 +118,32 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IOrderedMap<int, int>>[] MapCreators = new CreateTreeInfo<IOrderedMap<int, int>>[]
         {
             new CreateTreeInfo<IOrderedMap<int, int>>(
-                "AVLTreeMap",
+                "AVLTreeMap", Group.Priority,
                 new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            //new CreateTreeInfo<IOrderedMap<int, int>>(
-            //    "AVLTreeArrayMap",
-            //    new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            new CreateTreeInfo<IOrderedMap<int, int>>(
+                "AVLTreeArrayMap", Group.Full,
+                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new AVLTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IOrderedMap<int, int>>(
-                "RedBlackTreeMap",
+                "RedBlackTreeMap", Group.Priority,
                 new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new RedBlackTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            //new CreateTreeInfo<IOrderedMap<int, int>>(
-            //    "RedBlackTreeArrayMap",
-            //    new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            new CreateTreeInfo<IOrderedMap<int, int>>(
+                "RedBlackTreeArrayMap", Group.Full,
+                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IOrderedMap<int, int>>(
-                "SplayTreeMap",
+                "SplayTreeMap", Group.Priority,
                 new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            //new CreateTreeInfo<IOrderedMap<int, int>>(
-            //    "SplayTreeArrayMap",
-            //    new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            new CreateTreeInfo<IOrderedMap<int, int>>(
+                "SplayTreeArrayMap", Group.Full,
+                new TreeFactory<IOrderedMap<int, int>>(delegate (int count) { return new SplayTreeArrayMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IOrderedMap<int, int>>[] MapTests = new TestInfo<IOrderedMap<int, int>>[]
         {
-            new TestInfo<IOrderedMap<int, int>>("Small", 15, SmallCount, SmallNumTrials, MakePerfTestMapMaker),
-            new TestInfo<IOrderedMap<int, int>>("Med", 1, MediumCount, MediumNumTrials, MakePerfTestMapMaker),
-            new TestInfo<IOrderedMap<int, int>>("Large", 1, LargeCount, LargeNumTrials, MakePerfTestMapMaker),
+            new TestInfo<IOrderedMap<int, int>>("Small", Group.Priority, 15, SmallCount, SmallNumTrials, MakePerfTestMapMaker),
+            new TestInfo<IOrderedMap<int, int>>("Med", Group.Priority, 1, MediumCount, MediumNumTrials, MakePerfTestMapMaker),
+            new TestInfo<IOrderedMap<int, int>>("Large", Group.Priority, 1, LargeCount, LargeNumTrials, MakePerfTestMapMaker),
         };
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -151,32 +159,32 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IRankMap<int, int>>[] RankMapCreators = new CreateTreeInfo<IRankMap<int, int>>[]
         {
             new CreateTreeInfo<IRankMap<int,int>>(
-                "AVLTreeRankMap",
+                "AVLTreeRankMap", Group.Priority,
                 new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            //new CreateTreeInfo<IRankMap<int,int>>(
-            //    "AVLTreeArrayRankMap",
-            //    new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            new CreateTreeInfo<IRankMap<int,int>>(
+                "AVLTreeArrayRankMap", Group.Full,
+                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRankMap<int,int>>(
-                "RedBlackTreeRankMap",
+                "RedBlackTreeRankMap", Group.Priority,
                 new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new RedBlackTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            //new CreateTreeInfo<IRankMap<int,int>>(
-            //    "RedBlackTreeArrayRankMap",
-            //    new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            new CreateTreeInfo<IRankMap<int,int>>(
+                "RedBlackTreeArrayRankMap", Group.Full,
+                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRankMap<int,int>>(
-                "SplayTreeRankMap",
+                "SplayTreeRankMap", Group.Priority,
                 new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
-            //new CreateTreeInfo<IRankMap<int,int>>(
-            //    "SplayTreeArrayRankMap",
-            //    new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
+            new CreateTreeInfo<IRankMap<int,int>>(
+                "SplayTreeArrayRankMap", Group.Full,
+                new TreeFactory<IRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IRankMap<int, int>>[] RankMapTests = new TestInfo<IRankMap<int, int>>[]
         {
-            new TestInfo<IRankMap<int, int>>("Small", 10, SmallCount, SmallNumTrials, MakePerfTestRankMapMaker),
-            new TestInfo<IRankMap<int, int>>("Med", 1, MediumCount, MediumNumTrials, MakePerfTestRankMapMaker),
-            new TestInfo<IRankMap<int, int>>("Large", 1, LargeCount, LargeNumTrials, MakePerfTestRankMapMaker),
+            new TestInfo<IRankMap<int, int>>("Small", Group.Priority, 10, SmallCount, SmallNumTrials, MakePerfTestRankMapMaker),
+            new TestInfo<IRankMap<int, int>>("Med", Group.Priority, 1, MediumCount, MediumNumTrials, MakePerfTestRankMapMaker),
+            new TestInfo<IRankMap<int, int>>("Large", Group.Priority, 1, LargeCount, LargeNumTrials, MakePerfTestRankMapMaker),
         };
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -192,32 +200,32 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IMultiRankMap<int, int>>[] MultiRankMapCreators = new CreateTreeInfo<IMultiRankMap<int, int>>[]
         {
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "AVLTreeMultiRankMap",
+                "AVLTreeMultiRankMap", Group.Full,
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new AVLTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "AVLTreeArrayMultiRankMap",
+                "AVLTreeArrayMultiRankMap", Group.Full,
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new AVLTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "RedBlackTreeMultiRankMap",
+                "RedBlackTreeMultiRankMap", Group.Full,
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new RedBlackTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "RedBlackTreeArrayMultiRankMap",
+                "RedBlackTreeArrayMultiRankMap", Group.Full,
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new RedBlackTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "SplayTreeMultiRankMap",
+                "SplayTreeMultiRankMap", Group.Full,
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new SplayTreeMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IMultiRankMap<int, int>>(
-                "SplayTreeArrayMultiRankMap",
+                "SplayTreeArrayMultiRankMap", Group.Full,
                 new TreeFactory<IMultiRankMap<int, int>>(delegate (int count) { return new SplayTreeArrayMultiRankMap<int, int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IMultiRankMap<int, int>>[] MultiRankMapTests = new TestInfo<IMultiRankMap<int, int>>[]
         {
-            new TestInfo<IMultiRankMap<int, int>>("Small", 10, SmallCount, SmallNumTrials, MakePerfTestMultiRankMapMaker),
-            new TestInfo<IMultiRankMap<int, int>>("Med", 1, MediumCount, MediumNumTrials, MakePerfTestMultiRankMapMaker),
-            new TestInfo<IMultiRankMap<int, int>>("Large", 1, LargeCount, LargeNumTrials, MakePerfTestMultiRankMapMaker),
+            new TestInfo<IMultiRankMap<int, int>>("Small", Group.Priority, 10, SmallCount, SmallNumTrials, MakePerfTestMultiRankMapMaker),
+            new TestInfo<IMultiRankMap<int, int>>("Med", Group.Priority, 1, MediumCount, MediumNumTrials, MakePerfTestMultiRankMapMaker),
+            new TestInfo<IMultiRankMap<int, int>>("Large", Group.Priority, 1, LargeCount, LargeNumTrials, MakePerfTestMultiRankMapMaker),
         };
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -233,32 +241,32 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IRangeMap<int>>[] RangeMapCreators = new CreateTreeInfo<IRangeMap<int>>[]
         {
             new CreateTreeInfo<IRangeMap<int>>(
-                "AVLTreeRangeMap",
+                "AVLTreeRangeMap", Group.Full,
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new AVLTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRangeMap<int>>(
-                "AVLTreeArrayRangeMap",
+                "AVLTreeArrayRangeMap", Group.Full,
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new AVLTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRangeMap<int>>(
-                "RedBlackTreeRangeMap",
+                "RedBlackTreeRangeMap", Group.Full,
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new RedBlackTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRangeMap<int>>(
-                "RedBlackTreeArrayRangeMap",
+                "RedBlackTreeArrayRangeMap", Group.Full,
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new RedBlackTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRangeMap<int>>(
-                "SplayTreeRangeMap",
+                "SplayTreeRangeMap", Group.Full,
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new SplayTreeRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRangeMap<int>>(
-                "SplayTreeArrayRangeMap",
+                "SplayTreeArrayRangeMap", Group.Full,
                 new TreeFactory<IRangeMap<int>>(delegate (int count) { return new SplayTreeArrayRangeMap<int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IRangeMap<int>>[] RangeMapTests = new TestInfo<IRangeMap<int>>[]
         {
-            new TestInfo<IRangeMap<int>>("Small", 10, SmallCount, SmallNumTrials, MakePerfTestRangeMapMaker),
-            new TestInfo<IRangeMap<int>>("Med", 1, MediumCount, MediumNumTrials, MakePerfTestRangeMapMaker),
-            new TestInfo<IRangeMap<int>>("Large", 1, LargeCount, LargeNumTrials, MakePerfTestRangeMapMaker),
+            new TestInfo<IRangeMap<int>>("Small", Group.Priority, 10, SmallCount, SmallNumTrials, MakePerfTestRangeMapMaker),
+            new TestInfo<IRangeMap<int>>("Med", Group.Priority, 1, MediumCount, MediumNumTrials, MakePerfTestRangeMapMaker),
+            new TestInfo<IRangeMap<int>>("Large", Group.Priority, 1, LargeCount, LargeNumTrials, MakePerfTestRangeMapMaker),
         };
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -274,32 +282,32 @@ namespace TreeLibTest
         private readonly static CreateTreeInfo<IRange2Map<int>>[] Range2MapCreators = new CreateTreeInfo<IRange2Map<int>>[]
         {
             new CreateTreeInfo<IRange2Map<int>>(
-                "AVLTreeRange2Map",
+                "AVLTreeRange2Map", Group.Priority,
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRange2Map<int>>(
-                "AVLTreeArrayRange2Map",
+                "AVLTreeArrayRange2Map", Group.Priority,
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRange2Map<int>>(
-                "RedBlackTreeRange2Map",
+                "RedBlackTreeRange2Map", Group.Priority,
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new RedBlackTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRange2Map<int>>(
-                "RedBlackTreeArrayRange2Map",
+                "RedBlackTreeArrayRange2Map", Group.Priority,
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new RedBlackTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
 
             new CreateTreeInfo<IRange2Map<int>>(
-                "SplayTreeRange2Map",
+                "SplayTreeRange2Map", Group.Priority,
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
             new CreateTreeInfo<IRange2Map<int>>(
-                "SplayTreeArrayRange2Map",
+                "SplayTreeArrayRange2Map", Group.Priority,
                 new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeArrayRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
         };
 
         private readonly static TestInfo<IRange2Map<int>>[] Range2MapTests = new TestInfo<IRange2Map<int>>[]
         {
-            new TestInfo<IRange2Map<int>>("Small", 10, SmallCount, SmallNumTrials, MakePerfTestRange2MapMaker),
-            new TestInfo<IRange2Map<int>>("Med", 1, MediumCount, MediumNumTrials, MakePerfTestRange2MapMaker),
-            new TestInfo<IRange2Map<int>>("Large", 1, LargeCount, LargeNumTrials, MakePerfTestRange2MapMaker),
+            new TestInfo<IRange2Map<int>>("Small", Group.Priority, 10, SmallCount, SmallNumTrials, MakePerfTestRange2MapMaker),
+            new TestInfo<IRange2Map<int>>("Med", Group.Priority, 1, MediumCount, MediumNumTrials, MakePerfTestRange2MapMaker),
+            new TestInfo<IRange2Map<int>>("Large", Group.Priority, 1, LargeCount, LargeNumTrials, MakePerfTestRange2MapMaker),
         };
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
@@ -307,6 +315,151 @@ namespace TreeLibTest
         {
             return delegate () { return new PerfTestRange2Map(delegate (int _count) { return treeFactory.Create(_count); }, count); };
         }
+
+
+        // 
+        // IEnumerable
+        //
+
+        private readonly static CreateTreeInfo<IOrderedMap<int, int>>[] MapEnumerationCreators = MapCreators;
+
+        private readonly static CreateTreeInfo<IRange2Map<int>>[] Range2MapEnumerationCreators = new CreateTreeInfo<IRange2Map<int>>[]
+        {
+            new CreateTreeInfo<IRange2Map<int>>(
+                "AVLTreeRange2Map", Group.Priority,
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new AVLTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+
+            new CreateTreeInfo<IRange2Map<int>>(
+                "RedBlackTreeRange2Map", Group.Priority,
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new RedBlackTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+
+            new CreateTreeInfo<IRange2Map<int>>(
+                "SplayTreeRange2Map", Group.Priority,
+                new TreeFactory<IRange2Map<int>>(delegate (int count) { return new SplayTreeRange2Map<int>((uint)count, AllocationMode.PreallocatedFixed); })),
+        };
+
+        private enum EnumKind { Fast, Robust };
+
+        private readonly static TrialInfo[] EnumerationTestTrialInfos = new TrialInfo[]
+        {
+            new TrialInfo("SmFaFw", Group.Priority, 150, SmallCount, SmallNumTrials, EnumKind.Fast, true/*forward*/),
+            new TrialInfo("SmFaRv", Group.Full, 150, SmallCount, SmallNumTrials, EnumKind.Fast, false/*forward*/),
+
+            new TrialInfo("SmRoFw", Group.Priority, 50, SmallCount, SmallNumTrials, EnumKind.Robust, true/*forward*/),
+            new TrialInfo("SmRoRv", Group.Full, 50, SmallCount, SmallNumTrials, EnumKind.Robust, false/*forward*/),
+
+            //
+
+            new TrialInfo("MeFaFw", Group.Priority, 10, MediumCount, MediumNumTrials, EnumKind.Fast, true/*forward*/),
+            new TrialInfo("MeFaRv", Group.Full, 10, MediumCount, MediumNumTrials, EnumKind.Fast, false/*forward*/),
+
+            new TrialInfo("MeRoFw", Group.Priority, 5, MediumCount, MediumNumTrials, EnumKind.Robust, true/*forward*/),
+            new TrialInfo("MeRoRv", Group.Full, 5, MediumCount, MediumNumTrials, EnumKind.Robust, false/*forward*/),
+
+            //
+
+            new TrialInfo("LgFaFw", Group.Full, 1, LargeCount, LargeNumTrials, EnumKind.Fast, true/*forward*/),
+            new TrialInfo("LgFaRv", Group.Full, 1, LargeCount, LargeNumTrials, EnumKind.Fast, false/*forward*/),
+
+            new TrialInfo("LgRoFw", Group.Full, 1, LargeCount, LargeNumTrials, EnumKind.Robust, true/*forward*/),
+            new TrialInfo("LgRoRv", Group.Full, 1, LargeCount, LargeNumTrials, EnumKind.Robust, false/*forward*/),
+        };
+
+        private readonly static TestInfo<IRange2Map<int>>[] Range2MapEnumerationTests
+            = GetEnumerationTests<IRange2Map<int>, EntryRange2Map<int>>(TestBase.TreeKind.Range2Map, EnumerationTestTrialInfos);
+
+        private readonly static TestInfo<IOrderedMap<int, int>>[] MapEnumerationTests
+            = GetEnumerationTests<IOrderedMap<int, int>, EntryMap<int, int>>(TestBase.TreeKind.Map, EnumerationTestTrialInfos);
+
+        private class TrialInfo : Tuple<string, int, int, int, EnumKind, bool, Group>
+        {
+            public TrialInfo(string label, Group group, int multiplier, int count, int numTrials, EnumKind enumKind, bool forward)
+                : base(label, multiplier, count, numTrials, enumKind, forward, group)
+            {
+            }
+
+            public string Label { get { return Item1; } }
+            public int Multiplier { get { return Item2; } }
+            public int Count { get { return Item3; } }
+            public int NumTrials { get { return Item4; } }
+            public EnumKind EnumKind { get { return Item5; } }
+            public bool Forward { get { return Item6; } }
+            public Group Group { get { return Item7; } }
+        }
+
+        private static TestInfo<TreeType>[] GetEnumerationTests<TreeType, EntryType>(TestBase.TreeKind treeKind, TrialInfo[] trialInfos)
+        {
+            List<TestInfo<TreeType>> list = new List<TestInfo<TreeType>>();
+            foreach (TrialInfo trialInfo in trialInfos)
+            {
+                TestBase.EnumKind enumKind;
+                switch (trialInfo.EnumKind)
+                {
+                    default:
+                        throw new ArgumentException();
+                    case EnumKind.Fast:
+                        if ((treeKind & TestBase.TreeKind.AllIndexed2) != 0)
+                        {
+                            enumKind = TestBase.EnumKind.Indexed2EnumerableFastBidir;
+                        }
+                        else if ((treeKind & TestBase.TreeKind.AllKeyed) != 0)
+                        {
+                            enumKind = TestBase.EnumKind.KeyedEnumerableFastBidir;
+                        }
+                        else
+                        {
+                            throw new ArgumentException();
+                        }
+                        break;
+                    case EnumKind.Robust:
+                        if ((treeKind & TestBase.TreeKind.AllIndexed2) != 0)
+                        {
+                            enumKind = TestBase.EnumKind.Indexed2EnumerableRobustBidir;
+                        }
+                        else if ((treeKind & TestBase.TreeKind.AllKeyed) != 0)
+                        {
+                            enumKind = TestBase.EnumKind.KeyedEnumerableRobustBidir;
+                        }
+                        else
+                        {
+                            throw new ArgumentException();
+                        }
+                        break;
+                }
+
+                list.Add(
+                    new TestInfo<TreeType>(
+                        trialInfo.Label,
+                        trialInfo.Group,
+                        trialInfo.Multiplier,
+                        trialInfo.Count,
+                        trialInfo.NumTrials,
+                        MakePerfTestEnumerationMakerBinder<TreeType, EntryType>(
+                            treeKind,
+                            enumKind,
+                            trialInfo.Forward)));
+            }
+            return list.ToArray();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private static TestInfo<TreeType>.PerfTestFactoryMaker MakePerfTestEnumerationMakerBinder<TreeType, EntryType>(TestBase.TreeKind treeKind, TestBase.EnumKind enumKind, bool forward)
+        {
+            return delegate (TreeFactory<TreeType> _treeFactory, int _count)
+            {
+                return MakePerfTestEnumerationMaker<TreeType, EntryType>(_treeFactory, _count, treeKind, enumKind, forward);
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private static Measurement.MakePerfTest MakePerfTestEnumerationMaker<TreeType, EntryType>(TreeFactory<TreeType> treeFactory, int count, TestBase.TreeKind treeKind, TestBase.EnumKind enumKind, bool forward)
+        {
+            return delegate ()
+            {
+                return new PerfTestEnumeration<TreeType, EntryType>(delegate (int _count) { return treeFactory.Create(_count); }, count, treeKind, enumKind, forward);
+            };
+        }
+
 
 
         //
@@ -469,6 +622,7 @@ namespace TreeLibTest
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         private static void RunTestCategory<ITree>(
             Kind run,
+            Group group,
             IEnumerable<CreateTreeInfo<ITree>> creators,
             IEnumerable<TestInfo<ITree>> tests,
             ref bool success,
@@ -478,32 +632,37 @@ namespace TreeLibTest
         {
             foreach (CreateTreeInfo<ITree> createTreeInfo in creators)
             {
-                foreach (TestInfo<ITree> test in tests)
+                if (createTreeInfo.group <= group)
                 {
-                    Measurement.Result result = Measurement.RunTest(
-                        String.Format("{0}:{1}", createTreeInfo.kind, test.label),
-                        delegate () { return test.makePerfTestFactory(createTreeInfo.treeFactory, test.count)(); },
-                        run == Kind.Real ? test.trials : 1,
-                        test.multiplier);
-                    if (run == Kind.Real)
+                    foreach (TestInfo<ITree> test in tests)
                     {
-                        Measurement.Result baseline;
-                        baselineResults.TryGetValue(result.label, out baseline);
-                        bool success1 = DisplayResult(result, baseline) && ((baseline != null) || resetBaseline);
-                        success = success1 && (success || resetBaseline);
+                        Measurement.Result result = Measurement.RunTest(
+                            String.Format("{0}:{1}", createTreeInfo.kind, test.label),
+                            delegate () { return test.makePerfTestFactory(createTreeInfo.treeFactory, test.count)(); },
+                            run == Kind.Real ? test.trials : 1,
+                            test.multiplier);
+                        if (run == Kind.Real)
+                        {
+                            Measurement.Result baseline;
+                            baselineResults.TryGetValue(result.label, out baseline);
+                            bool success1 = DisplayResult(result, baseline) && ((baseline != null) || resetBaseline);
+                            success = success1 && (success || resetBaseline);
+                        }
+                        results.Add(result);
                     }
-                    results.Add(result);
                 }
             }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static bool RunAllPerfTests(bool resetBaseline)
+        public static bool RunAllPerfTests(bool resetBaseline, Group group, KeyValuePair<string, bool>[] enables)
         {
+            Debug.Assert(enables.Length == CategoryTokens.Length);
+
             bool success = false;
             string status = "SKIPPED";
 
-            Console.WriteLine("Performance Tests - Started");
+            Console.WriteLine("Performance Regression Tests - Started");
 #if DEBUG
 #pragma warning disable CS0162 // complaint about unreachable code
             Console.WriteLine("  DEBUG build - skipping");
@@ -566,11 +725,20 @@ namespace TreeLibTest
                             Console.SetOut(TextWriter.Null);
                         }
 
-                        RunTestCategory(phase, MapCreators, MapTests, ref success, resetBaseline, baselineResults, results);
-                        RunTestCategory(phase, RankMapCreators, RankMapTests, ref success, resetBaseline, baselineResults, results);
-                        // redundant: RunTestCategory(phase, MultiRankMapCreators, MultiRankMapTests, ref success, resetBaseline, baselineResults, results);
-                        // redundant: RunTestCategory(phase, RangeMapCreators, RangeMapTests, ref success, resetBaseline, baselineResults, results);
-                        RunTestCategory(phase, Range2MapCreators, Range2MapTests, ref success, resetBaseline, baselineResults, results);
+                        if (enables[Array.FindIndex(enables, delegate (KeyValuePair<string, bool> candidate) { return String.Equals("basic", candidate.Key); })].Value)
+                        {
+                            RunTestCategory(phase, group, MapCreators, MapTests, ref success, resetBaseline, baselineResults, results);
+                            RunTestCategory(phase, group, RankMapCreators, RankMapTests, ref success, resetBaseline, baselineResults, results);
+                            RunTestCategory(phase, group, MultiRankMapCreators, MultiRankMapTests, ref success, resetBaseline, baselineResults, results);
+                            RunTestCategory(phase, group, RangeMapCreators, RangeMapTests, ref success, resetBaseline, baselineResults, results);
+                            RunTestCategory(phase, group, Range2MapCreators, Range2MapTests, ref success, resetBaseline, baselineResults, results);
+                        }
+
+                        if (enables[Array.FindIndex(enables, delegate (KeyValuePair<string, bool> candidate) { return String.Equals("enum", candidate.Key); })].Value)
+                        {
+                            RunTestCategory(phase, group, MapEnumerationCreators, MapEnumerationTests, ref success, resetBaseline, baselineResults, results);
+                            RunTestCategory(phase, group, Range2MapEnumerationCreators, Range2MapEnumerationTests, ref success, resetBaseline, baselineResults, results);
+                        }
 
                         if (savedOutput != null)
                         {
@@ -605,7 +773,7 @@ namespace TreeLibTest
                 }
             }
 
-            Program.WritePassFail("Performance Tests - Finished", success, status, status);
+            Program.WritePassFail("Performance Regression Tests - Finished", success, status, status);
             return success;
         }
     }

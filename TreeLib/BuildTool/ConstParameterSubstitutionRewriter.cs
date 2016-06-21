@@ -82,7 +82,7 @@ namespace BuildTool
         private readonly static string[] ConstAttributeAliases = new string[] { "Const", "Const2" };
         private bool TestConstSubstAttribute(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax substConst)
         {
-            return AttributeMatchUtil.TestEnumeratedFaceAttribute(attributeLists, out substConst, ConstAttributeAliases, featureFacetAxis);
+            return AttributeMatchUtil.TestEnumeratedFacetAttribute(attributeLists, out substConst, ConstAttributeAliases, featureFacetAxis);
         }
 
         private bool TestConstSubstSuppressionAttribute(SyntaxList<AttributeListSyntax> attributeLists)

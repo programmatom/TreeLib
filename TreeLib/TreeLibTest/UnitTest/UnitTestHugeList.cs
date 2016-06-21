@@ -216,7 +216,7 @@ namespace TreeLibTest
 
         private void TestInsert(ParkAndMiller random/*null==default*/, int start, int count, List<int> reference, IHugeList<int> test)
         {
-            IncrementIteration();
+            IncrementIteration(true/*setLast*/);
 
             int[] data = null;
             if (random != null)
@@ -244,7 +244,7 @@ namespace TreeLibTest
 
         private void TestRemove(int start, int count, List<int> reference, IHugeList<int> test)
         {
-            IncrementIteration();
+            IncrementIteration(true/*setLast*/);
 
             reference.RemoveRange(start, count);
             TestNoThrow("RemoveRange", delegate () { test.RemoveRange(start, count); });
@@ -254,7 +254,7 @@ namespace TreeLibTest
 
         private void TestClear(List<int> reference, IHugeList<int> test)
         {
-            IncrementIteration();
+            IncrementIteration(true/*setLast*/);
 
             reference.Clear();
             TestNoThrow("Clear", delegate () { test.Clear(); });
@@ -265,7 +265,7 @@ namespace TreeLibTest
         private delegate IHugeList<T> MakeHugeList<T>();
         private void HugeListTestSpecific(MakeHugeList<int> makeList, bool checkBlockSize)
         {
-            IncrementIteration();
+            long startIter = IncrementIteration(true/*setLast*/);
 
             ParkAndMiller rand = new ParkAndMiller(Seed);
 
@@ -293,6 +293,8 @@ namespace TreeLibTest
             // Fill one item at a time to test append code path
             for (int i = 0; i < HugeListInternalChunkSize * 3; i++)
             {
+                long startIter1 = IncrementIteration(true/*setLast*/);
+
                 previousIteration = currentIteration;
                 currentIteration = iteration;
 
@@ -305,6 +307,8 @@ namespace TreeLibTest
             // Delete one item at a time, in reverse, to test end removal code path
             for (int i = HugeListInternalChunkSize * 3 - 1; i >= 0; i--)
             {
+                long startIter1 = IncrementIteration(true/*setLast*/);
+
                 previousIteration = currentIteration;
                 currentIteration = iteration;
 
@@ -317,6 +321,8 @@ namespace TreeLibTest
             // Fill one item at a time to test insert at start code path
             for (int i = 0; i < HugeListInternalChunkSize * 3; i++)
             {
+                long startIter1 = IncrementIteration(true/*setLast*/);
+
                 previousIteration = currentIteration;
                 currentIteration = iteration;
 
@@ -329,6 +335,8 @@ namespace TreeLibTest
             // Test set method
             for (int i = 0; i < HugeListInternalChunkSize * 3; i++)
             {
+                long startIter1 = IncrementIteration(true/*setLast*/);
+
                 TestNoThrow("indexer", delegate () { reference[i] = -reference[i]; });
                 TestNoThrow("indexer", delegate () { test[i] = -test[i]; });
                 Validate(reference, test);
@@ -340,6 +348,8 @@ namespace TreeLibTest
             // Delete one item at a time, in reverse, to test start removal code path
             for (int i = HugeListInternalChunkSize * 3 - 1; i >= 0; i--)
             {
+                long startIter1 = IncrementIteration(true/*setLast*/);
+
                 previousIteration = currentIteration;
                 currentIteration = iteration;
 
@@ -352,6 +362,8 @@ namespace TreeLibTest
             // Test insert and add code paths
             for (int i = 0; i < HugeListInternalChunkSize * 3; i++)
             {
+                long startIter1 = IncrementIteration(true/*setLast*/);
+
                 int item;
                 int[] items, items2;
                 int p, q, r;
@@ -380,6 +392,8 @@ namespace TreeLibTest
 
                 for (int c = 4; c <= 6; c++)
                 {
+                    long startIter2 = IncrementIteration(true/*setLast*/);
+
                     items = new int[c];
                     for (int j = 0; j < items.Length; j++)
                     {
@@ -478,6 +492,8 @@ namespace TreeLibTest
                 TestNoThrow("CopyTo(int, T[], int, int)", delegate () { reference.CopyTo(p, items2, 1, q); });
                 for (int j = 0; j < items.Length; j++)
                 {
+                    long startIter2 = IncrementIteration(true/*setLast*/);
+
                     TestTrue("CopyTo", delegate () { return items[j] == items2[j]; });
                 }
                 //
@@ -581,14 +597,15 @@ namespace TreeLibTest
                     Validate(reference, test);
                 }
 
-                // enumertion
+                // enumeration
                 {
                     List<int> collected = new List<int>();
                     foreach (int item2 in test)
                     {
+                        TestTrue("enumeration overrun", delegate () { return collected.Count < reference.Count; });
                         collected.Add(item2);
                     }
-                    TestTrue("enumeration", delegate () { return collected.Count == reference.Count; });
+                    TestTrue("enumeration count", delegate () { return collected.Count == reference.Count; });
                     for (int j = 0; j < reference.Count; j++)
                     {
                         TestTrue("enumeration", delegate () { return collected[j] == reference[j]; });
@@ -596,9 +613,11 @@ namespace TreeLibTest
                     int kk = 0;
                     foreach (int item2 in (IEnumerable)test) // test non-generic version
                     {
+                        TestTrue("enumeration overrun", delegate () { return kk < reference.Count; });
                         TestTrue("enumeration", delegate () { return collected[kk] == item2; });
                         kk++;
                     }
+                    TestTrue("enumeration count", delegate () { return kk == reference.Count; });
                     // break enumeration with insertion
                     if (reference.Count != 0)
                     {
@@ -617,8 +636,9 @@ namespace TreeLibTest
                             });
                         TestTrue("enumeration", delegate () { return j == 1; });
                     }
+#if false // TODO:
                     // unlike List<>, our enumeration permits setting elements
-                    if ((reference.Count != 0) && !test.GetType().Name.Contains("Reference"))
+                    if (reference.Count != 0)
                     {
                         int j = 0;
                         TestNoThrow(
@@ -635,6 +655,7 @@ namespace TreeLibTest
                             });
                         TestTrue("enumeration", delegate () { return j == reference.Count; });
                     }
+#endif
                     Validate(reference, test);
                 }
             }
@@ -647,6 +668,7 @@ namespace TreeLibTest
                 int i = 0;
                 foreach (int item2 in test)
                 {
+                    Fault(test, "enumeration overrun");
                     i++;
                 }
                 TestTrue("enumeration", delegate () { return i == 0; });
@@ -657,6 +679,8 @@ namespace TreeLibTest
             {
                 for (int initialFill = 0; initialFill <= 1; initialFill++)
                 {
+                    long startIter1 = IncrementIteration(true/*setLast*/);
+
                     previousIteration = currentIteration;
                     currentIteration = iteration;
 
@@ -1336,6 +1360,8 @@ namespace TreeLibTest
                 // searches
                 for (int i = 0; i < data.Length; i++)
                 {
+                    long startIter1 = IncrementIteration(true/*setLast*/);
+
                     int p = Int32.MinValue, q = Int32.MinValue;
                     int item = data[i];
                     TestNoThrow("BinarySearch(T)", delegate () { p = test.BinarySearch(item); });
@@ -1379,6 +1405,8 @@ namespace TreeLibTest
                 // searches
                 for (int i = 0; i < data.Length; i++)
                 {
+                    long startIter1 = IncrementIteration(true/*setLast*/);
+
                     int p = Int32.MinValue, q = Int32.MinValue;
                     int item = data[i];
                     TestNoThrow("BinarySearch(T, Comparer<T>)", delegate () { p = test.BinarySearch(item, new InvertedComparer()); });
@@ -1388,6 +1416,8 @@ namespace TreeLibTest
                 }
                 for (int i = 0; i < data.Length; i++)
                 {
+                    long startIter1 = IncrementIteration(true/*setLast*/);
+
                     int p = Int32.MinValue, q = Int32.MinValue;
                     int item = data[i];
                     TestNoThrow("BinarySearch(T, Comparer<T>)", delegate () { p = test.BinarySearch(0, data.Length, item, new InvertedComparer()); });
@@ -1424,6 +1454,8 @@ namespace TreeLibTest
                 TestNoThrow("AddRange", delegate () { reference.AddRange(data); });
                 for (int i = 0; i < data.Length; i += Duplicity)
                 {
+                    long startIter1 = IncrementIteration(true/*setLast*/);
+
                     int item = data[i];
                     int p, q;
                     p = q = Int32.MinValue;

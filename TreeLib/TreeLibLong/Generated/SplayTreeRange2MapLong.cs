@@ -68,7 +68,8 @@ namespace TreeLib
         /*[Feature(Feature.Range, Feature.Range2)]*//*[Widen]*/INonInvasiveRange2MapInspectionLong,
         IEnumerable<EntryRange2MapLong<ValueType>>,
         IEnumerable,
-
+        ITreeEnumerable<EntryRange2MapLong<ValueType>>,
+        /*[Feature(Feature.Range2)]*//*[Widen]*/IIndexed2TreeEnumerableLong<EntryRange2MapLong<ValueType>>,
         ICloneable
     {
         //
@@ -1537,8 +1538,8 @@ namespace TreeLib
                             break;
                         }
                         c = position.CompareTo(side == Side.X
-                                ? t.xOffset + t.left.xOffset
-                                : t.yOffset + t.left.yOffset);
+                            ? t.xOffset + t.left.xOffset
+                            : t.yOffset + t.left.yOffset);
                         if (c < 0)
                         {
                             // rotate right
@@ -1584,8 +1585,8 @@ namespace TreeLib
                             break;
                         }
                         c = position.CompareTo(side == Side.X
-                                ? (t.xOffset + t.right.xOffset)
-                                : (t.yOffset + t.right.yOffset));
+                            ? (t.xOffset + t.right.xOffset)
+                            : (t.yOffset + t.right.yOffset));
                         if (c > 0)
                         {
                             // rotate left
@@ -1903,7 +1904,7 @@ namespace TreeLib
 
 
         //
-        // Enumeration
+        // IEnumerable
         //
 
         /// <summary>
@@ -1923,6 +1924,20 @@ namespace TreeLib
             return this.GetEnumerator();
         }
 
+        //
+        // ITreeEnumerable
+        //
+
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetEnumerable()
+        {
+            return new RobustEnumerableSurrogate(this, true/*forward*/);
+        }
+
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetEnumerable(bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, forward);
+        }
+
         /// <summary>
         /// Get the robust enumerator. The robust enumerator uses an internal key cursor and queries the tree using the NextGreater()
         /// method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key
@@ -1935,27 +1950,12 @@ namespace TreeLib
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
         public IEnumerable<EntryRange2MapLong<ValueType>> GetRobustEnumerable()
         {
-            return new RobustEnumerableSurrogate(this);
+            return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
-        public struct RobustEnumerableSurrogate : IEnumerable<EntryRange2MapLong<ValueType>>
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetRobustEnumerable(bool forward)
         {
-            private readonly SplayTreeRange2MapLong<ValueType> tree;
-
-            public RobustEnumerableSurrogate(SplayTreeRange2MapLong<ValueType> tree)
-            {
-                this.tree = tree;
-            }
-
-            public IEnumerator<EntryRange2MapLong<ValueType>> GetEnumerator()
-            {
-                return new RobustEnumerator(tree);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
+            return new RobustEnumerableSurrogate(this, forward);
         }
 
         /// <summary>
@@ -1976,21 +1976,162 @@ namespace TreeLib
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
         public IEnumerable<EntryRange2MapLong<ValueType>> GetFastEnumerable()
         {
-            return new FastEnumerableSurrogate(this);
+            return new FastEnumerableSurrogate(this, true/*forward*/);
+        }
+
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new FastEnumerableSurrogate(this, forward);
+        }
+
+        //
+        // IIndexedTreeEnumerable/IIndexed2TreeEnumerable
+        //
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/); // default
+        }
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward); // default
+        }
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetFastEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        {
+            return new FastEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/);
+        }
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetFastEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        {
+            return new FastEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward);
+        }
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetRobustEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/);
+        }
+
+        [Feature(Feature.Range, Feature.Range2)]
+        public IEnumerable<EntryRange2MapLong<ValueType>> GetRobustEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward);
+        }
+
+        //
+        // Surrogates
+        //
+
+        public struct RobustEnumerableSurrogate : IEnumerable<EntryRange2MapLong<ValueType>>
+        {
+            private readonly SplayTreeRange2MapLong<ValueType> tree;
+            private readonly bool forward;
+
+            [Feature(Feature.Range, Feature.Range2)]
+            private readonly bool startIndexed;
+            [Feature(Feature.Range, Feature.Range2)]
+            [Widen]
+            private readonly long startStart;
+            [Feature(Feature.Range2)]
+            private readonly Side side;
+
+            // Construction
+
+            public RobustEnumerableSurrogate(SplayTreeRange2MapLong<ValueType> tree,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startIndexed = false;
+                this.startStart = 0;
+                this.side = Side.X;
+            }
+
+            [Feature(Feature.Range, Feature.Range2)]
+            public RobustEnumerableSurrogate(SplayTreeRange2MapLong<ValueType> tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startIndexed = true;
+                this.startStart = startStart;
+                this.side = side;
+            }
+
+            // IEnumerable
+
+            public IEnumerator<EntryRange2MapLong<ValueType>> GetEnumerator()
+            {
+
+                /*[Feature(Feature.Range, Feature.Range2)]*/
+                if (startIndexed)
+                {
+                    return new RobustEnumerator(tree, startStart, /*[Feature(Feature.Range2)]*/side, forward);
+                }
+
+                return new RobustEnumerator(tree, forward);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
 
         public struct FastEnumerableSurrogate : IEnumerable<EntryRange2MapLong<ValueType>>
         {
             private readonly SplayTreeRange2MapLong<ValueType> tree;
+            private readonly bool forward;
 
-            public FastEnumerableSurrogate(SplayTreeRange2MapLong<ValueType> tree)
+            [Feature(Feature.Range, Feature.Range2)]
+            private readonly bool startIndexed;
+            [Feature(Feature.Range, Feature.Range2)]
+            [Widen]
+            private readonly long startStart;
+            [Feature(Feature.Range2)]
+            private readonly Side side;
+
+            // Construction
+
+            public FastEnumerableSurrogate(SplayTreeRange2MapLong<ValueType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                this.startIndexed = false;
+                this.startStart = 0;
+                this.side = Side.X;
             }
+
+            [Feature(Feature.Range, Feature.Range2)]
+            public FastEnumerableSurrogate(SplayTreeRange2MapLong<ValueType> tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startIndexed = true;
+                this.startStart = startStart;
+                this.side = side;
+            }
+
+            // IEnumerable
 
             public IEnumerator<EntryRange2MapLong<ValueType>> GetEnumerator()
             {
-                return new FastEnumerator(tree);
+
+                /*[Feature(Feature.Range, Feature.Range2)]*/
+                if (startIndexed)
+                {
+                    return new FastEnumerator(tree, startStart, /*[Feature(Feature.Range2)]*/side, forward);
+                }
+
+                return new FastEnumerator(tree, forward);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -2004,20 +2145,52 @@ namespace TreeLib
         /// it keeps a current key and uses NearestGreater to find the next one. The enumerator also uses a constant
         /// amount of memory. However, since it uses queries it is slow, O(n lg(n)) to enumerate the entire tree.
         /// </summary>
-        public class RobustEnumerator : IEnumerator<EntryRange2MapLong<ValueType>>
+        public class RobustEnumerator :
+            IEnumerator<EntryRange2MapLong<ValueType>>,
+            /*[Payload(Payload.Value)]*/ISetValue<ValueType>
         {
             private readonly SplayTreeRange2MapLong<ValueType> tree;
-            private bool started;
-            private bool valid;
+            private readonly bool forward;
+            //
+            [Feature(Feature.Range, Feature.Range2)]
+            private readonly bool startIndexed;
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
-            private long currentXStart;
-            [Feature(Feature.Range, Feature.Range2)]
-            private ushort version; // saving the currentXStart does not work well range collections
+            private readonly long startStart;
+            [Feature(Feature.Range2)]
+            private readonly Side side;
 
-            public RobustEnumerator(SplayTreeRange2MapLong<ValueType> tree)
+            private bool started;
+            private bool valid;
+            private ushort enumeratorVersion;
+            //
+            [Feature(Feature.Range, Feature.Range2)]
+            [Widen]
+            private long currentStart;
+            //
+            // saving the currentXStart with does not work well for range collections because it may shift, so making updates
+            // is not permitted in range trees
+            [Feature(Feature.Range, Feature.Range2)]
+            private ushort treeVersion;
+
+            public RobustEnumerator(SplayTreeRange2MapLong<ValueType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            [Feature(Feature.Range, Feature.Range2)]
+            public RobustEnumerator(SplayTreeRange2MapLong<ValueType> tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startIndexed = true;
+                this.startStart = startStart;
+                this.side = side;
+
                 Reset();
             }
 
@@ -2026,7 +2199,7 @@ namespace TreeLib
                 get
                 {
                     /*[Feature(Feature.Range, Feature.Range2)]*/
-                    if (version != tree.version)
+                    if (treeVersion != tree.version)
                     {
                         throw new InvalidOperationException();
                     }
@@ -2042,21 +2215,35 @@ namespace TreeLib
                             long xStart = 0, xLength = 0 ;
                             /*[Widen]*/
                             long yStart = 0, yLength = 0 ;
-                            xStart = currentXStart;
 
+                            /*[Widen]*/
+                            long otherStart ;
                             tree.Get(
-                                /*[Feature(Feature.Range, Feature.Range2)]*/xStart,
-                                /*[Feature(Feature.Range2)]*/Side.X,
-                                /*[Feature(Feature.Range2)]*/out yStart,
+                                /*[Feature(Feature.Range, Feature.Range2)]*/currentStart,
+                                /*[Feature(Feature.Range2)]*/side,
+                                /*[Feature(Feature.Range2)]*/out otherStart,
                                 /*[Feature(Feature.Range, Feature.Range2)]*/out xLength,
                                 /*[Feature(Feature.Range2)]*/out yLength,
                                 /*[Payload(Payload.Value)]*/out value);
+                            /*[Feature(Feature.Range2)]*/
+                            if (side == Side.X)
+                            {
+                                xStart = currentStart;
+                                yStart = otherStart;
+                            }
+                            else
+                            {
+                                xStart = otherStart;
+                                yStart = currentStart;
+                            }
 
                             /*[Feature(Feature.Range, Feature.Range2)]*/
-                            version = tree.version; // our query is ok
+                            treeVersion = tree.version; // our query is ok
 
                             return new EntryRange2MapLong<ValueType>(
                                 /*[Payload(Payload.Value)]*/value,
+                                /*[Payload(Payload.Value)]*/this,
+                                /*[Payload(Payload.Value)]*/this.enumeratorVersion,
                                 /*[Feature(Feature.Range, Feature.Range2)]*/xStart,
                                 /*[Feature(Feature.Range, Feature.Range2)]*/xLength,
                                 /*[Feature(Feature.Range2)]*/yStart,
@@ -2081,10 +2268,12 @@ namespace TreeLib
             public bool MoveNext()
             {
                 /*[Feature(Feature.Range, Feature.Range2)]*/
-                if (version != tree.version)
+                if (this.treeVersion != tree.version)
                 {
                     throw new InvalidOperationException();
                 }
+
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
 
                 if (!started)
                 {
@@ -2092,9 +2281,32 @@ namespace TreeLib
                     // OR
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
-                    valid = tree.xExtent != 0;
-                    /*[Feature(Feature.Range, Feature.Range2)]*/
-                    Debug.Assert(currentXStart == 0);
+                    {
+                        if (!startIndexed)
+                        {
+                            if (forward)
+                            {
+                                currentStart = 0;
+                                valid = tree.xExtent != 0;
+                            }
+                            else
+                            {
+                                /*[Feature(Feature.Range2)]*/
+                                valid = tree.NearestLess(side == Side.X ? tree.xExtent : tree.yExtent, side, out currentStart);
+                            }
+                        }
+                        else
+                        {
+                            if (forward)
+                            {
+                                valid = tree.NearestGreaterOrEqual(startStart, /*[Feature(Feature.Range2)]*/side, out currentStart);
+                            }
+                            else
+                            {
+                                valid = tree.NearestLessOrEqual(startStart, /*[Feature(Feature.Range2)]*/side, out currentStart);
+                            }
+                        }
+                    }
 
                     started = true;
                 }
@@ -2104,11 +2316,18 @@ namespace TreeLib
                     // OR
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
-                    valid = tree.NearestGreater(currentXStart, /*[Feature(Feature.Range2)]*/Side.X, out currentXStart);
+                    if (forward)
+                    {
+                        valid = tree.NearestGreater(currentStart, /*[Feature(Feature.Range2)]*/side, out currentStart);
+                    }
+                    else
+                    {
+                        valid = tree.NearestLess(currentStart, /*[Feature(Feature.Range2)]*/side, out currentStart);
+                    }
                 }
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
-                version = tree.version; // our query is ok
+                treeVersion = tree.version; // our query is ok
 
                 return valid;
             }
@@ -2117,9 +2336,29 @@ namespace TreeLib
             {
                 started = false;
                 valid = false;
-                currentXStart = 0;
+
                 /*[Feature(Feature.Range, Feature.Range2)]*/
-                version = tree.version;
+                treeVersion = tree.version;
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+            }
+
+            [Payload(Payload.Value)]
+            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            {
+                if (this.enumeratorVersion != requiredEnumeratorVersion)
+                {
+                    throw new InvalidOperationException();
+                }
+                /*[Feature(Feature.Range, Feature.Range2)]*/
+                if (this.treeVersion != tree.version)
+                {
+                    throw new InvalidOperationException();
+                }
+                // OR
+                tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
+
+                /*[Feature(Feature.Range, Feature.Range2)]*/
+                treeVersion = tree.version; // the update we just made is acceptable since it doesn't change length (TODO: will be unneeded after doing TODO: above)
             }
         }
 
@@ -2130,25 +2369,58 @@ namespace TreeLib
         /// Worse, this enumerator also uses a stack that can be as deep as the tree, and since the depth of a splay
         /// tree is in the worst case n (number of nodes), the stack can potentially be size n.
         /// </summary>
-        public class FastEnumerator : IEnumerator<EntryRange2MapLong<ValueType>>
+        public class FastEnumerator :
+            IEnumerator<EntryRange2MapLong<ValueType>>,
+            /*[Payload(Payload.Value)]*/ISetValue<ValueType>
         {
             private readonly SplayTreeRange2MapLong<ValueType> tree;
-            private ushort version;
+            private readonly bool forward;
+
+            private readonly bool startKeyedOrIndexed;
+            //
+            [Feature(Feature.Range, Feature.Range2)]
+            [Widen]
+            private readonly long startStart;
+            [Feature(Feature.Range2)]
+            private readonly Side side;
+
+            private ushort treeVersion;
+            private ushort enumeratorVersion;
+
             private Node currentNode;
-            private Node nextNode;
+            private Node leadingNode;
+
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             private long currentXStart, nextXStart;
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+            [Widen]
+            private long previousXStart;
             [Feature(Feature.Range2)]
             [Widen]
-            private long currentYStart, nextYStart;
+            private long currentYStart, nextYStart, previousYStart;
 
             private readonly Stack<STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long>> stack
                 = new Stack<STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long>>();
 
-            public FastEnumerator(SplayTreeRange2MapLong<ValueType> tree)
+            public FastEnumerator(SplayTreeRange2MapLong<ValueType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            [Feature(Feature.Range, Feature.Range2)]
+            public FastEnumerator(SplayTreeRange2MapLong<ValueType> tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyedOrIndexed = true;
+                this.startStart = startStart;
+                this.side = side;
+
                 Reset();
             }
 
@@ -2159,12 +2431,34 @@ namespace TreeLib
                     if (currentNode != tree.Nil)
                     {
 
+
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        /*[Widen]*/
+                        long currentXLength = 0 ;
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        /*[Widen]*/
+                        long currentYLength = 0 ;
+
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        if (forward)
+                        {
+                            currentXLength = nextXStart - currentXStart;
+                            currentYLength = nextYStart - currentYStart;
+                        }
+                        else
+                        {
+                            currentXLength = previousXStart - currentXStart;
+                            currentYLength = previousYStart - currentYStart;
+                        }
+
                         return new EntryRange2MapLong<ValueType>(
                             /*[Payload(Payload.Value)]*/currentNode.value,
+                            /*[Payload(Payload.Value)]*/this,
+                            /*[Payload(Payload.Value)]*/this.enumeratorVersion,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/currentXStart,
-                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart - currentXStart,
+                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/currentXLength,
                             /*[Feature(Feature.Range2)]*/currentYStart,
-                            /*[Feature(Feature.Range2)]*/nextYStart - currentYStart);
+                            /*[Feature(Feature.Range2)]*/currentYLength);
                     }
                     return new EntryRange2MapLong<ValueType>();
                 }
@@ -2190,72 +2484,211 @@ namespace TreeLib
 
             public void Reset()
             {
-                stack.Clear();
-                currentNode = tree.Nil;
-                nextNode = tree.Nil;
-                currentXStart = 0;
-                currentYStart = 0;
-                nextXStart = 0;
-                nextYStart = 0;
-
-                this.version = tree.version;
-
-                PushSuccessor(
-                    tree.root,
-                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
-                    /*[Feature(Feature.Range2)]*/0);
-
-                Advance();
-            }
-
-            private void PushSuccessor(                Node node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xPosition,                [Feature(Feature.Range2)][Widen] long yPosition)
-            {
-                while (node != tree.Nil)
+                unchecked
                 {
-                    xPosition += node.xOffset;
-                    yPosition += node.yOffset;
+                    stack.Clear();
 
-                    stack.Push(new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long>(
-                        node,
-                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
-                        /*[Feature(Feature.Range2)]*/yPosition));
-                    node = node.left;
+                    currentNode = tree.Nil;
+                    leadingNode = tree.Nil;
+
+                    this.treeVersion = tree.version;
+
+                    // push search path to starting item
+
+                    Node node = tree.root;
+                    /*[Widen]*/
+                    long xPosition = 0 ;
+                    /*[Widen]*/
+                    long yPosition = 0 ;
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    bool foundMatch = false;
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    bool lastGreaterAncestorValid = false;
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    /*[Widen]*/
+                    long xPositionLastGreaterAncestor = 0 ;
+                    /*[Feature(Feature.Range2)]*/
+                    /*[Widen]*/
+                    long yPositionLastGreaterAncestor = 0 ;
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    bool successorValid = false;
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    /*[Widen]*/
+                    long xPositionSuccessor = 0 ;
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    /*[Widen]*/
+                    long yPositionSuccessor = 0 ;
+                    while (node != tree.Nil)
+                    {
+                        xPosition += node.xOffset;
+                        yPosition += node.yOffset;
+
+                        bool foundMatch1 = false;
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        foundMatch1 = foundMatch;
+
+                        if (foundMatch1)
+                        {
+                            successorValid = true;
+                            xPositionSuccessor = xPosition;
+                            yPositionSuccessor = yPosition;
+                        }
+
+                        int c;
+                        if (foundMatch1)
+                        {
+                            // don't compare anymore after finding match - only descend successor path
+                            c = -1;
+                        }
+                        else
+                        {
+                            if (!startKeyedOrIndexed)
+                            {
+                                c = forward ? -1 : 1;
+                            }
+                            else
+                            {
+                                // OR
+                                /*[Feature(Feature.Range2)]*/
+                                c = startStart.CompareTo(side == Side.X ? xPosition : yPosition);
+                            }
+                        }
+
+                        if (!foundMatch1 && (forward && (c <= 0)) || (!forward && (c >= 0)))
+                        {
+                            stack.Push(new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long>(
+                                node,
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
+                                /*[Feature(Feature.Range2)]*/yPosition));
+                        }
+
+                        if (c == 0)
+                        {
+                            foundMatch = true;
+
+                            // successor not needed for forward traversal
+                            if (forward)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (c < 0)
+                        {
+                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                            if (!foundMatch)
+                            {
+                                lastGreaterAncestorValid = true;
+                                xPositionLastGreaterAncestor = xPosition;
+                                yPositionLastGreaterAncestor = yPosition;
+                            }
+
+                            node = node.left;
+                        }
+                        else
+                        {
+                            Debug.Assert(c >= 0);
+                            node = node.right;
+                        }
+                    }
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    if (!forward)
+                    {
+                        // get position of successor for length of initial item
+                        if (successorValid)
+                        {
+                            nextXStart = xPositionSuccessor;
+                            nextYStart = yPositionSuccessor;
+                        }
+                        else if (lastGreaterAncestorValid)
+                        {
+                            nextXStart = xPositionLastGreaterAncestor;
+                            nextYStart = yPositionLastGreaterAncestor;
+                        }
+                        else
+                        {
+                            nextXStart = tree.xExtent;
+                            nextYStart = tree.yExtent;
+                        }
+                    }
+
+                    Advance();
                 }
             }
 
             private void Advance()
             {
-                if (this.version != tree.version)
+                unchecked
+                {
+                    if (this.treeVersion != tree.version)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                    previousXStart = currentXStart;
+                    previousYStart = currentYStart;
+                    currentNode = leadingNode;
+                    currentXStart = nextXStart;
+                    currentYStart = nextYStart;
+
+                    leadingNode = tree.Nil;
+
+                    if (stack.Count == 0)
+                    {
+                        if (forward)
+                        {
+                            nextXStart = tree.xExtent;
+                            nextYStart = tree.yExtent;
+                        }
+                        else
+                        {
+                            nextXStart = 0;
+                            nextYStart = 0;
+                        }
+                        return;
+                    }
+
+                    STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long> cursor
+                        = stack.Pop();
+
+                    leadingNode = cursor.Item1;
+                    nextXStart = cursor.Item2;
+                    nextYStart = cursor.Item3;
+
+                    Node node = forward ? leadingNode.right : leadingNode.left;
+                    /*[Widen]*/
+                    long xPosition = nextXStart ;
+                    /*[Widen]*/
+                    long yPosition = nextYStart ;
+                    while (node != tree.Nil)
+                    {
+                        xPosition += node.xOffset;
+                        yPosition += node.yOffset;
+
+                        stack.Push(new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long>(
+                            node,
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
+                            /*[Feature(Feature.Range2)]*/yPosition));
+                        node = forward ? node.left : node.right;
+                    }
+                }
+            }
+
+            [Payload(Payload.Value)]
+            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            {
+                if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {
                     throw new InvalidOperationException();
                 }
 
-                currentNode = nextNode;
-                currentXStart = nextXStart;
-                currentYStart = nextYStart;
-
-                nextNode = tree.Nil;
-                nextXStart = tree.xExtent;
-                nextYStart = tree.yExtent;
-
-                if (stack.Count == 0)
-                {
-                    nextXStart = tree.xExtent;
-                    nextYStart = tree.yExtent;
-                    return;
-                }
-
-                STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long> cursor
-                    = stack.Pop();
-
-                nextNode = cursor.Item1;
-                nextXStart = cursor.Item2;
-                nextYStart = cursor.Item3;
-
-                PushSuccessor(
-                    nextNode.right,
-                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart,
-                    /*[Feature(Feature.Range2)]*/nextYStart);
+                currentNode.value = value;
             }
         }
 

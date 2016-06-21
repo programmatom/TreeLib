@@ -32,12 +32,12 @@ namespace TreeLibTest
 {
     public static class TreeInspection
     {
-        public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
             INonInvasiveTreeInspection tree,
             out int maxDepth,
             bool propagateValue) where KeyType : IComparable<KeyType>
         {
-            List<KeyValuePair<KeyType, ValueType>> items = new List<KeyValuePair<KeyType, ValueType>>();
+            List<EntryMap<KeyType, ValueType>> items = new List<EntryMap<KeyType, ValueType>>();
 
             maxDepth = 0;
             Stack<object> stack = new Stack<object>();
@@ -53,7 +53,7 @@ namespace TreeLibTest
                 current = stack.Pop();
                 KeyType key = (KeyType)tree.GetKey(current);
                 ValueType value = propagateValue ? (ValueType)tree.GetValue(current) : default(ValueType);
-                items.Add(new KeyValuePair<KeyType, ValueType>(key, value));
+                items.Add(new EntryMap<KeyType, ValueType>(key, value, null, 0));
 
                 object node = tree.GetRightChild(current);
                 while (node != null)
@@ -67,14 +67,14 @@ namespace TreeLibTest
             return items.ToArray();
         }
 
-        public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
             INonInvasiveTreeInspection tree,
             out int maxDepth) where KeyType : IComparable<KeyType>
         {
             return Flatten<KeyType, ValueType>(tree, out maxDepth, true/*propagateValue*/);
         }
 
-        public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
             INonInvasiveTreeInspection tree,
             bool propagateValue) where KeyType : IComparable<KeyType>
         {
@@ -82,7 +82,7 @@ namespace TreeLibTest
             return Flatten<KeyType, ValueType>(tree, out maxDepth, propagateValue);
         }
 
-        public static KeyValuePair<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
             INonInvasiveTreeInspection tree) where KeyType : IComparable<KeyType>
         {
             int maxDepth;

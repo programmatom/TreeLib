@@ -162,8 +162,8 @@ namespace TreeLibTest
 
             public override void Validate()
             {
-                KeyValuePair<int, float>[] items1 = ((ISimpleTreeInspection<int, float>)reference).ToArray();
-                KeyValuePair<int, float>[] items2 = TreeInspection.Flatten<int, float>((INonInvasiveTreeInspection)actual);
+                EntryMap<int, float>[] items1 = ((ISimpleTreeInspection<int, float>)reference).ToArray();
+                EntryMap<int, float>[] items2 = TreeInspection.Flatten<int, float>((INonInvasiveTreeInspection)actual);
                 if (items1.Length != items2.Length)
                 {
                     throw new Exception("length");

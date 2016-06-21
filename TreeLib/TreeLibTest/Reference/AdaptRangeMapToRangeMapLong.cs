@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 
 using TreeLib;
 using TreeLib.Internal;
@@ -300,27 +301,125 @@ namespace TreeLibTest
 
 
         //
-        // IEnumerable
-        //
-
-        public IEnumerator<EntryRangeMap<ValueType>> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-
-        //
         // ICloneable
         //
 
         public object Clone()
         {
             return new AdaptRangeMapToRangeMapLong<ValueType>((IRangeMapLong<ValueType>)((ICloneable)inner).Clone());
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        private EntryRangeMap<ValueType> Convert(EntryRangeMapLong<ValueType> entry)
+        {
+            return new EntryRangeMap<ValueType>(
+                entry.Value,
+                (ISetValue<ValueType>)entry.GetType().GetField("enumerator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                (ushort)entry.GetType().GetField("version", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                IntLong.ToInt(entry.Start),
+                IntLong.ToInt(entry.Length));
+        }
+
+        public IEnumerator<EntryRangeMap<ValueType>> GetEnumerator()
+        {
+            return new AdaptEnumerator<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetEnumerator(),
+                Convert);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new AdaptEnumeratorOld<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                ((IEnumerable)inner).GetEnumerator(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetEnumerable()
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetFastEnumerable()
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetFastEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetFastEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetRobustEnumerable()
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetRobustEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetRobustEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetRobustEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetEnumerable(int startAt)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetEnumerable(int startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetFastEnumerable(int startAt)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetFastEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetFastEnumerable(int startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetFastEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetRobustEnumerable(int startAt)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetRobustEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<ValueType>> GetRobustEnumerable(int startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<ValueType>, EntryRangeMapLong<ValueType>>(
+                inner.GetRobustEnumerable(startAt, forward),
+                Convert);
         }
     }
 }

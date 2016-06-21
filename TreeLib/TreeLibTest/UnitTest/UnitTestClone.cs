@@ -283,7 +283,7 @@ namespace TreeLibTest
         {
             protected static MultiRankMapEntry[] ToArray(object tree, bool propagateValue)
             {
-                KeyValuePair<KeyType, ValueType>[] items;
+                EntryMap<KeyType, ValueType>[] items;
 
                 ISimpleTreeInspection<KeyType, ValueType> simple;
                 INonInvasiveTreeInspection nonInvasive;

@@ -57,10 +57,30 @@ namespace TreeLib
         public ValueType Value { get { return value; } }
 
 
-        public EntryMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value)
+        [Payload(Payload.Value)]
+        private readonly ISetValue<ValueType> enumerator;
+        [Payload(Payload.Value)]
+        private readonly ushort version;
+
+        [Payload(Payload.Value)]
+        public void SetValue(ValueType value)
+        {
+            if (enumerator == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            enumerator.SetValue(value, version);
+        }
+
+
+        public EntryMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] ushort version)
         {
             this.key = key;
             this.value = value;
+
+            this.enumerator = enumerator;
+            this.version = version;
         }
 
         public override bool Equals(object obj)

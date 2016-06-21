@@ -1194,6 +1194,12 @@ namespace TreeLibTest
             }
         }
 
+        private void EnumerateAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            int[] keys = Array.ConvertAll(((INonInvasiveMultiRankMapInspection)collections[0]).GetRanks(), delegate (MultiRankMapEntry item) { return (int)item.key; });
+            KeyedEnumerateAction<EntryRankMap<int, float>>(collections, rnd, ref description, TreeKind.RankMap, keys);
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -1250,6 +1256,8 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestLessAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestGreaterOrEqualAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), NearestGreaterAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(100      , 100      ), EnumerateAction),
             };
 
             return StochasticDriver(

@@ -66,6 +66,8 @@ namespace TreeLib
 
         IEnumerable<EntryList<KeyType>>,
         IEnumerable,
+        ITreeEnumerable<EntryList<KeyType>>,
+        /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/IKeyedTreeEnumerable<KeyType, EntryList<KeyType>>,
 
         ICloneable
 
@@ -1541,7 +1543,7 @@ uint countNew;
 
 
         //
-        // Enumeration
+        // IEnumerable
         //
 
         /// <summary>
@@ -1558,6 +1560,20 @@ uint countNew;
             return this.GetEnumerator();
         }
 
+        //
+        // ITreeEnumerable
+        //
+
+        public IEnumerable<EntryList<KeyType>> GetEnumerable()
+        {
+            return new FastEnumerableSurrogate(this, true/*forward*/);
+        }
+
+        public IEnumerable<EntryList<KeyType>> GetEnumerable(bool forward)
+        {
+            return new FastEnumerableSurrogate(this, forward);
+        }
+
         /// <summary>
         /// Get the robust enumerator. The robust enumerator uses an internal key cursor and queries the tree using the NextGreater()
         /// method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key
@@ -1570,27 +1586,12 @@ uint countNew;
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
         public IEnumerable<EntryList<KeyType>> GetRobustEnumerable()
         {
-            return new RobustEnumerableSurrogate(this);
+            return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
-        public struct RobustEnumerableSurrogate : IEnumerable<EntryList<KeyType>>
+        public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(bool forward)
         {
-            private readonly RedBlackTreeArrayList<KeyType> tree;
-
-            public RobustEnumerableSurrogate(RedBlackTreeArrayList<KeyType> tree)
-            {
-                this.tree = tree;
-            }
-
-            public IEnumerator<EntryList<KeyType>> GetEnumerator()
-            {
-                return new RobustEnumerator(tree);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
+            return new RobustEnumerableSurrogate(this, forward);
         }
 
         /// <summary>
@@ -1604,21 +1605,150 @@ uint countNew;
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
         public IEnumerable<EntryList<KeyType>> GetFastEnumerable()
         {
-            return new FastEnumerableSurrogate(this);
+            return new FastEnumerableSurrogate(this, true/*forward*/);
+        }
+
+        public IEnumerable<EntryList<KeyType>> GetFastEnumerable(bool forward)
+        {
+            return new FastEnumerableSurrogate(this, forward);
+        }
+
+        //
+        // IKeyedTreeEnumerable
+        //
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryList<KeyType>> GetEnumerable(KeyType startAt)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, true/*forward*/); // default
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryList<KeyType>> GetEnumerable(KeyType startAt,bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, forward); // default
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryList<KeyType>> GetFastEnumerable(KeyType startAt)
+        {
+            return new FastEnumerableSurrogate(this, startAt, true/*forward*/);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryList<KeyType>> GetFastEnumerable(KeyType startAt,bool forward)
+        {
+            return new FastEnumerableSurrogate(this, startAt, forward);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(KeyType startAt)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, true/*forward*/);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(KeyType startAt,bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, forward);
+        }
+
+        //
+        // Surrogates
+        //
+
+        public struct RobustEnumerableSurrogate : IEnumerable<EntryList<KeyType>>
+        {
+            private readonly RedBlackTreeArrayList<KeyType> tree;
+            private readonly bool forward;
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly bool startKeyed;
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
+            // Construction
+
+            public RobustEnumerableSurrogate(RedBlackTreeArrayList<KeyType> tree,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = false;
+                this.startKey = default(KeyType);
+            }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public RobustEnumerableSurrogate(RedBlackTreeArrayList<KeyType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+            }
+
+            // IEnumerable
+
+            public IEnumerator<EntryList<KeyType>> GetEnumerator()
+            {
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                if (startKeyed)
+                {
+                    return new RobustEnumerator(tree, startKey, forward);
+                }
+
+                return new RobustEnumerator(tree, forward);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
 
         public struct FastEnumerableSurrogate : IEnumerable<EntryList<KeyType>>
         {
             private readonly RedBlackTreeArrayList<KeyType> tree;
+            private readonly bool forward;
 
-            public FastEnumerableSurrogate(RedBlackTreeArrayList<KeyType> tree)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly bool startKeyed;
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
+            // Construction
+
+            public FastEnumerableSurrogate(RedBlackTreeArrayList<KeyType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = false;
+                this.startKey = default(KeyType);
             }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public FastEnumerableSurrogate(RedBlackTreeArrayList<KeyType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+            }
+
+            // IEnumerable
 
             public IEnumerator<EntryList<KeyType>> GetEnumerator()
             {
-                return new FastEnumerator(tree);
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                if (startKeyed)
+                {
+                    return new FastEnumerator(tree, startKey, forward);
+                }
+
+                return new FastEnumerator(tree, forward);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -1632,17 +1762,40 @@ uint countNew;
         /// it keeps a current key and uses NearestGreater to find the next one. However, since it uses queries it
         /// is slow, O(n lg(n)) to enumerate the entire tree.
         /// </summary>
-        public class RobustEnumerator : IEnumerator<EntryList<KeyType>>
-        {
+        public class RobustEnumerator :
+            IEnumerator<EntryList<KeyType>>        {
             private readonly RedBlackTreeArrayList<KeyType> tree;
+            private readonly bool forward;
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly bool startKeyed;
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
             private bool started;
             private bool valid;
+            private ushort enumeratorVersion;
+
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
 
-            public RobustEnumerator(RedBlackTreeArrayList<KeyType> tree)
+            public RobustEnumerator(RedBlackTreeArrayList<KeyType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public RobustEnumerator(RedBlackTreeArrayList<KeyType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+
                 Reset();
             }
 
@@ -1678,17 +1831,47 @@ uint countNew;
             public bool MoveNext()
             {
 
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
                 if (!started)
                 {
                     /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                    valid = tree.Least(out currentKey);
+                    if (!startKeyed)
+                    {
+                        if (forward)
+                        {
+                            valid = tree.Least(out currentKey);
+                        }
+                        else
+                        {
+                            valid = tree.Greatest(out currentKey);
+                        }
+                    }
+                    else
+                    {
+                        if (forward)
+                        {
+                            valid = tree.NearestGreaterOrEqual(startKey, out currentKey);
+                        }
+                        else
+                        {
+                            valid = tree.NearestLessOrEqual(startKey, out currentKey);
+                        }
+                    }
 
                     started = true;
                 }
                 else if (valid)
                 {
                     /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                    valid = tree.NearestGreater(currentKey, out currentKey);
+                    if (forward)
+                    {
+                        valid = tree.NearestGreater(currentKey, out currentKey);
+                    }
+                    else
+                    {
+                        valid = tree.NearestLess(currentKey, out currentKey);
+                    }
                 }
 
                 return valid;
@@ -1698,7 +1881,7 @@ uint countNew;
             {
                 started = false;
                 valid = false;
-                currentKey = default(KeyType);
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
             }
         }
 
@@ -1706,19 +1889,42 @@ uint countNew;
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
-        public class FastEnumerator : IEnumerator<EntryList<KeyType>>
-        {
+        public class FastEnumerator :
+            IEnumerator<EntryList<KeyType>>        {
             private readonly RedBlackTreeArrayList<KeyType> tree;
-            private ushort version;
+            private readonly bool forward;
+
+            private readonly bool startKeyedOrIndexed;
+            //
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
+            private ushort treeVersion;
+            private ushort enumeratorVersion;
+
             private NodeRef currentNode;
-            private NodeRef nextNode;
+            private NodeRef leadingNode;
 
             private readonly Stack<STuple<NodeRef>> stack
                 = new Stack<STuple<NodeRef>>();
 
-            public FastEnumerator(RedBlackTreeArrayList<KeyType> tree)
+            public FastEnumerator(RedBlackTreeArrayList<KeyType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public FastEnumerator(RedBlackTreeArrayList<KeyType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyedOrIndexed = true;
+                this.startKey = startKey;
+
                 Reset();
             }
 
@@ -1730,7 +1936,8 @@ uint countNew;
                     {
 
                         return new EntryList<KeyType>(
-                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/tree.nodes[currentNode].key);
+                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                            tree.nodes[currentNode].key);
                     }
                     return new EntryList<KeyType>();
                 }
@@ -1756,52 +1963,102 @@ uint countNew;
 
             public void Reset()
             {
-                stack.Clear();
-                currentNode = tree.Null;
-                nextNode = tree.Null;
-
-                this.version = tree.version;
-
-                PushSuccessor(
-                    tree.root);
-
-                Advance();
-            }
-
-            private void PushSuccessor(                NodeRef node)
-            {
-                while (node != tree.Null)
+                unchecked
                 {
+                    stack.Clear();
 
-                    stack.Push(new STuple<NodeRef>(
-                        node));
-                    node = tree.nodes[node].left;
+                    currentNode = tree.Null;
+                    leadingNode = tree.Null;
+
+                    this.treeVersion = tree.version;
+
+                    // push search path to starting item
+
+                    NodeRef node = tree.root;
+                    while (node != tree.Null)
+                    {
+
+                        int c;
+                        {
+                            if (!startKeyedOrIndexed)
+                            {
+                                c = forward ? -1 : 1;
+                            }
+                            else
+                            {
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                                c = tree.comparer.Compare(startKey, tree.nodes[node].key);
+                            }
+                        }
+
+                        if ((forward && (c <= 0)) || (!forward && (c >= 0)))
+                        {
+                            stack.Push(new STuple<NodeRef>(
+                                node));
+                        }
+
+                        if (c == 0)
+                        {
+
+                            // successor not needed for forward traversal
+                            if (forward)
+                            {
+                                break;
+                            }
+                            // successor not needed for case where xLength always == 1
+                            /*[Feature(Feature.Dict, Feature.Rank)]*/
+                            break;
+                        }
+
+                        if (c < 0)
+                        {
+
+                            node = tree.nodes[node].left;
+                        }
+                        else
+                        {
+                            Debug.Assert(c >= 0);
+                            node = tree.nodes[node].right;
+                        }
+                    }
+
+                    Advance();
                 }
             }
 
             private void Advance()
             {
-                if (this.version != tree.version)
+                unchecked
                 {
-                    throw new InvalidOperationException();
+                    if (this.treeVersion != tree.version)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    currentNode = leadingNode;
+
+                    leadingNode = tree.Null;
+
+                    if (stack.Count == 0)
+                    {
+                        return;
+                    }
+
+                    STuple<NodeRef> cursor
+                        = stack.Pop();
+
+                    leadingNode = cursor.Item1;
+
+                    NodeRef node = forward ? tree.nodes[leadingNode].right : tree.nodes[leadingNode].left;
+                    while (node != tree.Null)
+                    {
+
+                        stack.Push(new STuple<NodeRef>(
+                            node));
+                        node = forward ? tree.nodes[node].left : tree.nodes[node].right;
+                    }
                 }
-
-                currentNode = nextNode;
-
-                nextNode = tree.Null;
-
-                if (stack.Count == 0)
-                {
-                    return;
-                }
-
-                STuple<NodeRef> cursor
-                    = stack.Pop();
-
-                nextNode = cursor.Item1;
-
-                PushSuccessor(
-                    tree.nodes[nextNode].right);
             }
         }
 

@@ -39,10 +39,10 @@ namespace TreeLibTest
         private void Validate<KeyType, ValueType>(IOrderedMap<int, float>[] collections) where KeyType : IComparable<KeyType> where ValueType : IComparable<ValueType>
         {
             uint count = UInt32.MaxValue;
-            KeyValuePair<KeyType, ValueType>[] items = null;
+            EntryMap<KeyType, ValueType>[] items = null;
             for (int i = 0; i < collections.Length; i++)
             {
-                KeyValuePair<KeyType, ValueType>[] items1 = null;
+                EntryMap<KeyType, ValueType>[] items1 = null;
 
                 ISimpleTreeInspection<KeyType, ValueType> simpleInspector;
                 if ((items1 == null) && (simpleInspector = collections[i] as ISimpleTreeInspection<KeyType, ValueType>) != null)
@@ -107,7 +107,7 @@ namespace TreeLibTest
 
         private void ContainsKeyAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // existing
@@ -140,7 +140,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 description = String.Format("ContainsKey (missing) [{0}]", key);
                 for (int i = 0; i < collections.Length; i++)
                 {
@@ -162,7 +162,7 @@ namespace TreeLibTest
 
         private void SetOrAddValueAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // add existing
@@ -196,7 +196,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 float value = (float)rnd.NextDouble();
                 description = String.Format("SetOrAddValue (new) [{0}, {1}]", key, value);
                 for (int i = 0; i < collections.Length; i++)
@@ -219,7 +219,7 @@ namespace TreeLibTest
 
         private void TryAddAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // add existing
@@ -253,7 +253,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 float value = (float)rnd.NextDouble();
                 description = String.Format("TryAdd (new) [{0}, {1}]", key, value);
                 for (int i = 0; i < collections.Length; i++)
@@ -276,7 +276,7 @@ namespace TreeLibTest
 
         private void TryRemoveAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // remove existing
@@ -309,7 +309,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 description = String.Format("TryRemove (nonexisting) [{0}]", key);
                 for (int i = 0; i < collections.Length; i++)
                 {
@@ -331,7 +331,7 @@ namespace TreeLibTest
 
         private void TryGetValueAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // get existing
@@ -371,7 +371,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 description = String.Format("TryGetValue (nonexisting) [{0}]", key);
                 for (int i = 0; i < collections.Length; i++)
                 {
@@ -398,7 +398,7 @@ namespace TreeLibTest
 
         private void TrySetValueAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // set existing
@@ -432,7 +432,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 float value = (float)rnd.NextDouble();
                 description = String.Format("TrySetValue (nonexistent) [{0}, {1}]", key, value);
                 for (int i = 0; i < collections.Length; i++)
@@ -455,7 +455,7 @@ namespace TreeLibTest
 
         private void AddAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // add existing
@@ -490,7 +490,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 float value = (float)rnd.NextDouble();
                 description = String.Format("Add (new) [{0}, {1}]", key, value);
                 for (int i = 0; i < collections.Length; i++)
@@ -509,7 +509,7 @@ namespace TreeLibTest
 
         private void RemoveAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // remove existing
@@ -538,7 +538,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 description = String.Format("Remove (nonexisting) [{0}]", key);
                 for (int i = 0; i < collections.Length; i++)
                 {
@@ -561,7 +561,7 @@ namespace TreeLibTest
 
         private void GetValueAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // get existing
@@ -596,7 +596,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 description = String.Format("GetValue (nonexisting) [{0}]", key);
                 for (int i = 0; i < collections.Length; i++)
                 {
@@ -619,7 +619,7 @@ namespace TreeLibTest
 
         private void SetValueAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
         {
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if (rnd.Next(2) == 0)
             {
                 // set existing
@@ -649,7 +649,7 @@ namespace TreeLibTest
                 {
                     key = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(key, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 float value = (float)rnd.NextDouble();
                 description = String.Format("SetValue (nonexistent) [{0}, {1}]", key, value);
                 for (int i = 0; i < collections.Length; i++)
@@ -756,7 +756,7 @@ namespace TreeLibTest
             int queryKey;
             float queryValue;
 
-            KeyValuePair<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
             if ((rnd.Next(2) == 0) && (items.Length != 0))
             {
                 // with existing
@@ -773,7 +773,7 @@ namespace TreeLibTest
                 {
                     queryKey = rnd.Next(Int32.MinValue, Int32.MaxValue);
                 }
-                while (Array.BinarySearch(items, new KeyValuePair<int, float>(queryKey, 0), ReferenceMap<int, float>.Comparer) >= 0);
+                while (Array.BinarySearch(items, new EntryMap<int, float>(queryKey, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
                 description = String.Format("{0} (nonexisting) [{1}]", descriptionPrefix, queryKey);
             }
 
@@ -893,6 +893,12 @@ namespace TreeLibTest
             }
         }
 
+        private void EnumerateAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            int[] keys = Array.ConvertAll(((ISimpleTreeInspection<int, float>)collections[0]).ToArray(), delegate (EntryMap<int, float> item) { return item.Key; });
+            KeyedEnumerateAction<EntryMap<int, float>>(collections, rnd, ref description, TreeKind.Map, keys);
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -938,6 +944,8 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), NearestLessAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), NearestGreaterOrEqualAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), NearestGreaterAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(50      , 50      ), EnumerateAction),
             };
 
             return StochasticDriver(

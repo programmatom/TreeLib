@@ -619,7 +619,12 @@ namespace BuildTool
                     // TODO: disabled for now because class's interface list causes errors because inappropriate
                     // (non-facet) interfaces are still in tree.
                     {
-                        List<Diagnostic> errors = new List<Diagnostic>(semanticModel.GetDiagnostics().Where(delegate (Diagnostic candidate) { return (candidate.Severity >= DiagnosticSeverity.Error) && !String.Equals(candidate.Id, "CS0535"); }));
+                        string[] ignorable = new string[]
+                        {
+                            "CS0535", // 'class' does not implement interface member 'member'
+                            "CS0738", // 'class' does not implement interface member 'member' - not matching return type
+                        };
+                        List<Diagnostic> errors = new List<Diagnostic>(semanticModel.GetDiagnostics().Where(delegate (Diagnostic candidate) { return (candidate.Severity >= DiagnosticSeverity.Error) && !(Array.IndexOf(ignorable, candidate.Id) >= 0); }));
                         string[] linesForErrors = root.ToFullString().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
                         if (errors.Count != 0)
                         {

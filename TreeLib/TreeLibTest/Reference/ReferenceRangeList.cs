@@ -262,14 +262,107 @@ namespace TreeLibTest
         // IEnumerable
         //
 
+        private EntryRangeList Convert(EntryRangeMap<object> entry)
+        {
+            return new EntryRangeList(entry.Start, entry.Length);
+        }
+
         public IEnumerator<EntryRangeList> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return new AdaptEnumerator<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetEnumerator(),
+                Convert);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return new AdaptEnumeratorOld<EntryRangeList, EntryRangeMap<object>>(
+                ((IEnumerable)inner).GetEnumerator(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetEnumerable()
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetFastEnumerable()
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetFastEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetFastEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetFastEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetRobustEnumerable()
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetRobustEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetRobustEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetRobustEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetEnumerable(int startAt)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetEnumerable(int startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetFastEnumerable(int startAt)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetFastEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetFastEnumerable(int startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetFastEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetRobustEnumerable(int startAt)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetRobustEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRangeList> GetRobustEnumerable(int startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeList, EntryRangeMap<object>>(
+                inner.GetRobustEnumerable(startAt, forward),
+                Convert);
         }
     }
 }
