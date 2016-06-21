@@ -92,6 +92,7 @@ namespace TreeLib.Internal
 
 
     [ExcludeFromCodeCoverage]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public class ExcludeFromCodeCoverageAttribute : Attribute
     {
         public ExcludeFromCodeCoverageAttribute()
@@ -101,6 +102,7 @@ namespace TreeLib.Internal
 
 
     [ExcludeFromCodeCoverage]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static class Check
     {
         public static void Assert(bool condition, string message)
@@ -111,5 +113,12 @@ namespace TreeLib.Internal
                 throw new InvalidOperationException(message);
             }
         }
+    }
+
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public interface ISetValue<ValueType>
+    {
+        void SetValue(ValueType value, ushort version);
     }
 }

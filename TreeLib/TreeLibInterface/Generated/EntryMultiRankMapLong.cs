@@ -83,12 +83,32 @@ namespace TreeLib
         public long Count { get { return xLength; } }
 
 
-        public EntryMultiRankMapLong(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
+        [Payload(Payload.Value)]
+        private readonly ISetValue<ValueType> enumerator;
+        [Payload(Payload.Value)]
+        private readonly ushort version;
+
+        [Payload(Payload.Value)]
+        public void SetValue(ValueType value)
+        {
+            if (enumerator == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            enumerator.SetValue(value, version);
+        }
+
+
+        public EntryMultiRankMapLong(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] ushort version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
         {
             this.key = key;
             this.value = value;
             this.xStart = xStart;
             this.xLength = xLength;
+
+            this.enumerator = enumerator;
+            this.version = version;
         }
 
         public override bool Equals(object obj)

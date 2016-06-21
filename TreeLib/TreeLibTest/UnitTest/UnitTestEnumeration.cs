@@ -45,973 +45,1456 @@ namespace TreeLibTest
 
         private const int Seed = 1;
 
-        private delegate KeyType MakeNewKey<KeyType>(ParkAndMiller random, KeyType[] notFromThese);
-        private delegate ValueType MakeNewValue<ValueType>(ParkAndMiller random);
+        private readonly static int[] TestCaseSizes = new int[] { 0, 1, 2, 3, 5, 10, 31 };
 
-        private static int MakeIntKey(ParkAndMiller random, int[] notFromThese)
-        {
-            int key;
-            do
-            {
-                key = random.Next();
-            }
-            while ((notFromThese != null) && Array.BinarySearch(notFromThese, key, Comparer<int>.Default) >= 0);
-            return key;
-        }
-
-        private static float MakeFloatValue(ParkAndMiller random)
-        {
-            return .01f * random.Next();
-        }
-
-        private enum Kind { Map, List };
-
-        private enum RankKind { Rank, MultiRank };
-
-        private enum RangeKind { Range, Range2 };
-
-        private enum Width { Int, Long };
-
-        private enum EnumKind { Fast, Robust };
-
-        private class DefaultEnumeratorProxy<EntryType> : IEnumerable<EntryType>
-        {
-            private readonly object inner;
-
-            public DefaultEnumeratorProxy(object tree)
-            {
-                this.inner = tree;
-            }
-
-            public IEnumerator<EntryType> GetEnumerator()
-            {
-                return ((IEnumerable<EntryType>)inner).GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IEnumerable)inner).GetEnumerator();
-            }
-
-            public object Inner { get { return inner; } }
-        }
 
 
         //
-        // Map & Set
+        // Map & List, RankMap & RankList, MultiRankMap & MultiRankList
         //
 
-        private delegate IEnumerable<EntryType> GetEnumerable<EntryType>();
-        private void TestMapOrList<KeyType, ValueType, EntryType>(
+        private delegate void KeyedAddAction(object testTree, int key, float value, int count);
+        private delegate void KeyedRemoveAction(object testTree, int key);
+        private delegate bool KeyedContainsAction(object testTree, int key);
+
+        //
+
+        private static void MapKeyedAdd<KeyType, ValueType>(object testTree, KeyType key, ValueType value, int count) where KeyType : IComparable<KeyType>
+        {
+            ((IOrderedMap<KeyType, ValueType>)testTree).Add(key, value);
+        }
+
+        private static void MapKeyedRemove<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            ((IOrderedMap<KeyType, ValueType>)testTree).Remove(key);
+        }
+
+        private static bool MapKeyedContains<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            return ((IOrderedMap<KeyType, ValueType>)testTree).ContainsKey(key);
+        }
+
+        private static void ListKeyedAdd<KeyType, ValueType>(object testTree, KeyType key, ValueType value, int count) where KeyType : IComparable<KeyType>
+        {
+            ((IOrderedList<KeyType>)testTree).Add(key);
+        }
+
+        private static void ListKeyedRemove<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            ((IOrderedList<KeyType>)testTree).Remove(key);
+        }
+
+        private static bool ListKeyedContains<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            return ((IOrderedList<KeyType>)testTree).ContainsKey(key);
+        }
+
+        //
+
+        private static void RankMapKeyedAdd<KeyType, ValueType>(object testTree, KeyType key, ValueType value, int count) where KeyType : IComparable<KeyType>
+        {
+            ((IRankMap<KeyType, ValueType>)testTree).Add(key, value);
+        }
+
+        private static void RankMapKeyedRemove<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            ((IRankMap<KeyType, ValueType>)testTree).Remove(key);
+        }
+
+        private static bool RankMapKeyedContains<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            return ((IRankMap<KeyType, ValueType>)testTree).ContainsKey(key);
+        }
+
+        private static void RankListKeyedAdd<KeyType, ValueType>(object testTree, KeyType key, ValueType value, int count) where KeyType : IComparable<KeyType>
+        {
+            ((IRankList<KeyType>)testTree).Add(key);
+        }
+
+        private static void RankListKeyedRemove<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            ((IRankList<KeyType>)testTree).Remove(key);
+        }
+
+        private static bool RankListKeyedContains<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            return ((IRankList<KeyType>)testTree).ContainsKey(key);
+        }
+
+        //
+
+        private static void MultiRankMapKeyedAdd<KeyType, ValueType>(object testTree, KeyType key, ValueType value, int count) where KeyType : IComparable<KeyType>
+        {
+            ((IMultiRankMap<KeyType, ValueType>)testTree).Add(key, value, count);
+        }
+
+        private static void MultiRankMapKeyedRemove<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            ((IMultiRankMap<KeyType, ValueType>)testTree).Remove(key);
+        }
+
+        private static bool MultiRankMapKeyedContains<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            return ((IMultiRankMap<KeyType, ValueType>)testTree).ContainsKey(key);
+        }
+
+        private static void MultiRankListKeyedAdd<KeyType, ValueType>(object testTree, KeyType key, ValueType value, int count) where KeyType : IComparable<KeyType>
+        {
+            ((IMultiRankList<KeyType>)testTree).Add(key, count);
+        }
+
+        private static void MultiRankListKeyedRemove<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            ((IMultiRankList<KeyType>)testTree).Remove(key);
+        }
+
+        private static bool MultiRankListKeyedContains<KeyType, ValueType>(object testTree, KeyType key) where KeyType : IComparable<KeyType>
+        {
+            return ((IMultiRankList<KeyType>)testTree).ContainsKey(key);
+        }
+
+        //
+
+        private void TestMap<EntryType>(
             object testTree,
-            Kind kind,
-            EnumKind enumKind,
-            MakeNewKey<KeyType> makeKey,
-            MakeNewValue<ValueType> makeValue,
-            GetEnumerable<EntryType> getEnumerable)
-            where KeyType : IComparable<KeyType> where ValueType : IComparable<ValueType>
+            TreeKind treeKind,
+            KeyedAddAction addAction,
+            KeyedRemoveAction removeAction,
+            KeyedContainsAction containsKeyAction)
         {
-            IncrementIteration();
-            long startIteration = iteration;
-            IncrementIteration();
+            long startIteration = IncrementIteration();
 
             // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
             // sequence of keys (with uniform distribution). The unit test will use the same set of keys and therefore the
             // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
             ParkAndMiller random = new ParkAndMiller(Seed);
 
-            object[] emptyParameters = new object[0];
-            PropertyInfo keyAccessor = typeof(EntryType).GetProperty("Key");
-            PropertyInfo valueAccessor = kind == Kind.Map ? typeof(EntryType).GetProperty("Value") : null;
+            const int KeyIncrement = 100;
+            Debug.Assert(KeyIncrement % 2 == 0);
 
-            MethodInfo addMethod = testTree.GetType().GetMethod("Add");
-            MethodInfo removeMethod = testTree.GetType().GetMethod("Remove");
+            bool valueValid = (treeKind & TreeKind.AllValued) != 0;
+            bool countConst1 = (treeKind & TreeKind.AllUniRank) != 0;
+            bool countVariable = (treeKind & TreeKind.AllMultiRank) != 0;
 
-            IOrderedMap<KeyType, ValueType> reference = new ReferenceMap<KeyType, ValueType>();
-            for (int i = 0; i < 100; i++)
+            foreach (int size in TestCaseSizes)
             {
-                IncrementIteration();
-                long startIteration1 = iteration;
-                IncrementIteration();
+                // build benchmark
 
-                KeyValuePair<KeyType, ValueType>[] referenceEntries = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray();
-
-                int n = 0;
-                foreach (EntryType entry in getEnumerable())
+                BigEntry<int, float>[] master = new BigEntry<int, float>[size];
+                for (int i = 0; i < master.Length; i++)
                 {
-                    TestTrue("enumeration", delegate () { return n < i; });
-
-                    KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare(referenceEntries[n].Key, entryKey); });
-                    if (kind == Kind.Map)
-                    {
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare(referenceEntries[n].Value, entryValue); });
-                    }
-
-                    n++;
+                    master[i] = new BigEntry<int, float>(
+                        KeyIncrement * (i + 1),
+                        valueValid ? i * .1f : 0f,
+                        countConst1 ? 1 : (countVariable ? random.Next() % 100 + 1 : 0));
                 }
-                TestTrue("enumeration", delegate () { return n == reference.Count; });
+                int nextKey = KeyIncrement * (size + 1);
+                RecalcStarts(master);
 
-                KeyType[] notFromThese = Array.ConvertAll(referenceEntries, delegate (KeyValuePair<KeyType, ValueType> item) { return item.Key; });
-                KeyType newKey = makeKey(random, notFromThese);
-                ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-
-                reference.Add(newKey, newValue);
-                addMethod.Invoke(testTree, kind == Kind.Map ? new object[] { newKey, newValue } : new object[] { newKey });
-            }
-
-            do
-            {
-                IncrementIteration();
-                long startIteration1 = iteration;
-                IncrementIteration();
-
-                KeyType keyToRemove = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray()[random.Next() % reference.Count].Key;
-
-                reference.Remove(keyToRemove);
-                removeMethod.Invoke(testTree, new object[] { keyToRemove });
-
-                KeyValuePair<KeyType, ValueType>[] referenceEntries = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray();
-
-                int n = 0;
-                foreach (EntryType entry in getEnumerable())
+                int[] keySequence = new int[size];
                 {
-                    TestTrue("enumeration", delegate () { return n < reference.Count; });
-
-                    KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare(referenceEntries[n].Key, entryKey); });
-                    if (kind == Kind.Map)
+                    bool[] entered = new bool[size];
+                    for (int i = 0; i < master.Length; i++)
                     {
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare(referenceEntries[n].Value, entryValue); });
-                    }
-
-                    n++;
-                }
-                TestTrue("enumeration", delegate () { return n == reference.Count; });
-
-                // test non-generic enumerator
-                foreach (IEnumerable enumerable in new IEnumerable[] { (IEnumerable)testTree, getEnumerable() })
-                {
-                    n = 0;
-                    foreach (object objEntry in enumerable)
-                    {
-                        EntryType entry = default(EntryType);
-                        TestNoThrow("enumeration", delegate () { entry = (EntryType)objEntry; });
-
-                        TestTrue("enumeration", delegate () { return n < reference.Count; });
-
-                        KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare(referenceEntries[n].Key, entryKey); });
-                        if (kind == Kind.Map)
+                        int index;
+                        do
                         {
-                            TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare(referenceEntries[n].Value, entryValue); });
+                            index = random.Next() % size;
+                        } while (entered[index]);
+
+                        keySequence[i] = index;
+                        entered[index] = true;
+                    }
+                }
+
+                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                foreach (int index in keySequence)
+                {
+                    addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                }
+
+
+                // test basic enumeration
+
+                {
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.Default, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.DefaultOld, treeKind, new EnumArgsProvider(), null/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.Enumerable, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                    };
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (EntryType entry in enumerators[e])
+                        {
+                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
                         }
-
-                        n++;
-                    }
-                    TestTrue("enumeration", delegate () { return n == reference.Count; });
-                }
-
-                // test boundary cases
-                {
-                    IEnumerator<EntryType> enumerator = getEnumerable().GetEnumerator();
-
-                    TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
-
-                    n = 0;
-                    while (enumerator.MoveNext())
-                    {
-                        TestNoThrow("enumeration", delegate () { string text = enumerator.Current.ToString(); });
-                        TestNoThrow("enumeration", delegate () { int hash = enumerator.Current.GetHashCode(); });
-
-                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(enumerator.Current); });
-
-                        n++;
-                    }
-                    TestTrue("enumeration", delegate () { return n == reference.Count; });
-
-                    TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
-
-                    TestFalse("enumeration", delegate () { return enumerator.MoveNext(); }); // extra MoveNext after termination
-                }
-
-            } while (reference.Count != 0);
-
-            // test interrupting enumerator with tree modifications, and while we're at it, Clear()
-            MethodInfo clearMethod = testTree.GetType().GetMethod("Clear");
-            for (int j = 0; j < 4; j++) // j needs to cover all switch cases below
-            {
-                KeyValuePair<KeyType, ValueType>[] referenceEntries;
-
-                reference.Clear();
-                clearMethod.Invoke(testTree, emptyParameters);
-
-                const int ItemCount = 100;
-                KeyType firstKey = default(KeyType);
-                KeyType newKey = default(KeyType);
-                for (int i = 0; i < ItemCount; i++)
-                {
-                    referenceEntries = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray();
-                    KeyType[] notFromThese = Array.ConvertAll(referenceEntries, delegate (KeyValuePair<KeyType, ValueType> item) { return item.Key; });
-                    newKey = makeKey(random, notFromThese);
-
-                    if (i == 0)
-                    {
-                        firstKey = newKey;
-                    }
-                    if (i < ItemCount - 1) // don't add last key - we'll use it later to test breaking the enumerator
-                    {
-                        reference.Add(newKey, default(ValueType));
-                        addMethod.Invoke(testTree, kind == Kind.Map ? new object[] { newKey, default(ValueType) } : new object[] { newKey });
+                        TestTrue("enum count", delegate () { return c == master.Length; });
+                        Validate(master, testEntries.ToArray());
                     }
                 }
-                Debug.Assert(!reference.ContainsKey(newKey));
 
-                referenceEntries = ((ISimpleTreeInspection<KeyType, ValueType>)reference).ToArray();
 
-                bool expectException = false;
-                try
+                // test reverse enumeration
+
                 {
-                    int n = 0;
-                    foreach (EntryType entry in getEnumerable())
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
                     {
-                        if (expectException)
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    BigEntry<int, float>[] reverseMaster = (BigEntry<int, float>[])master.Clone();
+                    Array.Reverse(reverseMaster);
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (EntryType entry in enumerators[e])
                         {
-                            Fault(testTree, "Expected enumerator to throw but it didn't");
+                            TestTrue("enum overrun", delegate () { return c < reverseMaster.Length; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
                         }
+                        TestTrue("enum count", delegate () { return c == reverseMaster.Length; });
+                        Validate(reverseMaster, testEntries.ToArray());
+                    }
+                }
 
-                        TestTrue("enumeration", delegate () { return n < ItemCount; });
 
-                        KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare(referenceEntries[n].Key, entryKey); });
+                // test basic enumeration on non-generic interface
+                {
+                    IEnumerable[] enumerators = new IEnumerable[]
+                    {
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.Default, treeKind, new EnumArgsProvider(), null/*forward*/)),
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.DefaultOld, treeKind, new EnumArgsProvider(), null/*forward*/)),
 
-                        if (n == 3 * ItemCount / 4)
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.Enumerable, treeKind, new EnumArgsProvider(), null/*forward*/)),
+
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/)),
+
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/)),
+                    };
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (object o in enumerators[e])
                         {
-                            if (Array.FindIndex(new string[] { "Splay", "RedBlack", "AVL" }, delegate (string part) { return testTree.GetType().Name.Contains(part); }) < 0)
+                            EntryType entry = (EntryType)o;
+                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
+                        }
+                        TestTrue("enum count", delegate () { return c == master.Length; });
+                        Validate(master, testEntries.ToArray());
+                    }
+                }
+
+
+                // test key-constrained forward enumeration
+
+                for (int testKey = KeyIncrement / 2; testKey <= nextKey; testKey += KeyIncrement / 2)
+                {
+                    long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerable, treeKind, new EnumKeyedArgsProvider<int>(testKey), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableBidir, treeKind, new EnumKeyedArgsProvider<int>(testKey), true/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableFast, treeKind, new EnumKeyedArgsProvider<int>(testKey), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableFastBidir, treeKind, new EnumKeyedArgsProvider<int>(testKey), true/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableRobust, treeKind, new EnumKeyedArgsProvider<int>(testKey), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableRobustBidir, treeKind, new EnumKeyedArgsProvider<int>(testKey), true/*forward*/),
+                    };
+
+                    List<BigEntry<int, float>> filteredMaster = new List<BigEntry<int, float>>(master);
+                    filteredMaster.RemoveAll(delegate (BigEntry<int, float> candidate) { return candidate.key < testKey; });
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (EntryType entry in enumerators[e])
+                        {
+                            TestTrue("enum overrun", delegate () { return c < filteredMaster.Count; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
+                        }
+                        TestTrue("enum count", delegate () { return c == filteredMaster.Count; });
+                        Validate(filteredMaster.ToArray(), testEntries.ToArray());
+                    }
+                }
+
+
+                // test key-constrained reverse enumeration
+
+                for (int testKey = KeyIncrement / 2; testKey <= nextKey; testKey += KeyIncrement / 2)
+                {
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableBidir, treeKind, new EnumKeyedArgsProvider<int>(testKey), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableFastBidir, treeKind, new EnumKeyedArgsProvider<int>(testKey), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.KeyedEnumerableRobustBidir, treeKind, new EnumKeyedArgsProvider<int>(testKey), false/*forward*/),
+                    };
+
+                    List<BigEntry<int, float>> filteredReversedMaster = new List<BigEntry<int, float>>(master);
+                    filteredReversedMaster.RemoveAll(delegate (BigEntry<int, float> candidate) { return candidate.key > testKey; });
+                    filteredReversedMaster.Reverse();
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (EntryType entry in enumerators[e])
+                        {
+                            TestTrue("enum overrun", delegate () { return c < filteredReversedMaster.Count; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
+                        }
+                        TestTrue("enum count", delegate () { return c == filteredReversedMaster.Count; });
+                        Validate(filteredReversedMaster.ToArray(), testEntries.ToArray());
+                    }
+                }
+
+
+                // test boundary cases (non-keyed cases only)
+
+                {
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.Default, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.DefaultOld, treeKind, new EnumArgsProvider(), null/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.Enumerable, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        IEnumerator<EntryType> enumerator = enumerators[e].GetEnumerator();
+
+                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
+
+                        int c = 0;
+                        while (enumerator.MoveNext())
+                        {
+                            TestNoThrow("enumeration", delegate () { string text = enumerator.Current.ToString(); });
+                            TestNoThrow("enumeration", delegate () { int hash = enumerator.Current.GetHashCode(); });
+
+                            TestTrue("enumeration", delegate () { return enumerator.Current.Equals(enumerator.Current); });
+
+                            c++;
+                        }
+                        TestTrue("enumeration", delegate () { return c == master.Length; });
+
+                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
+
+                        TestFalse("enumeration", delegate () { return enumerator.MoveNext(); }); // extra MoveNext after termination
+                    }
+                }
+
+
+                // test interrupting enumerator with tree modifications, and while we're at it, Clear()
+                // (non-keyed cases only)
+
+                if (size != 0)
+                {
+                    IEnumerable<EntryType>[] enumeratorsFastForward = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                    };
+
+                    IEnumerable<EntryType>[] enumeratorsFastReverse = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    IEnumerable<EntryType>[] enumeratorsRobustForward = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                    };
+
+                    IEnumerable<EntryType>[] enumeratorsRobustReverse = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    foreach (IEnumerable<EntryType>[] mode in new IEnumerable<EntryType>[][]
+                        { enumeratorsFastForward, enumeratorsFastReverse, enumeratorsRobustForward, enumeratorsRobustReverse })
+                    {
+                        // FRAGILE:
+                        bool forward = (mode == enumeratorsFastForward) || (mode == enumeratorsRobustForward);
+                        bool robust = (mode == enumeratorsRobustForward) || (mode == enumeratorsRobustReverse);
+
+                        bool shouldThrowOnChange = !robust;
+
+                        // test add during enumeration
+
+                        int actionPoint = size / 2;
+                        int actionKey = forward ? master[actionPoint].key : master[master.Length - 1 - actionPoint].key;
+                        for (int addKeyIndex = 0; addKeyIndex <= size; addKeyIndex++)
+                        {
+                            int addKey = addKeyIndex * KeyIncrement + 50;
+                            int addCount = countConst1 ? 1 : (countVariable ? random.Next() % 100 + 1 : 0);
+                            for (int e = 0; e < mode.Length; e++)
                             {
-                                Fault(getEnumerable(), "Object 'testTree' does not conform to the expected set of types");
+                                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                foreach (int index in keySequence)
+                                {
+                                    addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                }
+
+                                List<BigEntry<int, float>> addedMaster = new List<BigEntry<int, float>>(master);
+                                int insertPoint = ~addedMaster.BinarySearch(new BigEntry<int, float>(addKey, 0), new BigEntryKeyComparer<int, float>());
+                                Debug.Assert(insertPoint >= 0);
+                                if ((forward && (actionPoint < insertPoint)) || (!forward && (master.Length - 1 - actionPoint >= insertPoint)))
+                                {
+                                    addedMaster.Insert(insertPoint, new BigEntry<int, float>(addKey, 0f, addCount));
+                                }
+                                if (!forward)
+                                {
+                                    addedMaster.Reverse();
+                                }
+                                ZeroIndexes(addedMaster);
+
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
+                                    bool added = false;
+                                    foreach (EntryType entry in mode[e])
+                                    {
+                                        if (added && shouldThrowOnChange)
+                                        {
+                                            Fault(testTree, "Enumerator was expected to throw and didn't");
+                                        }
+
+                                        TestTrue("enum overrun", delegate () { return c < Math.Max(master.Length, addedMaster.Count); });
+
+                                        BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                        entries.Add(bigEntry);
+
+                                        if (c == actionPoint)
+                                        {
+                                            Debug.Assert(actionKey == bigEntry.key);
+                                            if (forward)
+                                            {
+                                                Debug.Assert((addedMaster.Count == master.Length) == (addKey < bigEntry.key));
+                                            }
+                                            else
+                                            {
+                                                Debug.Assert((addedMaster.Count == master.Length) == (addKey > bigEntry.key));
+                                            }
+
+                                            added = true;
+                                            TestNoThrow("enum-add", delegate () { addAction(testTree, addKey, default(float), addCount); });
+                                        }
+
+                                        c++;
+                                    }
+                                    if (added && shouldThrowOnChange)
+                                    {
+                                        Fault(testTree, "Enumerator was expected to throw and didn't");
+                                    }
+                                    TestTrue("enum count", delegate () { return c == addedMaster.Count; });
+                                    ZeroIndexes(entries); // TODO: check that ranks of post-insertion higher-keyed items change as expected
+                                    Validate(addedMaster.ToArray(), entries.ToArray());
+                                }
+                                catch (InvalidOperationException) when (shouldThrowOnChange)
+                                {
+                                    // expected
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
+                            }
+                        }
+
+                        // test remove during enumeration
+
+                        for (int removeKeyIndex = 0; removeKeyIndex < size; removeKeyIndex++)
+                        {
+                            for (int e = 0; e < mode.Length; e++)
+                            {
+                                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                foreach (int index in keySequence)
+                                {
+                                    addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                }
+
+                                List<BigEntry<int, float>> removedMaster = new List<BigEntry<int, float>>(master);
+                                int removeCount = master[removeKeyIndex].xLength;
+                                if ((forward && (actionPoint < removeKeyIndex)) || (!forward && (master.Length - 1 - actionPoint > removeKeyIndex)))
+                                {
+                                    removedMaster.RemoveAt(removeKeyIndex);
+                                }
+                                if (!forward)
+                                {
+                                    removedMaster.Reverse();
+                                }
+                                ZeroIndexes(removedMaster);
+
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
+                                    bool removed = false;
+                                    foreach (EntryType entry in mode[e])
+                                    {
+                                        if (removed && shouldThrowOnChange)
+                                        {
+                                            Fault(testTree, "Enumerator was expected to throw and didn't");
+                                        }
+
+                                        TestTrue("enum overrun", delegate () { return c < Math.Max(master.Length, removedMaster.Count); });
+
+                                        BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                        entries.Add(bigEntry);
+
+                                        if (c == actionPoint)
+                                        {
+                                            Debug.Assert(actionKey == bigEntry.key);
+                                            if (forward)
+                                            {
+                                                Debug.Assert((removedMaster.Count == master.Length)
+                                                    == (master[removeKeyIndex].key <= bigEntry.key));
+                                            }
+                                            else
+                                            {
+                                                Debug.Assert((removedMaster.Count == master.Length)
+                                                    == (master[removeKeyIndex].key >= bigEntry.key));
+                                            }
+
+                                            removed = true;
+                                            TestNoThrow("enum-add", delegate () { removeAction(testTree, master[removeKeyIndex].key); });
+                                        }
+
+                                        c++;
+                                    }
+                                    if (removed && shouldThrowOnChange)
+                                    {
+                                        Fault(testTree, "Enumerator was expected to throw and didn't");
+                                    }
+                                    TestTrue("enum count", delegate () { return c == removedMaster.Count; });
+                                    ZeroIndexes(entries); // TODO: check that ranks of post-insertion higher-keyed items change as expected
+                                    Validate(removedMaster.ToArray(), entries.ToArray());
+                                }
+                                catch (InvalidOperationException) when (shouldThrowOnChange)
+                                {
+                                    // expected
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
+                            }
+                        }
+
+                        // test query during enumeration
+
+                        {
+                            testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                            foreach (int index in keySequence)
+                            {
+                                addAction(testTree, master[index].key, master[index].value, master[index].xLength);
                             }
 
-                            switch (j) // increase limit of 'j' loop if cases are added
+                            int queryKeyIndex = size / 2;
+
+                            bool queryShouldThrowOnChange = ((treeKind & TreeKind.Splay) != 0) && !robust;
+
+                            for (int e = 0; e < mode.Length; e++)
                             {
-                                case 0: // no tree changes
-                                    break;
-                                case 1: // add node - should throw
-                                    expectException = enumKind == EnumKind.Fast;
-                                    addMethod.Invoke(testTree, kind == Kind.Map ? new object[] { newKey, default(ValueType) } : new object[] { newKey });
-                                    break;
-                                case 2: // remove node - should throw
-                                    expectException = enumKind == EnumKind.Fast;
-                                    removeMethod.Invoke(testTree, new object[] { firstKey });
-                                    break;
-                                case 3: // query node - should not throw unless splay tree
-                                    expectException = (enumKind == EnumKind.Fast) && testTree.GetType().Name.Contains("Splay");
-                                    testTree.GetType().GetMethod("ContainsKey").Invoke(testTree, new object[] { newKey });
-                                    break;
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
+                                    bool queried = false;
+                                    foreach (EntryType entry in mode[e])
+                                    {
+                                        if (queryShouldThrowOnChange & queried)
+                                        {
+                                            Fault(testTree, "Enumerator was expected to throw and didn't");
+                                        }
+
+                                        TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                        entries.Add(new BigEntry<int, float>(entry, treeKind));
+
+                                        if (c == actionPoint)
+                                        {
+                                            queried = true;
+                                            TestNoThrow("enum-add", delegate () { bool f = containsKeyAction(testTree, master[queryKeyIndex].key); });
+                                        }
+
+                                        c++;
+                                    }
+                                    if (queried && queryShouldThrowOnChange)
+                                    {
+                                        Fault(testTree, "Enumerator was expected to throw and didn't");
+                                    }
+                                    TestTrue("enum count", delegate () { return c == master.Length; });
+                                    if (!forward)
+                                    {
+                                        entries.Reverse();
+                                    }
+                                    Validate(master, entries.ToArray());
+                                }
+                                catch (InvalidOperationException) when (queryShouldThrowOnChange)
+                                {
+                                    // expected
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
                             }
                         }
-                        n++;
+
+                        // test enumerator's SetValue
+
+                        if (!testTree.GetType().Name.Equals("AdaptListToMap`2")
+                            && !testTree.GetType().Name.Equals("AdaptMultiRankListToMultiRankMap`2")
+                            && !testTree.GetType().Name.Equals("AdaptRankListToRankMap`2"))
+                        {
+                            PropertyInfo getValueProperty = typeof(EntryType).GetProperty("Value");
+                            MethodInfo setValueMethod = typeof(EntryType).GetMethod("SetValue");
+                            if (setValueMethod != null)
+                            {
+                                for (int e = 0; e < mode.Length; e++)
+                                {
+                                    testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                    foreach (int index in keySequence)
+                                    {
+                                        addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                    }
+
+                                    long startIteration1 = IncrementIteration(true/*setLast*/);
+                                    try
+                                    {
+                                        int c = 0;
+                                        List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
+                                        foreach (EntryType entry in mode[e])
+                                        {
+                                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                            BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                            entries.Add(bigEntry);
+
+                                            setValueMethod.Invoke(entry, new object[] { bigEntry.value + .5f });
+
+                                            c++;
+                                        }
+                                        TestTrue("enum count", delegate () { return c == master.Length; });
+                                        if (!forward)
+                                        {
+                                            entries.Reverse();
+                                        }
+                                        Validate(master, entries.ToArray());
+
+                                        BigEntry<int, float>[] updatedMaster = (BigEntry<int, float>[])master.Clone();
+                                        for (int i = 0; i < updatedMaster.Length; i++)
+                                        {
+                                            updatedMaster[i] = new BigEntry<int, float>(
+                                                updatedMaster[i].key,
+                                                updatedMaster[i].value + .5f,
+                                                updatedMaster[i].xStart,
+                                                updatedMaster[i].xLength,
+                                                updatedMaster[i].yStart,
+                                                updatedMaster[i].yLength);
+                                        }
+
+                                        c = 0;
+                                        entries.Clear();
+                                        foreach (EntryType entry in mode[e])
+                                        {
+                                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                            BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                            entries.Add(bigEntry);
+
+                                            c++;
+                                        }
+                                        TestTrue("enum count", delegate () { return c == master.Length; });
+                                        if (!forward)
+                                        {
+                                            entries.Reverse();
+                                        }
+                                        Validate(updatedMaster, entries.ToArray());
+                                    }
+                                    catch (UnitTestFailureException)
+                                    {
+                                        throw;
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                    }
+
+
+                                    if (size >= 2)
+                                    {
+                                        // try update on enumerator after enumerator has advanced
+
+                                        {
+                                            long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                                            testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                            foreach (int index in keySequence)
+                                            {
+                                                addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                            }
+
+                                            IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
+                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                            EntryType entry = default(EntryType);
+                                            TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
+                                            int masterIndex = forward ? 0 : master.Length - 1;
+                                            TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
+                                            TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 1f }); });
+                                            TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 2f }); });
+                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                            TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                        }
+
+                                        // try update on enumerator after tree was modified
+
+                                        if (robust)
+                                        {
+                                            long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                                            testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                            foreach (int index in keySequence)
+                                            {
+                                                addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                            }
+
+                                            IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
+                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                            EntryType entry = default(EntryType);
+                                            TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
+                                            int masterIndex = forward ? 0 : master.Length - 1;
+                                            TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
+                                            addAction(testTree, -100, 0f, 1);
+                                            if (robust)
+                                            {
+                                                TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                            }
+                                            else
+                                            {
+                                                TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                            }
+                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); }); // sanity check
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    if (expectException)
-                    {
-                        Fault(testTree, "Expected enumerator to throw but it didn't");
-                    }
-                }
-                catch (InvalidOperationException) when (expectException)
-                {
-                    // expected
                 }
             }
         }
 
+
         //
-        // RankMap & RankList
+        // RangeMap & RangeList
         //
 
-        private void TestRankMapOrSet<KeyType, ValueType, EntryType>(
-            object testTree,
-            Kind kind,
-            RankKind rankKind,
-            EnumKind enumKind,
-            MakeNewKey<KeyType> makeKey,
-            MakeNewValue<ValueType> makeValue,
-            GetEnumerable<EntryType> getEnumerable)
-            where KeyType : IComparable<KeyType> where ValueType : IComparable<ValueType>
+        private delegate void IndexedInsertAction(object testTree, int xStart, int xLength, int yLength, float value);
+        private delegate void IndexedDeleteAction(object testTree, int xStart);
+
+        //
+
+        private static void Range2MapInsert<ValueType>(object testTree, int start, int xLength, int yLength, ValueType value)
         {
-            IncrementIteration();
-            long startIteration = iteration;
-            IncrementIteration();
+            ((IRange2Map<ValueType>)testTree).Insert(start, Side.X, xLength, yLength, value);
+        }
+
+        private static void Range2MapDelete<ValueType>(object testTree, int start)
+        {
+            ((IRange2Map<ValueType>)testTree).Delete(start, Side.X);
+        }
+
+        private static void Range2ListInsert<ValueType>(object testTree, int start, int xLength, int yLength, ValueType value)
+        {
+            ((IRange2List)testTree).Insert(start, Side.X, xLength, yLength);
+        }
+
+        private static void Range2ListDelete<ValueType>(object testTree, int start)
+        {
+            ((IRange2List)testTree).Delete(start, Side.X);
+        }
+
+        //
+
+        private static void RangeMapInsert<ValueType>(object testTree, int start, int xLength, int yLength, ValueType value)
+        {
+            ((IRangeMap<ValueType>)testTree).Insert(start, xLength, value);
+        }
+
+        private static void RangeMapDelete<ValueType>(object testTree, int start)
+        {
+            ((IRangeMap<ValueType>)testTree).Delete(start);
+        }
+
+        private static void RangeListInsert<ValueType>(object testTree, int start, int xLength, int yLength, ValueType value)
+        {
+            ((IRangeList)testTree).Insert(start, xLength);
+        }
+
+        private static void RangeListDelete<ValueType>(object testTree, int start)
+        {
+            ((IRangeList)testTree).Delete(start);
+        }
+
+        //
+
+        private void TestRangeMap<EntryType>(
+            object testTree,
+            TreeKind treeKind,
+            IndexedInsertAction insertAction,
+            IndexedDeleteAction deleteAction)
+        {
+            long startIteration = IncrementIteration();
 
             // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
             // sequence of keys (with uniform distribution). The unit test will use the same set of keys and therefore the
             // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
             ParkAndMiller random = new ParkAndMiller(Seed);
 
-            object[] emptyParameters = new object[0];
-            PropertyInfo keyAccessor = typeof(EntryType).GetProperty("Key");
-            PropertyInfo valueAccessor = kind == Kind.Map ? typeof(EntryType).GetProperty("Value") : null;
-            PropertyInfo startAccessor = typeof(EntryType).GetProperty("Rank");
-            PropertyInfo lengthAccessor = rankKind == RankKind.MultiRank ? typeof(EntryType).GetProperty("Count") : null;
+            const int KeyIncrement = 100;
+            Debug.Assert(KeyIncrement % 2 == 0);
 
-            MethodInfo addMethod = testTree.GetType().GetMethod("Add");
-            MethodInfo removeMethod = testTree.GetType().GetMethod("Remove");
+            bool valueValid = (treeKind & TreeKind.AllValued) != 0;
+            bool range2Valid = (treeKind & TreeKind.AllIndexed2) != 0;
 
-            IMultiRankMap<KeyType, ValueType> reference = new ReferenceMultiRankMap<KeyType, ValueType>();
-            for (int i = 0; i < 100; i++)
+            EnumKind indexedEnumerable = range2Valid ? EnumKind.Indexed2Enumerable : EnumKind.IndexedEnumerable;
+            EnumKind indexedEnumerableFast = range2Valid ? EnumKind.Indexed2EnumerableFast : EnumKind.IndexedEnumerableFast;
+            EnumKind indexedEnumerableRobust = range2Valid ? EnumKind.Indexed2EnumerableRobust : EnumKind.IndexedEnumerableRobust;
+            EnumKind indexedEnumerableBidir = range2Valid ? EnumKind.Indexed2EnumerableBidir : EnumKind.IndexedEnumerableBidir;
+            EnumKind indexedEnumerableFastBidir = range2Valid ? EnumKind.Indexed2EnumerableFastBidir : EnumKind.IndexedEnumerableFastBidir;
+            EnumKind indexedEnumerableRobustBidir = range2Valid ? EnumKind.Indexed2EnumerableRobustBidir : EnumKind.IndexedEnumerableRobustBidir;
+
+            foreach (int size in TestCaseSizes)
             {
-                IncrementIteration();
-                long startIteration1 = iteration;
-                IncrementIteration();
+                // build benchmark
 
-                MultiRankMapEntry[] referenceEntries = ((INonInvasiveMultiRankMapInspection)reference).GetRanks();
-
-                int n = 0;
-                foreach (EntryType entry in getEnumerable())
+                BigEntry<int, float>[] master = new BigEntry<int, float>[size];
+                for (int i = 0; i < master.Length; i++)
                 {
-                    TestTrue("enumeration", delegate () { return n < i; });
-
-                    KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                    object startValueRaw = startAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    int startValue = startValueRaw.GetType().IsAssignableFrom(typeof(long)) ? (int)(long)startValueRaw : (int)startValueRaw; // must unbox first, then coerce
-                    int lengthValue = 1;
-                    if (rankKind == RankKind.MultiRank)
-                    {
-                        object lengthValueRaw = lengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        lengthValue = lengthValueRaw.GetType().IsAssignableFrom(typeof(long)) ? (int)(long)lengthValueRaw : (int)lengthValueRaw; // must unbox first, then coerce
-                    }
-
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare((KeyType)referenceEntries[n].key, entryKey); });
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].rank.start.CompareTo(startValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].rank.length.CompareTo(lengthValue); });
-
-                    n++;
+                    master[i] = new BigEntry<int, float>(
+                        0,
+                        valueValid ? i * .1f : 0f,
+                        0,
+                        random.Next() % 100 + 50,
+                        0,
+                        range2Valid ? random.Next() % 100 + 50 : 0);
                 }
-                TestTrue("enumeration", delegate () { return n == reference.Count; });
+                RecalcStarts(master);
+                int xExtent = master.Length != 0 ? master[master.Length - 1].xStart + master[master.Length - 1].xLength : 0;
+                int yExtent = master.Length != 0 ? master[master.Length - 1].yStart + master[master.Length - 1].yLength : 0;
 
-                KeyType[] notFromThese = Array.ConvertAll(referenceEntries, delegate (MultiRankMapEntry item) { return (KeyType)item.key; });
-                KeyType newKey = makeKey(random, notFromThese);
-                ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-                int newLength = rankKind == RankKind.MultiRank ? random.Next() % 100 + 1 : 1;
-
-                reference.Add(newKey, newValue, newLength);
-                addMethod.Invoke(
-                    testTree,
-                    kind == Kind.Map
-                        ? (rankKind == RankKind.MultiRank ? new object[] { newKey, newValue, newLength } : new object[] { newKey, newValue })
-                        : (rankKind == RankKind.MultiRank ? new object[] { newKey, newLength } : new object[] { newKey }));
-            }
-
-            do
-            {
-                IncrementIteration();
-                long startIteration1 = iteration;
-                IncrementIteration();
-
-                KeyType keyToRemove = (KeyType)((INonInvasiveMultiRankMapInspection)reference).GetRanks()[random.Next() % reference.Count].key;
-
-                reference.Remove(keyToRemove);
-                removeMethod.Invoke(testTree, new object[] { keyToRemove });
-
-                MultiRankMapEntry[] referenceEntries = ((INonInvasiveMultiRankMapInspection)reference).GetRanks();
-
-                int n = 0;
-                foreach (EntryType entry in getEnumerable())
+                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                for (int i = 0; i < master.Length; i++)
                 {
-                    TestTrue("enumeration", delegate () { return n < reference.Count; });
-
-                    KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                    object startValueRaw = startAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    int startValue = startValueRaw.GetType().IsAssignableFrom(typeof(long)) ? (int)(long)startValueRaw : (int)startValueRaw; // must unbox first, then coerce
-                    int lengthValue = 1;
-                    if (rankKind == RankKind.MultiRank)
-                    {
-                        object lengthValueRaw = lengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        lengthValue = lengthValueRaw.GetType().IsAssignableFrom(typeof(long)) ? (int)(long)lengthValueRaw : (int)lengthValueRaw; // must unbox first, then coerce
-                    }
-
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare((KeyType)referenceEntries[n].key, entryKey); });
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].rank.start.CompareTo(startValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].rank.length.CompareTo(lengthValue); });
-
-                    n++;
+                    insertAction(testTree, master[i].xStart, master[i].xLength, master[i].yLength, master[i].value);
                 }
-                TestTrue("enumeration", delegate () { return n == reference.Count; });
 
-                // test non-generic enumerator
-                foreach (IEnumerable enumerable in new IEnumerable[] { (IEnumerable)testTree, getEnumerable() })
+
+                // test basic enumeration
+
                 {
-                    n = 0;
-                    foreach (object objEntry in enumerable)
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
                     {
-                        EntryType entry = default(EntryType);
-                        TestNoThrow("enumeration", delegate () { entry = (EntryType)objEntry; });
+                        GetEnumerator<EntryType>(testTree, EnumKind.Default, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.DefaultOld, treeKind, new EnumArgsProvider(), null/*forward*/),
 
-                        TestTrue("enumeration", delegate () { return n < reference.Count; });
+                        GetEnumerator<EntryType>(testTree, EnumKind.Enumerable, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
 
-                        KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                        object startValueRaw = startAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        int startValue = startValueRaw.GetType().IsAssignableFrom(typeof(long)) ? (int)(long)startValueRaw : (int)startValueRaw; // must unbox first, then coerce
-                        int lengthValue = 1;
-                        if (rankKind == RankKind.MultiRank)
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                    };
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (EntryType entry in enumerators[e])
                         {
-                            object lengthValueRaw = lengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                            lengthValue = lengthValueRaw.GetType().IsAssignableFrom(typeof(long)) ? (int)(long)lengthValueRaw : (int)lengthValueRaw; // must unbox first, then coerce
+                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
                         }
-
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare((KeyType)referenceEntries[n].key, entryKey); });
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].rank.start.CompareTo(startValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].rank.length.CompareTo(lengthValue); });
-
-                        n++;
-                    }
-                    TestTrue("enumeration", delegate () { return n == reference.Count; });
-                }
-
-                // test boundary cases
-                {
-                    IEnumerator<EntryType> enumerator = getEnumerable().GetEnumerator();
-
-                    TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
-
-                    n = 0;
-                    while (enumerator.MoveNext())
-                    {
-                        n++;
-
-                        TestNoThrow("enumeration", delegate () { string text = enumerator.Current.ToString(); });
-                        TestNoThrow("enumeration", delegate () { int hash = enumerator.Current.GetHashCode(); });
-
-                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(enumerator.Current); });
-                    }
-                    TestTrue("enumeration", delegate () { return n == reference.Count; });
-
-                    TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
-
-                    TestFalse("enumeration", delegate () { return enumerator.MoveNext(); }); // extra MoveNext after termination
-                }
-
-            } while (reference.Count != 0);
-
-            // test interrupting enumerator with tree modifications, and while we're at it, Clear()
-            MethodInfo clearMethod = testTree.GetType().GetMethod("Clear");
-            for (int j = 0; j < 4; j++) // j needs to cover all switch cases below
-            {
-                const int Length = 1;
-                MultiRankMapEntry[] referenceEntries;
-
-                reference.Clear();
-                clearMethod.Invoke(testTree, emptyParameters);
-
-                const int ItemCount = 100;
-                KeyType firstKey = default(KeyType);
-                KeyType newKey = default(KeyType);
-                for (int i = 0; i < ItemCount; i++)
-                {
-                    referenceEntries = ((INonInvasiveMultiRankMapInspection)reference).GetRanks();
-                    KeyType[] notFromThese = Array.ConvertAll(referenceEntries, delegate (MultiRankMapEntry item) { return (KeyType)item.key; });
-                    newKey = makeKey(random, notFromThese);
-
-                    if (i == 0)
-                    {
-                        firstKey = newKey;
-                    }
-                    if (i < ItemCount - 1) // don't add last key - we'll use it later to test breaking the enumerator
-                    {
-                        reference.Add(newKey, default(ValueType), Length);
-                        addMethod.Invoke(
-                            testTree,
-                            kind == Kind.Map
-                                ? (rankKind == RankKind.MultiRank ? new object[] { newKey, default(ValueType), Length } : new object[] { newKey, default(ValueType) })
-                                : (rankKind == RankKind.MultiRank ? new object[] { newKey, Length } : new object[] { newKey }));
+                        TestTrue("enum count", delegate () { return c == master.Length; });
+                        Validate(master, testEntries.ToArray());
                     }
                 }
-                Debug.Assert(!reference.ContainsKey(newKey));
 
-                referenceEntries = ((INonInvasiveMultiRankMapInspection)reference).GetRanks();
 
-                bool expectException = false;
-                try
+                // test reverse enumeration
+
                 {
-                    int n = 0;
-                    foreach (EntryType entry in getEnumerable())
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
                     {
-                        if (expectException)
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    BigEntry<int, float>[] reverseMaster = (BigEntry<int, float>[])master.Clone();
+                    Array.Reverse(reverseMaster);
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (EntryType entry in enumerators[e])
                         {
-                            Fault(testTree, "Expected enumerator to throw but it didn't");
+                            TestTrue("enum overrun", delegate () { return c < reverseMaster.Length; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
                         }
+                        TestTrue("enum count", delegate () { return c == reverseMaster.Length; });
+                        Validate(reverseMaster, testEntries.ToArray());
+                    }
+                }
 
-                        TestTrue("enumeration", delegate () { return n < ItemCount; });
 
-                        KeyType entryKey = (KeyType)keyAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<KeyType>.Default.Compare((KeyType)referenceEntries[n].key, entryKey); });
+                // test basic enumeration on non-generic interface
+                {
+                    IEnumerable[] enumerators = new IEnumerable[]
+                    {
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.Default, treeKind, new EnumArgsProvider(), null/*forward*/)),
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.DefaultOld, treeKind, new EnumArgsProvider(), null/*forward*/)),
 
-                        if (n == 3 * ItemCount / 4)
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.Enumerable, treeKind, new EnumArgsProvider(), null/*forward*/)),
+
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/)),
+
+                        new OldEnumerableReverse<EntryType>(GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/)),
+                    };
+
+                    for (int e = 0; e < enumerators.Length; e++)
+                    {
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                        List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                        int c = 0;
+                        foreach (object o in enumerators[e])
                         {
-                            if (Array.FindIndex(new string[] { "Splay", "RedBlack", "AVL" }, delegate (string part) { return testTree.GetType().Name.Contains(part); }) < 0)
+                            EntryType entry = (EntryType)o;
+                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+                            testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                            c++;
+                        }
+                        TestTrue("enum count", delegate () { return c == master.Length; });
+                        Validate(master, testEntries.ToArray());
+                    }
+                }
+
+
+                // index-constrained
+
+                if (size != 0)
+                {
+                    foreach (Side side in range2Valid ? new Side[] { Side.X, Side.Y } : new Side[] { Side.X })
+                    {
+                        for (int testKeyCounter = 0; testKeyCounter < size * 2 + 1; testKeyCounter++)
+                        {
+                            int testStart;
+                            if (testKeyCounter == 0)
                             {
-                                Fault(getEnumerable(), "Object 'testTree' does not conform to the expected set of types");
+                                testStart = side == Side.X ? master[0].xStart - 1 : master[0].yStart - 1;
+                            }
+                            else if (testKeyCounter < size * 2)
+                            {
+                                if (testKeyCounter % 2 == 1)
+                                {
+                                    testStart = side == Side.X ? master[testKeyCounter / 2].xStart : master[testKeyCounter / 2].yStart;
+                                }
+                                else
+                                {
+                                    testStart = side == Side.X
+                                        ? (master[testKeyCounter / 2 - 1].xStart + master[testKeyCounter / 2].xStart) / 2
+                                        : (master[testKeyCounter / 2 - 1].yStart + master[testKeyCounter / 2].yStart) / 2;
+                                }
+                            }
+                            else
+                            {
+                                testStart = side == Side.X ? master[master.Length - 1].xStart + 1 : master[master.Length - 1].yStart + 1;
+                            }
+                            long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                            EnumArgsProvider argsProvider = range2Valid
+                                ? (EnumArgsProvider)new EnumIndexed2ArgsProvider(testStart, side)
+                                : (EnumArgsProvider)new EnumIndexedArgsProvider(testStart);
+
+
+                            // test index-constrained forward enumeration
+
+                            {
+                                IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
+                                {
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerable, treeKind, argsProvider, null/*forward*/),
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableBidir, treeKind, argsProvider, true/*forward*/),
+
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableFast, treeKind, argsProvider, null/*forward*/),
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableFastBidir, treeKind, argsProvider, true/*forward*/),
+
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableRobust, treeKind, argsProvider, null/*forward*/),
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableRobustBidir, treeKind, argsProvider, true/*forward*/),
+                                };
+
+                                List<BigEntry<int, float>> filteredMaster = new List<BigEntry<int, float>>(master);
+                                filteredMaster.RemoveAll(delegate (BigEntry<int, float> candidate)
+                                    { return (side == Side.X ? candidate.xStart : candidate.yStart) < testStart; });
+
+                                for (int e = 0; e < enumerators.Length; e++)
+                                {
+                                    long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                                    List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                                    int c = 0;
+                                    foreach (EntryType entry in enumerators[e])
+                                    {
+                                        TestTrue("enum overrun", delegate () { return c < filteredMaster.Count; });
+                                        testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                                        c++;
+                                    }
+                                    TestTrue("enum count", delegate () { return c == filteredMaster.Count; });
+                                    Validate(filteredMaster.ToArray(), testEntries.ToArray());
+                                }
                             }
 
-                            switch (j) // increase limit of 'j' loop if cases are added
+
+                            // test key-constrained reverse enumeration
+
                             {
-                                case 0: // no tree changes
-                                    break;
-                                case 1: // add node - should throw
-                                    expectException = enumKind == EnumKind.Fast;
-                                    addMethod.Invoke(
-                                        testTree,
-                                        kind == Kind.Map
-                                            ? (rankKind == RankKind.MultiRank ? new object[] { newKey, default(ValueType), Length } : new object[] { newKey, default(ValueType) })
-                                            : (rankKind == RankKind.MultiRank ? new object[] { newKey, Length } : new object[] { newKey }));
-                                    break;
-                                case 2: // remove node - should throw
-                                    expectException = enumKind == EnumKind.Fast;
-                                    removeMethod.Invoke(testTree, new object[] { firstKey });
-                                    break;
-                                case 3: // query node - should not throw unless splay tree
-                                    expectException = (enumKind == EnumKind.Fast) && testTree.GetType().Name.Contains("Splay");
-                                    testTree.GetType().GetMethod("ContainsKey").Invoke(testTree, new object[] { newKey });
-                                    break;
+                                IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
+                                {
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableBidir, treeKind, argsProvider, false/*forward*/),
+
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableFastBidir, treeKind, argsProvider, false/*forward*/),
+
+                                    GetEnumerator<EntryType>(testTree, indexedEnumerableRobustBidir, treeKind, argsProvider, false/*forward*/),
+                                };
+
+                                List<BigEntry<int, float>> filteredReversedMaster = new List<BigEntry<int, float>>(master);
+                                filteredReversedMaster.RemoveAll(delegate (BigEntry<int, float> candidate)
+                                    { return (side == Side.X ? candidate.xStart : candidate.yStart) > testStart; });
+                                filteredReversedMaster.Reverse();
+
+                                for (int e = 0; e < enumerators.Length; e++)
+                                {
+                                    long startIteration1 = IncrementIteration(true/*setLast*/);
+
+                                    List<BigEntry<int, float>> testEntries = new List<BigEntry<int, float>>();
+                                    int c = 0;
+                                    foreach (EntryType entry in enumerators[e])
+                                    {
+                                        TestTrue("enum overrun", delegate () { return c < filteredReversedMaster.Count; });
+                                        testEntries.Add(new BigEntry<int, float>(entry, treeKind));
+                                        c++;
+                                    }
+                                    TestTrue("enum count", delegate () { return c == filteredReversedMaster.Count; });
+                                    Validate(filteredReversedMaster.ToArray(), testEntries.ToArray());
+                                }
                             }
                         }
-                        n++;
-                    }
-                    if (expectException)
-                    {
-                        Fault(testTree, "Expected enumerator to throw but it didn't");
-                    }
-                }
-                catch (InvalidOperationException) when (expectException)
-                {
-                    // expected
-                }
-            }
-        }
-
-        //
-        // RankMap & RankList
-        //
-
-        private void TestRangeMapOrList<ValueType, EntryType>(
-            object testTree,
-            Kind kind,
-            RangeKind rangeKind,
-            Width width,
-            EnumKind enumKind,
-            MakeNewValue<ValueType> makeValue,
-            GetEnumerable<EntryType> getEnumerable)
-            where ValueType : IComparable<ValueType>
-        {
-            IncrementIteration();
-            long startIteration = iteration;
-            IncrementIteration();
-
-            // Although this appears to be "random", it is always seeded with the same value, so it always produces the same
-            // sequence of keys (with uniform distribution). The unit test will use the same set of keys and therefore the
-            // same code paths every time it is run. I.E. This is the most convenient way to generate a large set of test keys.
-            ParkAndMiller random = new ParkAndMiller(Seed);
-
-            object[] emptyParameters = new object[0];
-            PropertyInfo valueAccessor = kind == Kind.Map ? typeof(EntryType).GetProperty("Value") : null;
-            PropertyInfo xStartAccessor = typeof(EntryType).GetProperty(rangeKind == RangeKind.Range2 ? "XStart" : "Start");
-            PropertyInfo xLengthAccessor = typeof(EntryType).GetProperty(rangeKind == RangeKind.Range2 ? "XLength" : "Length");
-            PropertyInfo yStartAccessor = rangeKind == RangeKind.Range2 ? typeof(EntryType).GetProperty("YStart") : null;
-            PropertyInfo yLengthAccessor = rangeKind == RangeKind.Range2 ? typeof(EntryType).GetProperty("YLength") : null;
-
-            MethodInfo insertMethod = testTree.GetType().GetMethod("Insert");
-            MethodInfo deleteMethod = testTree.GetType().GetMethod("Delete");
-
-            IRange2Map<ValueType> reference = new ReferenceRange2Map<ValueType>();
-            for (int i = 0; i < 100; i++)
-            {
-                IncrementIteration();
-                long startIteration1 = iteration;
-                IncrementIteration();
-
-                Range2MapEntry[] referenceEntries = ((INonInvasiveRange2MapInspection)reference).GetRanges();
-                if (rangeKind == RangeKind.Range)
-                {
-                    for (int j = 0; j < referenceEntries.Length; j++)
-                    {
-                        referenceEntries[j].y.start = 0;
-                        referenceEntries[j].y.length = 0;
                     }
                 }
 
-                int n = 0;
-                foreach (EntryType entry in getEnumerable())
+
+                // test boundary cases (non-keyed cases only)
+
                 {
-                    TestTrue("enumeration", delegate () { return n < i; });
-
-                    ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                    object xStartValueRaw = xStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    int xStartValue = width == Width.Long ? (int)(long)xStartValueRaw : (int)xStartValueRaw; // must unbox first, then coerce
-                    object xLengthValueRaw = xLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    int xLengthValue = width == Width.Long ? (int)(long)xLengthValueRaw : (int)xLengthValueRaw; // must unbox first, then coerce
-                    int yStartValue = 0, yLengthValue = 0;
-                    if (rangeKind == RangeKind.Range2)
+                    IEnumerable<EntryType>[] enumerators = new IEnumerable<EntryType>[]
                     {
-                        object yStartValueRaw = yStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        yStartValue = width == Width.Long ? (int)(long)yStartValueRaw : (int)yStartValueRaw; // must unbox first, then coerce
-                        object yLengthValueRaw = yLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        yLengthValue = width == Width.Long ? (int)(long)yLengthValueRaw : (int)yLengthValueRaw; // must unbox first, then coerce
-                    }
+                        GetEnumerator<EntryType>(testTree, EnumKind.Default, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.DefaultOld, treeKind, new EnumArgsProvider(), null/*forward*/),
 
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.start.CompareTo(xStartValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.length.CompareTo(xLengthValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.start.CompareTo(yStartValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.length.CompareTo(yLengthValue); });
+                        GetEnumerator<EntryType>(testTree, EnumKind.Enumerable, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
 
-                    n++;
-                }
-                TestTrue("enumeration", delegate () { return n == reference.Count; });
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
 
-                int xInsertBefore = reference.Count != 0 ? referenceEntries[random.Next() % reference.Count].x.start : 0;
-                ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-                int newXLength = random.Next() % 100 + 1;
-                int newYLength = rangeKind == RangeKind.Range2 ? random.Next() % 100 + 1 : 1;
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
 
-                reference.Insert(xInsertBefore, Side.X, newXLength, rangeKind == RangeKind.Range2 ? newYLength : 1, newValue);
-                if (width == Width.Int)
-                {
-                    insertMethod.Invoke(
-                        testTree,
-                        kind == Kind.Map
-                            ? (rangeKind == RangeKind.Range2
-                                ? new object[] { xInsertBefore, Side.X, newXLength, newYLength, newValue }
-                                : new object[] { xInsertBefore, newXLength, newValue })
-                            : (rangeKind == RangeKind.Range2
-                                ? new object[] { xInsertBefore, Side.X, newXLength, newYLength }
-                                : new object[] { xInsertBefore, newXLength }));
-                }
-                else
-                {
-                    insertMethod.Invoke(
-                        testTree,
-                        kind == Kind.Map
-                            ? (rangeKind == RangeKind.Range2
-                                ? new object[] { (long)xInsertBefore, Side.X, (long)newXLength, (long)newYLength, newValue }
-                                : new object[] { (long)xInsertBefore, (long)newXLength, newValue })
-                            : (rangeKind == RangeKind.Range2
-                                ? new object[] { (long)xInsertBefore, Side.X, (long)newXLength, (long)newYLength }
-                                : new object[] { (long)xInsertBefore, (long)newXLength }));
-                }
-            }
-
-            do
-            {
-                IncrementIteration();
-                long startIteration1 = iteration;
-                IncrementIteration();
-
-                int startToRemove = ((INonInvasiveRange2MapInspection)reference).GetRanges()[random.Next() % reference.Count].x.start;
-
-                reference.Delete(startToRemove, Side.X);
-                if (width == Width.Int)
-                {
-                    if (rangeKind == RangeKind.Range2)
+                    for (int e = 0; e < enumerators.Length; e++)
                     {
-                        deleteMethod.Invoke(testTree, new object[] { startToRemove, Side.X });
-                    }
-                    else
-                    {
-                        deleteMethod.Invoke(testTree, new object[] { startToRemove });
-                    }
-                }
-                else
-                {
-                    if (rangeKind == RangeKind.Range2)
-                    {
-                        deleteMethod.Invoke(testTree, new object[] { (long)startToRemove, Side.X });
-                    }
-                    else
-                    {
-                        deleteMethod.Invoke(testTree, new object[] { (long)startToRemove });
-                    }
-                }
+                        long startIteration1 = IncrementIteration(true/*setLast*/);
 
-                Range2MapEntry[] referenceEntries = ((INonInvasiveRange2MapInspection)reference).GetRanges();
-                if (rangeKind == RangeKind.Range)
-                {
-                    for (int j = 0; j < referenceEntries.Length; j++)
-                    {
-                        referenceEntries[j].y.start = 0;
-                        referenceEntries[j].y.length = 0;
-                    }
-                }
+                        IEnumerator<EntryType> enumerator = enumerators[e].GetEnumerator();
 
-                int n = 0;
-                foreach (EntryType entry in getEnumerable())
-                {
-                    TestTrue("enumeration", delegate () { return n < reference.Count; });
+                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
 
-                    ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                    object xStartValueRaw = xStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    int xStartValue = width == Width.Long ? (int)(long)xStartValueRaw : (int)xStartValueRaw; // must unbox first, then coerce
-                    object xLengthValueRaw = xLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                    int xLengthValue = width == Width.Long ? (int)(long)xLengthValueRaw : (int)xLengthValueRaw; // must unbox first, then coerce
-                    int yStartValue = 0, yLengthValue = 0;
-                    if (rangeKind == RangeKind.Range2)
-                    {
-                        object yStartValueRaw = yStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        yStartValue = width == Width.Long ? (int)(long)yStartValueRaw : (int)yStartValueRaw; // must unbox first, then coerce
-                        object yLengthValueRaw = yLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        yLengthValue = width == Width.Long ? (int)(long)yLengthValueRaw : (int)yLengthValueRaw; // must unbox first, then coerce
-                    }
-
-                    TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.start.CompareTo(xStartValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.length.CompareTo(xLengthValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.start.CompareTo(yStartValue); });
-                    TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.length.CompareTo(yLengthValue); });
-
-                    n++;
-                }
-                TestTrue("enumeration", delegate () { return n == reference.Count; });
-
-                // test non-generic enumerator
-                foreach (IEnumerable enumerable in new IEnumerable[] { (IEnumerable)testTree, getEnumerable() })
-                {
-                    n = 0;
-                    foreach (object objEntry in enumerable)
-                    {
-                        EntryType entry = default(EntryType);
-                        TestNoThrow("enumeration", delegate () { entry = (EntryType)objEntry; });
-
-                        TestTrue("enumeration", delegate () { return n < reference.Count; });
-
-                        ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                        object xStartValueRaw = xStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        int xStartValue = width == Width.Long ? (int)(long)xStartValueRaw : (int)xStartValueRaw; // must unbox first, then coerce
-                        object xLengthValueRaw = xLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        int xLengthValue = width == Width.Long ? (int)(long)xLengthValueRaw : (int)xLengthValueRaw; // must unbox first, then coerce
-                        int yStartValue = 0, yLengthValue = 0;
-                        if (rangeKind == RangeKind.Range2)
+                        int c = 0;
+                        while (enumerator.MoveNext())
                         {
-                            object yStartValueRaw = yStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                            yStartValue = width == Width.Long ? (int)(long)yStartValueRaw : (int)yStartValueRaw; // must unbox first, then coerce
-                            object yLengthValueRaw = yLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                            yLengthValue = width == Width.Long ? (int)(long)yLengthValueRaw : (int)yLengthValueRaw; // must unbox first, then coerce
+                            TestNoThrow("enumeration", delegate () { string text = enumerator.Current.ToString(); });
+                            TestNoThrow("enumeration", delegate () { int hash = enumerator.Current.GetHashCode(); });
+
+                            TestTrue("enumeration", delegate () { return enumerator.Current.Equals(enumerator.Current); });
+
+                            c++;
                         }
+                        TestTrue("enumeration", delegate () { return c == master.Length; });
 
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.start.CompareTo(xStartValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.length.CompareTo(xLengthValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.start.CompareTo(yStartValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.length.CompareTo(yLengthValue); });
+                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
 
-                        n++;
-                    }
-                    TestTrue("enumeration", delegate () { return n == reference.Count; });
-                }
-
-                // test boundary cases
-                {
-                    IEnumerator<EntryType> enumerator = getEnumerable().GetEnumerator();
-
-                    TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
-
-                    n = 0;
-                    while (enumerator.MoveNext())
-                    {
-                        TestNoThrow("enumeration", delegate () { string text = enumerator.Current.ToString(); });
-                        TestNoThrow("enumeration", delegate () { int hash = enumerator.Current.GetHashCode(); });
-
-                        TestTrue("enumeration", delegate () { return enumerator.Current.Equals(enumerator.Current); });
-
-                        n++;
-                    }
-                    TestTrue("enumeration", delegate () { return n == reference.Count; });
-
-                    TestTrue("enumeration", delegate () { return enumerator.Current.Equals(default(EntryType)); });
-
-                    TestFalse("enumeration", delegate () { return enumerator.MoveNext(); }); // extra MoveNext after termination
-                }
-
-            } while (reference.Count != 0);
-
-            // test interrupting enumerator with tree modifications, and while we're at it, Clear()
-            MethodInfo clearMethod = testTree.GetType().GetMethod("Clear");
-            for (int j = 0; j < 4; j++) // j needs to cover all switch cases below
-            {
-                reference.Clear();
-                clearMethod.Invoke(testTree, emptyParameters);
-
-                const int ItemCount = 100;
-                for (int i = 0; i < ItemCount; i++)
-                {
-                    const int xInsertBefore = 0;
-                    ValueType newValue = kind == Kind.Map ? makeValue(random) : default(ValueType);
-                    int newXLength = random.Next() % 100 + 1;
-                    int newYLength = rangeKind == RangeKind.Range2 ? random.Next() % 100 + 1 : 1;
-
-                    reference.Insert(xInsertBefore, Side.X, newXLength, rangeKind == RangeKind.Range2 ? newYLength : 1, newValue);
-                    if (width == Width.Int)
-                    {
-                        insertMethod.Invoke(
-                            testTree,
-                            kind == Kind.Map
-                                ? (rangeKind == RangeKind.Range2
-                                    ? new object[] { xInsertBefore, Side.X, newXLength, newYLength, newValue }
-                                    : new object[] { xInsertBefore, newXLength, newValue })
-                                : (rangeKind == RangeKind.Range2
-                                    ? new object[] { xInsertBefore, Side.X, newXLength, newYLength }
-                                    : new object[] { xInsertBefore, newXLength }));
-                    }
-                    else
-                    {
-                        insertMethod.Invoke(
-                            testTree,
-                            kind == Kind.Map
-                                ? (rangeKind == RangeKind.Range2
-                                    ? new object[] { (long)xInsertBefore, Side.X, (long)newXLength, (long)newYLength, newValue }
-                                    : new object[] { (long)xInsertBefore, (long)newXLength, newValue })
-                                : (rangeKind == RangeKind.Range2
-                                    ? new object[] { (long)xInsertBefore, Side.X, (long)newXLength, (long)newYLength }
-                                    : new object[] { (long)xInsertBefore, (long)newXLength }));
+                        TestFalse("enumeration", delegate () { return enumerator.MoveNext(); }); // extra MoveNext after termination
                     }
                 }
 
-                Range2MapEntry[] referenceEntries = ((INonInvasiveRange2MapInspection)reference).GetRanges();
-                if (rangeKind == RangeKind.Range)
-                {
-                    for (int k = 0; k < referenceEntries.Length; k++)
-                    {
-                        referenceEntries[k].y.start = 0;
-                        referenceEntries[k].y.length = 0;
-                    }
-                }
 
-                bool expectException = false;
-                try
+                // test interrupting enumerator with tree modifications, and while we're at it, Clear()
+                // (non-keyed cases only)
+
+                if (size != 0)
                 {
-                    int n = 0;
-                    foreach (EntryType entry in getEnumerable())
+                    IEnumerable<EntryType>[] enumeratorsFastForward = new IEnumerable<EntryType>[]
                     {
-                        if (expectException)
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFast, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                    };
+
+                    IEnumerable<EntryType>[] enumeratorsFastReverse = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableFastBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    IEnumerable<EntryType>[] enumeratorsRobustForward = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobust, treeKind, new EnumArgsProvider(), null/*forward*/),
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), true/*forward*/),
+                    };
+
+                    IEnumerable<EntryType>[] enumeratorsRobustReverse = new IEnumerable<EntryType>[]
+                    {
+                        GetEnumerator<EntryType>(testTree, EnumKind.EnumerableRobustBidir, treeKind, new EnumArgsProvider(), false/*forward*/),
+                    };
+
+                    foreach (IEnumerable<EntryType>[] mode in new IEnumerable<EntryType>[][]
+                        { enumeratorsFastForward, enumeratorsFastReverse, enumeratorsRobustForward, enumeratorsRobustReverse })
+                    {
+                        // FRAGILE:
+                        bool forward = (mode == enumeratorsFastForward) || (mode == enumeratorsRobustForward);
+                        bool robust = (mode == enumeratorsRobustForward) || (mode == enumeratorsRobustReverse);
+
+                        // test add during enumeration
+
+                        int actionPoint = size / 2;
+                        for (int insertIndex = 0; insertIndex <= size; insertIndex++)
                         {
-                            Fault(testTree, "Expected enumerator to throw but it didn't");
-                        }
-
-                        TestTrue("enumeration", delegate () { return n < ItemCount; });
-
-                        ValueType entryValue = kind == Kind.Map ? (ValueType)valueAccessor.GetMethod.Invoke(entry, emptyParameters) : default(ValueType);
-                        object xStartValueRaw = xStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        int xStartValue = width == Width.Long ? (int)(long)xStartValueRaw : (int)xStartValueRaw; // must unbox first, then coerce
-                        object xLengthValueRaw = xLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                        int xLengthValue = width == Width.Long ? (int)(long)xLengthValueRaw : (int)xLengthValueRaw; // must unbox first, then coerce
-                        int yStartValue = 0, yLengthValue = 0;
-                        if (rangeKind == RangeKind.Range2)
-                        {
-                            object yStartValueRaw = yStartAccessor.GetMethod.Invoke(entry, emptyParameters);
-                            yStartValue = width == Width.Long ? (int)(long)yStartValueRaw : (int)yStartValueRaw; // must unbox first, then coerce
-                            object yLengthValueRaw = yLengthAccessor.GetMethod.Invoke(entry, emptyParameters);
-                            yLengthValue = width == Width.Long ? (int)(long)yLengthValueRaw : (int)yLengthValueRaw; // must unbox first, then coerce
-                        }
-
-                        TestTrue("enumeration", delegate () { return 0 == Comparer<ValueType>.Default.Compare((ValueType)referenceEntries[n].value, entryValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.start.CompareTo(xStartValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].x.length.CompareTo(xLengthValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.start.CompareTo(yStartValue); });
-                        TestTrue("enumeration", delegate () { return 0 == referenceEntries[n].y.length.CompareTo(yLengthValue); });
-
-                        if (n == 3 * ItemCount / 4)
-                        {
-                            if (Array.FindIndex(new string[] { "Splay", "RedBlack", "AVL" }, delegate (string part) { return testTree.GetType().Name.Contains(part); }) < 0)
+                            for (int e = 0; e < mode.Length; e++)
                             {
-                                Fault(getEnumerable(), "Object 'testTree' does not conform to the expected set of types");
-                            }
+                                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                for (int i = 0; i < master.Length; i++)
+                                {
+                                    insertAction(testTree, master[i].xStart, master[i].xLength, master[i].yLength, master[i].value);
+                                }
 
-                            const int xInsertBefore = 0;
-                            const int newXLength = 1;
-                            const int newYLength = 1;
-                            switch (j) // increase limit of 'j' loop if cases are added
-                            {
-                                case 0: // no tree changes
-                                    break;
-                                case 1: // add node - should throw
-                                    expectException = true; // always, even for Robust in the case of Range collections
-                                    ValueType newValue = default(ValueType);
-                                    if (width == Width.Int)
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    bool added = false;
+                                    foreach (EntryType entry in mode[e])
                                     {
-                                        insertMethod.Invoke(
-                                            testTree,
-                                            kind == Kind.Map
-                                                ? (rangeKind == RangeKind.Range2
-                                                    ? new object[] { xInsertBefore, Side.X, newXLength, newYLength, newValue }
-                                                    : new object[] { xInsertBefore, newXLength, newValue })
-                                                : (rangeKind == RangeKind.Range2
-                                                    ? new object[] { xInsertBefore, Side.X, newXLength, newYLength }
-                                                    : new object[] { xInsertBefore, newXLength }));
+                                        if (added)
+                                        {
+                                            Fault(testTree, "Enumerator was expected to throw and didn't");
+                                        }
+
+                                        TestTrue("enum overrun", delegate () { return c < master.Length + 1; });
+
+                                        if (c == actionPoint)
+                                        {
+                                            added = true;
+                                            TestNoThrow("enum-add", delegate () { insertAction(testTree, insertIndex < master.Length ? master[insertIndex].xStart : master[insertIndex - 1].xStart + master[insertIndex - 1].xLength, 1, 1, default(float)); });
+                                        }
+
+                                        c++;
                                     }
-                                    else
+                                    if (added)
                                     {
-                                        insertMethod.Invoke(
-                                            testTree,
-                                            kind == Kind.Map
-                                                ? (rangeKind == RangeKind.Range2
-                                                    ? new object[] { (long)xInsertBefore, Side.X, (long)newXLength, (long)newYLength, newValue }
-                                                    : new object[] { (long)xInsertBefore, (long)newXLength, newValue })
-                                                : (rangeKind == RangeKind.Range2
-                                                    ? new object[] { (long)xInsertBefore, Side.X, (long)newXLength, (long)newYLength }
-                                                    : new object[] { (long)xInsertBefore, (long)newXLength }));
+                                        Fault(testTree, "Enumerator was expected to throw and didn't");
                                     }
-                                    break;
-                                case 2: // remove node - should throw
-                                    expectException = true; // always, even for Robust in the case of Range collections
-                                    if (width == Width.Int)
-                                    {
-                                        deleteMethod.Invoke(testTree, rangeKind == RangeKind.Range2 ? new object[] { 0, Side.X } : new object[] { 0 });
-                                    }
-                                    else
-                                    {
-                                        deleteMethod.Invoke(testTree, rangeKind == RangeKind.Range2 ? new object[] { 0L, Side.X } : new object[] { 0L });
-                                    }
-                                    break;
-                                case 3: // query node - should not throw unless splay tree
-                                    expectException = testTree.GetType().Name.Contains("Splay");
-                                    if (width == Width.Int)
-                                    {
-                                        testTree.GetType().GetMethod("Contains").Invoke(testTree, rangeKind == RangeKind.Range2 ? new object[] { 0, Side.X } : new object[] { 0 });
-                                    }
-                                    else
-                                    {
-                                        testTree.GetType().GetMethod("Contains").Invoke(testTree, rangeKind == RangeKind.Range2 ? new object[] { 0L, Side.X } : new object[] { 0L });
-                                    }
-                                    break;
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    // expected
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
                             }
                         }
-                        n++;
+
+                        // test remove during enumeration
+
+                        for (int deleteIndex = 0; deleteIndex < size; deleteIndex++)
+                        {
+                            for (int e = 0; e < mode.Length; e++)
+                            {
+                                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                for (int i = 0; i < master.Length; i++)
+                                {
+                                    insertAction(testTree, master[i].xStart, master[i].xLength, master[i].yLength, master[i].value);
+                                }
+
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    bool removed = false;
+                                    foreach (EntryType entry in mode[e])
+                                    {
+                                        if (removed)
+                                        {
+                                            Fault(testTree, "Enumerator was expected to throw and didn't");
+                                        }
+
+                                        TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                        if (c == actionPoint)
+                                        {
+                                            removed = true;
+                                            TestNoThrow("enum-delete", delegate () { deleteAction(testTree, master[deleteIndex].xStart); });
+                                        }
+
+                                        c++;
+                                    }
+                                    if (removed)
+                                    {
+                                        Fault(testTree, "Enumerator was expected to throw and didn't");
+                                    }
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    // expected
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
+                            }
+                        }
+
+
+                        // test enumerator's SetValue
+
+                        PropertyInfo getValueProperty = typeof(EntryType).GetProperty("Value");
+                        MethodInfo setValueMethod = typeof(EntryType).GetMethod("SetValue");
+                        if (setValueMethod != null)
+                        {
+                            for (int e = 0; e < mode.Length; e++)
+                            {
+                                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                for (int i = 0; i < master.Length; i++)
+                                {
+                                    insertAction(testTree, master[i].xStart, master[i].xLength, master[i].yLength, master[i].value);
+                                }
+
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
+                                    foreach (EntryType entry in mode[e])
+                                    {
+                                        TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                        BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                        entries.Add(bigEntry);
+
+                                        setValueMethod.Invoke(entry, new object[] { bigEntry.value + .5f });
+
+                                        c++;
+                                    }
+                                    TestTrue("enum count", delegate () { return c == master.Length; });
+                                    if (!forward)
+                                    {
+                                        entries.Reverse();
+                                    }
+                                    Validate(master, entries.ToArray());
+
+                                    BigEntry<int, float>[] updatedMaster = (BigEntry<int, float>[])master.Clone();
+                                    for (int i = 0; i < updatedMaster.Length; i++)
+                                    {
+                                        updatedMaster[i] = new BigEntry<int, float>(
+                                            updatedMaster[i].key,
+                                            updatedMaster[i].value + .5f,
+                                            updatedMaster[i].xStart,
+                                            updatedMaster[i].xLength,
+                                            updatedMaster[i].yStart,
+                                            updatedMaster[i].yLength);
+                                    }
+
+                                    c = 0;
+                                    entries.Clear();
+                                    foreach (EntryType entry in mode[e])
+                                    {
+                                        TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                        BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                        entries.Add(bigEntry);
+
+                                        c++;
+                                    }
+                                    TestTrue("enum count", delegate () { return c == master.Length; });
+                                    if (!forward)
+                                    {
+                                        entries.Reverse();
+                                    }
+                                    Validate(updatedMaster, entries.ToArray());
+                                }
+                                catch (UnitTestFailureException)
+                                {
+                                    throw;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
+
+
+                                if (size >= 2)
+                                {
+                                    // try update on enumerator after enumerator has advanced
+
+                                    {
+                                        long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                                        testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                        for (int i = 0; i < master.Length; i++)
+                                        {
+                                            insertAction(testTree, master[i].xStart, master[i].xLength, master[i].yLength, master[i].value);
+                                        }
+
+                                        IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                        EntryType entry = default(EntryType);
+                                        TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
+                                        int masterIndex = forward ? 0 : master.Length - 1;
+                                        TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
+                                        TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 1f }); });
+                                        TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 2f }); });
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                        TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                    }
+
+                                    // try update on enumerator after tree was modified
+
+                                    {
+                                        long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                                        testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                        for (int i = 0; i < master.Length; i++)
+                                        {
+                                            insertAction(testTree, master[i].xStart, master[i].xLength, master[i].yLength, master[i].value);
+                                        }
+
+                                        IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                        EntryType entry = default(EntryType);
+                                        TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
+                                        int masterIndex = forward ? 0 : master.Length - 1;
+                                        TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
+                                        insertAction(testTree, 0, 1, 1, 0f);
+                                        TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                        // because range maps don't permit insert/delete with enumeration
+                                        TestThrow("enumerator", typeof(InvalidOperationException), delegate () { enumerator.MoveNext(); }); // sanity check
+                                    }
+                                }
+                            }
+                        }
                     }
-                    if (expectException)
-                    {
-                        Fault(testTree, "Expected enumerator to throw but it didn't");
-                    }
-                }
-                catch (InvalidOperationException) when (expectException)
-                {
-                    // expected
                 }
             }
         }
+
+
+        //
+        // Entry equality and hashcode
+        //
 
         private void TestEntryComparisons(Type entryType)
         {
             foreach (FieldInfo field in entryType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
             {
+                if (String.Equals(field.Name, "enumerator") || String.Equals(field.Name, "version"))
+                {
+                    continue;
+                }
+
                 object first = null;
                 TestNoThrow("entry", delegate () { first = Activator.CreateInstance(entryType); });
                 object second = null;
@@ -1055,7 +1538,6 @@ namespace TreeLibTest
                 }
                 else
                 {
-
                     Fault(entryType, "entry contains field of type that was not expected");
                 }
 
@@ -1076,6 +1558,31 @@ namespace TreeLibTest
 
         private const uint TreeCapacityForFixed = 200;
 
+        private void TestReference()
+        {
+            // Map/List
+
+            TestMap<EntryMap<int, float>>(new ReferenceMap<int, float>(), TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
+
+
+            // RankMap/RankList, MultiRankMap/MultiRankList
+
+            TestMap<EntryRankMap<int, float>>(new ReferenceRankMap<int, float>(), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
+
+            TestMap<EntryMultiRankMap<int, float>>(new ReferenceMultiRankMap<int, float>(), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
+
+
+            // Range2Map/Range2List, RangeMap/RangeList
+
+            TestRangeMap<EntryRange2Map<float>>(new ReferenceRange2Map<float>(), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
+
+            TestRangeMap<EntryRange2List>(new ReferenceRange2List(), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
+
+            TestRangeMap<EntryRangeMap<float>>(new ReferenceRangeMap<float>(), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
+
+            TestRangeMap<EntryRangeList>(new ReferenceRangeList(), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
+        }
+
         private void TestSplayTree()
         {
             // Exercise all allocation modes to gain coverage of both code paths in the Clear() method.
@@ -1087,62 +1594,20 @@ namespace TreeLibTest
                 // Map
                 //
 
-                {
-                    SplayTreeMap<int, float> tree;
-                    tree = new SplayTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryMap<int, float>>(new SplayTreeMap<int, float>(capacity, allocationMode), TreeKind.Splay | TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayMap<int, float> tree;
-                    tree = new SplayTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMap<int, float>>(tree); });
+                    TestMap<EntryMap<int, float>>(new SplayTreeArrayMap<int, float>(capacity, allocationMode), TreeKind.Splay | TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
                 }
 
                 //
-                // Set
+                // List
                 //
 
-                {
-                    SplayTreeList<int> tree;
-                    tree = new SplayTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return new DefaultEnumeratorProxy<EntryList<int>>(tree); });
-                }
-
+                TestMap<EntryList<int>>(new SplayTreeList<int>(capacity, allocationMode), TreeKind.Splay | TreeKind.List, ListKeyedAdd<int, float>, ListKeyedRemove<int, float>, ListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayList<int> tree;
-                    tree = new SplayTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return new DefaultEnumeratorProxy<EntryList<int>>(tree); });
+                    TestMap<EntryList<int>>(new SplayTreeArrayList<int>(capacity, allocationMode), TreeKind.Splay | TreeKind.List, ListKeyedAdd<int, float>, ListKeyedRemove<int, float>, ListKeyedContains<int, float>);
                 }
 
 
@@ -1152,94 +1617,30 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeRankMap<int, float> tree;
-                    tree = new SplayTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryRankMap<int, float>>(new SplayTreeRankMap<int, float>(capacity, allocationMode), TreeKind.Splay | TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayRankMap<int, float> tree;
-                    tree = new SplayTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMap<int, float>>(tree); });
+                    TestMap<EntryRankMap<int, float>>(new SplayTreeArrayRankMap<int, float>(capacity, allocationMode), TreeKind.Splay | TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeRankMapLong<int, float> tree;
-                    tree = new SplayTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMapLong<int, float>>(tree); });
-                }
+                TestMap<EntryRankMap<int, float>>(new AdaptRankMapToRankMapLong<int, float>(new SplayTreeRankMapLong<int, float>(capacity, allocationMode)), TreeKind.Splay | TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
 
 
                 //
                 // RankList
                 //
 
-                {
-                    SplayTreeRankList<int> tree;
-                    tree = new SplayTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankList<int>>(tree); });
-                }
-
+                TestMap<EntryRankList<int>>(new SplayTreeRankList<int>(capacity, allocationMode), TreeKind.Splay | TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayRankList<int> tree;
-                    tree = new SplayTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankList<int>>(tree); });
+                    TestMap<EntryRankList<int>>(new SplayTreeArrayRankList<int>(capacity, allocationMode), TreeKind.Splay | TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeRankListLong<int> tree;
-                    tree = new SplayTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankListLong<int>>(tree); });
-                }
+                TestMap<EntryRankList<int>>(new AdaptRankListToRankListLong<int>(new SplayTreeRankListLong<int>(capacity, allocationMode)), TreeKind.Splay | TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
 
 
                 //
@@ -1248,47 +1649,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeMultiRankMap<int, float> tree;
-                    tree = new SplayTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryMultiRankMap<int, float>>(new SplayTreeMultiRankMap<int, float>(capacity, allocationMode), TreeKind.Splay | TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayMultiRankMap<int, float> tree;
-                    tree = new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMap<int, float>>(tree); });
+                    TestMap<EntryMultiRankMap<int, float>>(new SplayTreeArrayMultiRankMap<int, float>(capacity, allocationMode), TreeKind.Splay | TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeMultiRankMapLong<int, float> tree;
-                    tree = new SplayTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMapLong<int, float>>(tree); });
-                }
+                TestMap<EntryMultiRankMap<int, float>>(new AdaptMultiRankMapToMultiRankMapLong<int, float>(new SplayTreeMultiRankMapLong<int, float>(capacity, allocationMode)), TreeKind.Splay | TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
 
 
                 //
@@ -1297,47 +1666,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeMultiRankList<int> tree;
-                    tree = new SplayTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankList<int>>(tree); });
-                }
-
+                TestMap<EntryMultiRankList<int>>(new SplayTreeMultiRankList<int>(capacity, allocationMode), TreeKind.Splay | TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayMultiRankList<int> tree;
-                    tree = new SplayTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankList<int>>(tree); });
+                    TestMap<EntryMultiRankList<int>>(new SplayTreeArrayMultiRankList<int>(capacity, allocationMode), TreeKind.Splay | TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeMultiRankListLong<int> tree;
-                    tree = new SplayTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankListLong<int>>(tree); });
-                }
+                TestMap<EntryMultiRankList<int>>(new AdaptMultiRankListToMultiRankListLong<int>(new SplayTreeMultiRankListLong<int>(capacity, allocationMode)), TreeKind.Splay | TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
 
 
                 //
@@ -1346,47 +1683,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeRange2Map<float> tree;
-                    tree = new SplayTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2Map<float>>(tree); });
-                }
-
+                TestRangeMap<EntryRange2Map<float>>(new SplayTreeRange2Map<float>(capacity, allocationMode), TreeKind.Splay | TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayRange2Map<float> tree;
-                    tree = new SplayTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2Map<float>>(tree); });
+                    TestRangeMap<EntryRange2Map<float>>(new SplayTreeArrayRange2Map<float>(capacity, allocationMode), TreeKind.Splay | TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeRange2MapLong<float> tree;
-                    tree = new SplayTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2MapLong<float>>(tree); });
-                }
+                TestRangeMap<EntryRange2Map<float>>(new AdaptRange2MapToRange2MapLong<float>(new SplayTreeRange2MapLong<float>(capacity, allocationMode)), TreeKind.Splay | TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
 
 
                 //
@@ -1395,47 +1700,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeRange2List tree;
-                    tree = new SplayTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2List>(tree); });
-                }
-
+                TestRangeMap<EntryRange2List>(new SplayTreeRange2List(capacity, allocationMode), TreeKind.Splay | TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayRange2List tree;
-                    tree = new SplayTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2List>(tree); });
+                    TestRangeMap<EntryRange2List>(new SplayTreeArrayRange2List(capacity, allocationMode), TreeKind.Splay | TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeRange2ListLong tree;
-                    tree = new SplayTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2ListLong>(tree); });
-                }
+                TestRangeMap<EntryRange2List>(new AdaptRange2ListToRange2ListLong(new SplayTreeRange2ListLong(capacity, allocationMode)), TreeKind.Splay | TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
 
 
                 //
@@ -1444,47 +1717,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeRangeMap<float> tree;
-                    tree = new SplayTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMap<float>>(tree); });
-                }
-
+                TestRangeMap<EntryRangeMap<float>>(new SplayTreeRangeMap<float>(capacity, allocationMode), TreeKind.Splay | TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayRangeMap<float> tree;
-                    tree = new SplayTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMap<float>>(tree); });
+                    TestRangeMap<EntryRangeMap<float>>(new SplayTreeArrayRangeMap<float>(capacity, allocationMode), TreeKind.Splay | TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeRangeMapLong<float> tree;
-                    tree = new SplayTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMapLong<float>>(tree); });
-                }
+                TestRangeMap<EntryRangeMap<float>>(new AdaptRangeMapToRangeMapLong<float>(new SplayTreeRangeMapLong<float>(capacity, allocationMode)), TreeKind.Splay | TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
 
 
                 //
@@ -1493,47 +1734,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    SplayTreeRangeList tree;
-                    tree = new SplayTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeList>(tree); });
-                }
-
+                TestRangeMap<EntryRangeList>(new SplayTreeRangeList(capacity, allocationMode), TreeKind.Splay | TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    SplayTreeArrayRangeList tree;
-                    tree = new SplayTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeList>(tree); });
+                    TestRangeMap<EntryRangeList>(new SplayTreeArrayRangeList(capacity, allocationMode), TreeKind.Splay | TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
                 }
 
                 // Long
 
-                {
-                    SplayTreeRangeListLong tree;
-                    tree = new SplayTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new SplayTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new SplayTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeListLong>(tree); });
-                }
+                TestRangeMap<EntryRangeList>(new AdaptRangeListToRangeListLong(new SplayTreeRangeListLong(capacity, allocationMode)), TreeKind.Splay | TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
             }
         }
 
@@ -1548,62 +1757,20 @@ namespace TreeLibTest
                 // Map
                 //
 
-                {
-                    RedBlackTreeMap<int, float> tree;
-                    tree = new RedBlackTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryMap<int, float>>(new RedBlackTreeMap<int, float>(capacity, allocationMode), TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayMap<int, float> tree;
-                    tree = new RedBlackTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMap<int, float>>(tree); });
+                    TestMap<EntryMap<int, float>>(new RedBlackTreeArrayMap<int, float>(capacity, allocationMode), TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
                 }
 
                 //
-                // Set
+                // List
                 //
 
-                {
-                    RedBlackTreeList<int> tree;
-                    tree = new RedBlackTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return new DefaultEnumeratorProxy<EntryList<int>>(tree); });
-                }
-
+                TestMap<EntryList<int>>(new RedBlackTreeList<int>(capacity, allocationMode), TreeKind.List, ListKeyedAdd<int, float>, ListKeyedRemove<int, float>, ListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayList<int> tree;
-                    tree = new RedBlackTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return new DefaultEnumeratorProxy<EntryList<int>>(tree); });
+                    TestMap<EntryList<int>>(new RedBlackTreeArrayList<int>(capacity, allocationMode), TreeKind.List, ListKeyedAdd<int, float>, ListKeyedRemove<int, float>, ListKeyedContains<int, float>);
                 }
 
 
@@ -1613,94 +1780,30 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeRankMap<int, float> tree;
-                    tree = new RedBlackTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryRankMap<int, float>>(new RedBlackTreeRankMap<int, float>(capacity, allocationMode), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayRankMap<int, float> tree;
-                    tree = new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMap<int, float>>(tree); });
+                    TestMap<EntryRankMap<int, float>>(new RedBlackTreeArrayRankMap<int, float>(capacity, allocationMode), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeRankMapLong<int, float> tree;
-                    tree = new RedBlackTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMapLong<int, float>>(tree); });
-                }
+                TestMap<EntryRankMap<int, float>>(new AdaptRankMapToRankMapLong<int, float>(new RedBlackTreeRankMapLong<int, float>(capacity, allocationMode)), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
 
 
                 //
                 // RankList
                 //
 
-                {
-                    RedBlackTreeRankList<int> tree;
-                    tree = new RedBlackTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankList<int>>(tree); });
-                }
-
+                TestMap<EntryRankList<int>>(new RedBlackTreeRankList<int>(capacity, allocationMode), TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayRankList<int> tree;
-                    tree = new RedBlackTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankList<int>>(tree); });
+                    TestMap<EntryRankList<int>>(new RedBlackTreeArrayRankList<int>(capacity, allocationMode), TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeRankListLong<int> tree;
-                    tree = new RedBlackTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankListLong<int>>(tree); });
-                }
+                TestMap<EntryRankList<int>>(new AdaptRankListToRankListLong<int>(new RedBlackTreeRankListLong<int>(capacity, allocationMode)), TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
 
 
                 //
@@ -1709,47 +1812,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeMultiRankMap<int, float> tree;
-                    tree = new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryMultiRankMap<int, float>>(new RedBlackTreeMultiRankMap<int, float>(capacity, allocationMode), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayMultiRankMap<int, float> tree;
-                    tree = new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMap<int, float>>(tree); });
+                    TestMap<EntryMultiRankMap<int, float>>(new RedBlackTreeArrayMultiRankMap<int, float>(capacity, allocationMode), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeMultiRankMapLong<int, float> tree;
-                    tree = new RedBlackTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMapLong<int, float>>(tree); });
-                }
+                TestMap<EntryMultiRankMap<int, float>>(new AdaptMultiRankMapToMultiRankMapLong<int, float>(new RedBlackTreeMultiRankMapLong<int, float>(capacity, allocationMode)), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
 
 
                 //
@@ -1758,47 +1829,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeMultiRankList<int> tree;
-                    tree = new RedBlackTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankList<int>>(tree); });
-                }
-
+                TestMap<EntryMultiRankList<int>>(new RedBlackTreeMultiRankList<int>(capacity, allocationMode), TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayMultiRankList<int> tree;
-                    tree = new RedBlackTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankList<int>>(tree); });
+                    TestMap<EntryMultiRankList<int>>(new RedBlackTreeArrayMultiRankList<int>(capacity, allocationMode), TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeMultiRankListLong<int> tree;
-                    tree = new RedBlackTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankListLong<int>>(tree); });
-                }
+                TestMap<EntryMultiRankList<int>>(new AdaptMultiRankListToMultiRankListLong<int>(new RedBlackTreeMultiRankListLong<int>(capacity, allocationMode)), TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
 
 
                 //
@@ -1807,47 +1846,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeRange2Map<float> tree;
-                    tree = new RedBlackTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2Map<float>>(tree); });
-                }
-
+                TestRangeMap<EntryRange2Map<float>>(new RedBlackTreeRange2Map<float>(capacity, allocationMode), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayRange2Map<float> tree;
-                    tree = new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2Map<float>>(tree); });
+                    TestRangeMap<EntryRange2Map<float>>(new RedBlackTreeArrayRange2Map<float>(capacity, allocationMode), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeRange2MapLong<float> tree;
-                    tree = new RedBlackTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2MapLong<float>>(tree); });
-                }
+                TestRangeMap<EntryRange2Map<float>>(new AdaptRange2MapToRange2MapLong<float>(new RedBlackTreeRange2MapLong<float>(capacity, allocationMode)), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
 
 
                 //
@@ -1856,47 +1863,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeRange2List tree;
-                    tree = new RedBlackTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2List>(tree); });
-                }
-
+                TestRangeMap<EntryRange2List>(new RedBlackTreeRange2List(capacity, allocationMode), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayRange2List tree;
-                    tree = new RedBlackTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2List>(tree); });
+                    TestRangeMap<EntryRange2List>(new RedBlackTreeArrayRange2List(capacity, allocationMode), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeRange2ListLong tree;
-                    tree = new RedBlackTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2ListLong>(tree); });
-                }
+                TestRangeMap<EntryRange2List>(new AdaptRange2ListToRange2ListLong(new RedBlackTreeRange2ListLong(capacity, allocationMode)), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
 
 
                 //
@@ -1905,47 +1880,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeRangeMap<float> tree;
-                    tree = new RedBlackTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRangeMap<float>(0, AllocationMode.DynamicRetainFreelist);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMap<float>>(tree); });
-                }
-
+                TestRangeMap<EntryRangeMap<float>>(new RedBlackTreeRangeMap<float>(capacity, allocationMode), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayRangeMap<float> tree;
-                    tree = new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMap<float>>(tree); });
+                    TestRangeMap<EntryRangeMap<float>>(new RedBlackTreeArrayRangeMap<float>(capacity, allocationMode), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeRangeMapLong<float> tree;
-                    tree = new RedBlackTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMapLong<float>>(tree); });
-                }
+                TestRangeMap<EntryRangeMap<float>>(new AdaptRangeMapToRangeMapLong<float>(new RedBlackTreeRangeMapLong<float>(capacity, allocationMode)), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
 
 
                 //
@@ -1954,47 +1897,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    RedBlackTreeRangeList tree;
-                    tree = new RedBlackTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeList>(tree); });
-                }
-
+                TestRangeMap<EntryRangeList>(new RedBlackTreeRangeList(capacity, allocationMode), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    RedBlackTreeArrayRangeList tree;
-                    tree = new RedBlackTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeList>(tree); });
+                    TestRangeMap<EntryRangeList>(new RedBlackTreeArrayRangeList(capacity, allocationMode), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
                 }
 
                 // Long
 
-                {
-                    RedBlackTreeRangeListLong tree;
-                    tree = new RedBlackTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new RedBlackTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new RedBlackTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeListLong>(tree); });
-                }
+                TestRangeMap<EntryRangeList>(new AdaptRangeListToRangeListLong(new RedBlackTreeRangeListLong(capacity, allocationMode)), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
             }
         }
 
@@ -2009,62 +1920,20 @@ namespace TreeLibTest
                 // Map
                 //
 
-                {
-                    AVLTreeMap<int, float> tree;
-                    tree = new AVLTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryMap<int, float>>(new AVLTreeMap<int, float>(capacity, allocationMode), TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayMap<int, float> tree;
-                    tree = new AVLTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayMap<int, float>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryMap<int, float>>(
-                        tree, Kind.Map, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMap<int, float>>(tree); });
+                    TestMap<EntryMap<int, float>>(new AVLTreeArrayMap<int, float>(capacity, allocationMode), TreeKind.Map, MapKeyedAdd<int, float>, MapKeyedRemove<int, float>, MapKeyedContains<int, float>);
                 }
 
                 //
-                // Set
+                // List
                 //
 
-                {
-                    AVLTreeList<int> tree;
-                    tree = new AVLTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return new DefaultEnumeratorProxy<EntryList<int>>(tree); });
-                }
-
+                TestMap<EntryList<int>>(new AVLTreeList<int>(capacity, allocationMode), TreeKind.List, ListKeyedAdd<int, float>, ListKeyedRemove<int, float>, ListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayList<int> tree;
-                    tree = new AVLTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Robust, MakeIntKey, null, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayList<int>(capacity, allocationMode);
-                    TestMapOrList<int, float, EntryList<int>>(
-                        tree, Kind.List, EnumKind.Fast, MakeIntKey, null, delegate () { return new DefaultEnumeratorProxy<EntryList<int>>(tree); });
+                    TestMap<EntryList<int>>(new AVLTreeArrayList<int>(capacity, allocationMode), TreeKind.List, ListKeyedAdd<int, float>, ListKeyedRemove<int, float>, ListKeyedContains<int, float>);
                 }
 
 
@@ -2074,94 +1943,30 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeRankMap<int, float> tree;
-                    tree = new AVLTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryRankMap<int, float>>(new AVLTreeRankMap<int, float>(capacity, allocationMode), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayRankMap<int, float> tree;
-                    tree = new AVLTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMap<int, float>>(tree); });
+                    TestMap<EntryRankMap<int, float>>(new AVLTreeArrayRankMap<int, float>(capacity, allocationMode), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeRankMapLong<int, float> tree;
-                    tree = new AVLTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankMapLong<int, float>>(tree); });
-                }
+                TestMap<EntryRankMap<int, float>>(new AdaptRankMapToRankMapLong<int, float>(new AVLTreeRankMapLong<int, float>(capacity, allocationMode)), TreeKind.RankMap, RankMapKeyedAdd<int, float>, RankMapKeyedRemove<int, float>, RankMapKeyedContains<int, float>);
 
 
                 //
                 // RankList
                 //
 
-                {
-                    AVLTreeRankList<int> tree;
-                    tree = new AVLTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankList<int>>(tree); });
-                }
-
+                TestMap<EntryRankList<int>>(new AVLTreeRankList<int>(capacity, allocationMode), TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayRankList<int> tree;
-                    tree = new AVLTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankList<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankList<int>>(tree); });
+                    TestMap<EntryRankList<int>>(new AVLTreeArrayRankList<int>(capacity, allocationMode), TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeRankListLong<int> tree;
-                    tree = new AVLTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryRankListLong<int>>(
-                        tree, Kind.List, RankKind.Rank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRankListLong<int>>(tree); });
-                }
+                TestMap<EntryRankList<int>>(new AdaptRankListToRankListLong<int>(new AVLTreeRankListLong<int>(capacity, allocationMode)), TreeKind.RankList, RankListKeyedAdd<int, float>, RankListKeyedRemove<int, float>, RankListKeyedContains<int, float>);
 
 
                 //
@@ -2170,47 +1975,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeMultiRankMap<int, float> tree;
-                    tree = new AVLTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMap<int, float>>(tree); });
-                }
-
+                TestMap<EntryMultiRankMap<int, float>>(new AVLTreeMultiRankMap<int, float>(capacity, allocationMode), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayMultiRankMap<int, float> tree;
-                    tree = new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMap<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMap<int, float>>(tree); });
+                    TestMap<EntryMultiRankMap<int, float>>(new AVLTreeArrayMultiRankMap<int, float>(capacity, allocationMode), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeMultiRankMapLong<int, float> tree;
-                    tree = new AVLTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeMultiRankMapLong<int, float>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankMapLong<int, float>>(
-                        tree, Kind.Map, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankMapLong<int, float>>(tree); });
-                }
+                TestMap<EntryMultiRankMap<int, float>>(new AdaptMultiRankMapToMultiRankMapLong<int, float>(new AVLTreeMultiRankMapLong<int, float>(capacity, allocationMode)), TreeKind.MultiRankMap, MultiRankMapKeyedAdd<int, float>, MultiRankMapKeyedRemove<int, float>, MultiRankMapKeyedContains<int, float>);
 
 
                 //
@@ -2219,47 +1992,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeMultiRankList<int> tree;
-                    tree = new AVLTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankList<int>>(tree); });
-                }
-
+                TestMap<EntryMultiRankList<int>>(new AVLTreeMultiRankList<int>(capacity, allocationMode), TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayMultiRankList<int> tree;
-                    tree = new AVLTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayMultiRankList<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankList<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankList<int>>(tree); });
+                    TestMap<EntryMultiRankList<int>>(new AVLTreeArrayMultiRankList<int>(capacity, allocationMode), TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeMultiRankListLong<int> tree;
-                    tree = new AVLTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Robust, MakeIntKey, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeMultiRankListLong<int>(capacity, allocationMode);
-                    TestRankMapOrSet<int, float, EntryMultiRankListLong<int>>(
-                        tree, Kind.List, RankKind.MultiRank, EnumKind.Fast, MakeIntKey, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryMultiRankListLong<int>>(tree); });
-                }
+                TestMap<EntryMultiRankList<int>>(new AdaptMultiRankListToMultiRankListLong<int>(new AVLTreeMultiRankListLong<int>(capacity, allocationMode)), TreeKind.MultiRankList, MultiRankListKeyedAdd<int, float>, MultiRankListKeyedRemove<int, float>, MultiRankListKeyedContains<int, float>);
 
 
                 //
@@ -2268,47 +2009,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeRange2Map<float> tree;
-                    tree = new AVLTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2Map<float>>(tree); });
-                }
-
+                TestRangeMap<EntryRange2Map<float>>(new AVLTreeRange2Map<float>(capacity, allocationMode), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayRange2Map<float> tree;
-                    tree = new AVLTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayRange2Map<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2Map<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2Map<float>>(tree); });
+                    TestRangeMap<EntryRange2Map<float>>(new AVLTreeArrayRange2Map<float>(capacity, allocationMode), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeRange2MapLong<float> tree;
-                    tree = new AVLTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRange2MapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2MapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2MapLong<float>>(tree); });
-                }
+                TestRangeMap<EntryRange2Map<float>>(new AdaptRange2MapToRange2MapLong<float>(new AVLTreeRange2MapLong<float>(capacity, allocationMode)), TreeKind.Range2Map, Range2MapInsert<float>, Range2MapDelete<float>);
 
 
                 //
@@ -2317,47 +2026,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeRange2List tree;
-                    tree = new AVLTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2List>(tree); });
-                }
-
+                TestRangeMap<EntryRange2List>(new AVLTreeRange2List(capacity, allocationMode), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayRange2List tree;
-                    tree = new AVLTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayRange2List(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2List>(
-                        tree, Kind.List, RangeKind.Range2, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2List>(tree); });
+                    TestRangeMap<EntryRange2List>(new AVLTreeArrayRange2List(capacity, allocationMode), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeRange2ListLong tree;
-                    tree = new AVLTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRange2ListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRange2ListLong>(
-                        tree, Kind.List, RangeKind.Range2, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRange2ListLong>(tree); });
-                }
+                TestRangeMap<EntryRange2List>(new AdaptRange2ListToRange2ListLong(new AVLTreeRange2ListLong(capacity, allocationMode)), TreeKind.Range2List, Range2ListInsert<float>, Range2ListDelete<float>);
 
 
                 //
@@ -2366,47 +2043,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeRangeMap<float> tree;
-                    tree = new AVLTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMap<float>>(tree); });
-                }
-
+                TestRangeMap<EntryRangeMap<float>>(new AVLTreeRangeMap<float>(capacity, allocationMode), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayRangeMap<float> tree;
-                    tree = new AVLTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayRangeMap<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMap<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMap<float>>(tree); });
+                    TestRangeMap<EntryRangeMap<float>>(new AVLTreeArrayRangeMap<float>(capacity, allocationMode), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeRangeMapLong<float> tree;
-                    tree = new AVLTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRangeMapLong<float>(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeMapLong<float>>(
-                        tree, Kind.Map, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeMapLong<float>>(tree); });
-                }
+                TestRangeMap<EntryRangeMap<float>>(new AdaptRangeMapToRangeMapLong<float>(new AVLTreeRangeMapLong<float>(capacity, allocationMode)), TreeKind.RangeMap, RangeMapInsert<float>, RangeMapDelete<float>);
 
 
                 //
@@ -2415,47 +2060,15 @@ namespace TreeLibTest
 
                 // Int32
 
-                {
-                    AVLTreeRangeList tree;
-                    tree = new AVLTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeList>(tree); });
-                }
-
+                TestRangeMap<EntryRangeList>(new AVLTreeRangeList(capacity, allocationMode), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
                 if (allocationMode != AllocationMode.DynamicDiscard)
                 {
-                    AVLTreeArrayRangeList tree;
-                    tree = new AVLTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeArrayRangeList(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeList>(
-                        tree, Kind.List, RangeKind.Range, Width.Int, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeList>(tree); });
+                    TestRangeMap<EntryRangeList>(new AVLTreeArrayRangeList(capacity, allocationMode), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
                 }
 
                 // Long
 
-                {
-                    AVLTreeRangeListLong tree;
-                    tree = new AVLTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Robust, MakeFloatValue, delegate () { return tree.GetRobustEnumerable(); });
-                    tree = new AVLTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return tree.GetFastEnumerable(); });
-                    tree = new AVLTreeRangeListLong(capacity, allocationMode);
-                    TestRangeMapOrList<float, EntryRangeListLong>(
-                        tree, Kind.List, RangeKind.Range, Width.Long, EnumKind.Fast, MakeFloatValue, delegate () { return new DefaultEnumeratorProxy<EntryRangeListLong>(tree); });
-                }
+                TestRangeMap<EntryRangeList>(new AdaptRangeListToRangeListLong(new AVLTreeRangeListLong(capacity, allocationMode)), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
             }
         }
 
@@ -2501,13 +2114,13 @@ namespace TreeLibTest
             TestEntryComparisons(typeof(EntryMultiRankMap<string, string>));
             TestEntryComparisons(typeof(EntryMultiRankMapLong<string, string>));
 
-            //TestEntryComparisons(typeof(EntryRangeList));
-            //TestEntryComparisons(typeof(EntryRangeListLong));
+            //TestEntryComparisons(typeof(EntryRangeList)); - not applicable
+            //TestEntryComparisons(typeof(EntryRangeListLong)); - not applicable
             TestEntryComparisons(typeof(EntryRangeMap<string>));
             TestEntryComparisons(typeof(EntryRangeMapLong<string>));
 
-            //TestEntryComparisons(typeof(EntryRange2List));
-            //TestEntryComparisons(typeof(EntryRange2ListLong));
+            //TestEntryComparisons(typeof(EntryRange2List)); - not applicable
+            //TestEntryComparisons(typeof(EntryRange2ListLong)); - not applicable
             TestEntryComparisons(typeof(EntryRange2Map<string>));
             TestEntryComparisons(typeof(EntryRange2MapLong<string>));
         }
@@ -2516,6 +2129,8 @@ namespace TreeLibTest
         {
             try
             {
+                TestReference();
+
                 TestAVLTree();
 
                 TestRedBlackTree();

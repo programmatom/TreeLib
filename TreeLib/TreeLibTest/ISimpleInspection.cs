@@ -22,13 +22,15 @@
 using System;
 using System.Collections.Generic;
 
+using TreeLib;
+
 namespace TreeLibTest
 {
     public interface ISimpleTreeInspection<KeyType, ValueType>
     {
         int Count { get; }
 
-        KeyValuePair<KeyType, ValueType>[] ToArray();
+        EntryMap<KeyType, ValueType>[] ToArray();
 
         void Validate();
     }

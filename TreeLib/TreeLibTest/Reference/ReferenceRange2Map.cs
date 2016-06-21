@@ -38,6 +38,7 @@ namespace TreeLibTest
         IEnumerable<EntryRange2Map<ValueType>>
     {
         private readonly List<Tuple<int, int, ValueType>> items = new List<Tuple<int, int, ValueType>>();
+        private ushort version;
 
         //
         // Construction
@@ -106,6 +107,7 @@ namespace TreeLibTest
                 int overflowX = checked(xLength + GetExtent(Side.X));
                 int overflowY = checked(yLength + GetExtent(Side.Y));
                 items.Insert(index, new Tuple<int, int, ValueType>(xLength, yLength, value));
+                this.version = unchecked((ushort)(this.version + 1));
                 return true;
             }
             return false;
@@ -117,6 +119,7 @@ namespace TreeLibTest
             if (Find(start, side, out index, out xStart, out yStart, false/*includeEnd*/))
             {
                 items.RemoveAt(index);
+                this.version = unchecked((ushort)(this.version + 1));
                 return true;
             }
             return false;
@@ -560,14 +563,220 @@ namespace TreeLibTest
         // IEnumerable
         //
 
+        private class Enumerator : IEnumerator<EntryRange2Map<ValueType>>, ISetValue<ValueType>
+        {
+            private readonly ReferenceRange2Map<ValueType> map;
+            private readonly bool forward;
+            private readonly bool robust;
+            private readonly bool startIndexed;
+            private readonly int startIndex;
+            private readonly Side side;
+
+            private int index;
+            private ushort mapVersion;
+            private ushort enumeratorVersion;
+
+            public Enumerator(ReferenceRange2Map<ValueType> map, bool forward, bool robust, bool startIndexed, int startIndex, Side side)
+            {
+                this.map = map;
+                this.forward = forward;
+                this.robust = robust;
+                this.startIndexed = startIndexed;
+                this.startIndex = startIndex;
+                this.side = side;
+
+                Reset();
+            }
+
+            public EntryRange2Map<ValueType> Current
+            {
+                get
+                {
+                    if ((index >= 0) && (index < map.Count))
+                    {
+                        int xStart = 0, yStart = 0;
+                        for (int i = 0; i < index; i++)
+                        {
+                            xStart += map.items[i].Item1;
+                            yStart += map.items[i].Item2;
+                        }
+                        return new EntryRange2Map<ValueType>(
+                            map.items[index].Item3,
+                            this,
+                            this.enumeratorVersion,
+                            xStart,
+                            map.items[index].Item1,
+                            yStart,
+                            map.items[index].Item2);
+                    }
+                    return default(EntryRange2Map<ValueType>);
+                }
+            }
+
+            object IEnumerator.Current { get { return this.Current; } }
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (/*!robust && */(mapVersion != map.version))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                index = index + (forward ? 1 : -1);
+                return (index >= 0) && (index < map.items.Count);
+            }
+
+            public void Reset()
+            {
+                this.mapVersion = map.version;
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                if (forward)
+                {
+                    index = -1;
+                    if (startIndexed)
+                    {
+                        int xStart = 0, yStart = 0;
+                        while ((index + 1 < map.items.Count) && (startIndex > (side == Side.X ? xStart : yStart)))
+                        {
+                            index++;
+                            xStart += map.items[index].Item1;
+                            yStart += map.items[index].Item2;
+                        }
+                    }
+                }
+                else
+                {
+                    index = map.items.Count;
+                    if (startIndexed)
+                    {
+                        int xStart = map.GetExtent(Side.X);
+                        int yStart = map.GetExtent(Side.Y);
+                        while ((index - 1 >= 0) && (startIndex < (side == Side.X ? xStart - map.items[index - 1].Item1 : yStart - map.items[index - 1].Item2)))
+                        {
+                            index--;
+                            xStart -= map.items[index].Item1;
+                            yStart -= map.items[index].Item2;
+                        }
+                    }
+                }
+            }
+
+            public void SetValue(ValueType value, ushort expectedEnumeratorVersion)
+            {
+                if ((/*!robust && */(this.mapVersion != map.version)) || (this.enumeratorVersion != expectedEnumeratorVersion))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                map.items[index] = new Tuple<int, int, ValueType>(map.items[index].Item1, map.items[index].Item2, value);
+            }
+        }
+
+        public class EnumerableSurrogate : IEnumerable<EntryRange2Map<ValueType>>
+        {
+            private readonly ReferenceRange2Map<ValueType> map;
+            private readonly bool forward;
+            private readonly bool robust;
+            private readonly bool startIndexed;
+            private readonly int startIndex;
+            private readonly Side side;
+
+            public EnumerableSurrogate(ReferenceRange2Map<ValueType> map, bool forward, bool robust, bool startIndexed, int startIndex, Side side)
+            {
+                this.map = map;
+                this.forward = forward;
+                this.robust = robust;
+                this.startIndexed = startIndexed;
+                this.startIndex = startIndex;
+                this.side = side;
+            }
+
+            public IEnumerator<EntryRange2Map<ValueType>> GetEnumerator()
+            {
+                return new Enumerator(map, forward, robust, startIndexed, startIndex, side);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
         public IEnumerator<EntryRange2Map<ValueType>> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return this.GetEnumerator();
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, false/*startIndexed*/, 0, Side.X);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, false/*startIndexed*/, 0, Side.X);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, false/*startIndexed*/, 0, Side.X);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, false/*startIndexed*/, 0, Side.X);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, true/*robust*/, false/*startIndexed*/, 0, Side.X);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, true/*robust*/, false/*startIndexed*/, 0, Side.X);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable(int startAt, Side side)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, true/*startIndexed*/, startAt, side);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable(int startAt, Side side, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, true/*startIndexed*/, startAt, side);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable(int startAt, Side side)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, true/*startIndexed*/, startAt, side);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable(int startAt, Side side, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, true/*startIndexed*/, startAt, side);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable(int startAt, Side side)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, true/*robust*/, true/*startIndexed*/, startAt, side);
+        }
+
+        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable(int startAt, Side side, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, true/*robust*/, true/*startIndexed*/, startAt, side);
         }
     }
 }

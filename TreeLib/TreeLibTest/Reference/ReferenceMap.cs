@@ -37,7 +37,8 @@ namespace TreeLibTest
         IEnumerable<EntryMap<KeyType, ValueType>>
         where KeyType : IComparable<KeyType>
     {
-        private readonly List<KeyValuePair<KeyType, ValueType>> items = new List<KeyValuePair<KeyType, ValueType>>();
+        private readonly List<EntryMap<KeyType, ValueType>> items = new List<EntryMap<KeyType, ValueType>>();
+        private ushort version;
 
 
         //
@@ -72,10 +73,11 @@ namespace TreeLibTest
             int i = BinarySearch(key);
             if (i >= 0)
             {
-                items[i] = new KeyValuePair<KeyType, ValueType>(key, value);
+                items[i] = new EntryMap<KeyType, ValueType>(key, value, null, 0);
                 return false;
             }
-            items.Insert(~i, new KeyValuePair<KeyType, ValueType>(key, value));
+            items.Insert(~i, new EntryMap<KeyType, ValueType>(key, value, null, 0));
+            this.version = unchecked((ushort)(this.version + 1));
             return true;
         }
 
@@ -84,7 +86,8 @@ namespace TreeLibTest
             int i = BinarySearch(key);
             if (i < 0)
             {
-                items.Insert(~i, new KeyValuePair<KeyType, ValueType>(key, value));
+                items.Insert(~i, new EntryMap<KeyType, ValueType>(key, value, null, 0));
+                this.version = unchecked((ushort)(this.version + 1));
                 return true;
             }
             return false;
@@ -96,6 +99,7 @@ namespace TreeLibTest
             if (i >= 0)
             {
                 items.RemoveAt(i);
+                this.version = unchecked((ushort)(this.version + 1));
                 return true;
             }
             return false;
@@ -118,7 +122,7 @@ namespace TreeLibTest
             int i = BinarySearch(key);
             if (i >= 0)
             {
-                items[i] = new KeyValuePair<KeyType, ValueType>(key, value);
+                items[i] = new EntryMap<KeyType, ValueType>(key, value, null, 0);
                 return true;
             }
             return false;
@@ -309,13 +313,13 @@ namespace TreeLibTest
 
         private int BinarySearch(KeyType key)
         {
-            return items.BinarySearch(new KeyValuePair<KeyType, ValueType>(key, default(ValueType)), Comparer);
+            return items.BinarySearch(new EntryMap<KeyType, ValueType>(key, default(ValueType), null, 0), Comparer);
         }
 
         public readonly static CompoundComparer Comparer = new CompoundComparer();
-        public class CompoundComparer : IComparer<KeyValuePair<KeyType, ValueType>>
+        public class CompoundComparer : IComparer<EntryMap<KeyType, ValueType>>
         {
-            public int Compare(KeyValuePair<KeyType, ValueType> x, KeyValuePair<KeyType, ValueType> y)
+            public int Compare(EntryMap<KeyType, ValueType> x, EntryMap<KeyType, ValueType> y)
             {
                 return Comparer<KeyType>.Default.Compare(x.Key, y.Key);
             }
@@ -328,7 +332,7 @@ namespace TreeLibTest
 
         int ISimpleTreeInspection<KeyType, ValueType>.Count { get { return items.Count; } }
 
-        KeyValuePair<KeyType, ValueType>[] ISimpleTreeInspection<KeyType, ValueType>.ToArray()
+        EntryMap<KeyType, ValueType>[] ISimpleTreeInspection<KeyType, ValueType>.ToArray()
         {
             return items.ToArray();
         }
@@ -386,14 +390,234 @@ namespace TreeLibTest
         // IEnumerable
         //
 
+        private class Enumerator : IEnumerator<EntryMap<KeyType, ValueType>>, ISetValue<ValueType>
+        {
+            private readonly ReferenceMap<KeyType, ValueType> map;
+            private readonly bool forward;
+            private readonly bool robust;
+            private readonly bool startKeyed;
+            private readonly KeyType startKey;
+
+            private int index;
+            private EntryMap<KeyType, ValueType> current;
+            private ushort mapVersion;
+            private ushort enumeratorVersion;
+
+            public Enumerator(ReferenceMap<KeyType, ValueType> map, bool forward, bool robust, bool startKeyed, KeyType startKey)
+            {
+                this.map = map;
+                this.forward = forward;
+                this.robust = robust;
+                this.startKeyed = startKeyed;
+                this.startKey = startKey;
+
+                Reset();
+            }
+
+            public EntryMap<KeyType, ValueType> Current { get { return current; } }
+
+            object IEnumerator.Current { get { return this.Current; } }
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (!robust && (mapVersion != map.version))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                if (((index >= 0) && (index < map.Count)) && (0 != Comparer<KeyType>.Default.Compare(current.Key, map.items[index].Key)))
+                {
+                    if (forward)
+                    {
+                        index = 0;
+                        while ((index < map.items.Count) && (0 <= Comparer<KeyType>.Default.Compare(current.Key, map.items[index].Key)))
+                        {
+                            index++;
+                        }
+                        index--;
+                    }
+                    else
+                    {
+                        index = map.items.Count - 1;
+                        while ((index >= 0) && (0 >= Comparer<KeyType>.Default.Compare(current.Key, map.items[index].Key)))
+                        {
+                            index--;
+                        }
+                        index++;
+                    }
+                }
+
+                index = index + (forward ? 1 : -1);
+                current = new EntryMap<KeyType, ValueType>();
+                if ((index >= 0) && (index < map.Count))
+                {
+                    current = new EntryMap<KeyType, ValueType>(
+                        map.items[index].Key,
+                        map.items[index].Value,
+                        this,
+                        this.enumeratorVersion);
+                    return true;
+                }
+                return false;
+            }
+
+            public void Reset()
+            {
+                this.mapVersion = map.version;
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                current = new EntryMap<KeyType, ValueType>();
+
+                if (forward)
+                {
+                    index = -1;
+                    if (startKeyed)
+                    {
+                        while ((index + 1 < map.items.Count) && (0 < Comparer<KeyType>.Default.Compare(startKey, map.items[index + 1].Key)))
+                        {
+                            index++;
+                        }
+                        if ((index >= 0) && (index < map.items.Count) && (0 == Comparer<KeyType>.Default.Compare(startKey, map.items[index].Key)))
+                        {
+                            index--;
+                        }
+                    }
+                }
+                else
+                {
+                    index = map.items.Count;
+                    if (startKeyed)
+                    {
+                        while ((index - 1 >= 0) && (0 > Comparer<KeyType>.Default.Compare(startKey, map.items[index - 1].Key)))
+                        {
+                            index--;
+                        }
+                        if ((index >= 0) && (index < map.items.Count) && (0 == Comparer<KeyType>.Default.Compare(startKey, map.items[index].Key)))
+                        {
+                            index++;
+                        }
+                    }
+                }
+
+                if ((index >= 0) && (index < map.items.Count))
+                {
+                    current = new EntryMap<KeyType, ValueType>(map.items[index].Key, map.items[index].Value, this, this.mapVersion);
+                }
+            }
+
+            public void SetValue(ValueType value, ushort expectedEnumeratorVersion)
+            {
+                if ((!robust && (this.mapVersion != map.version)) || (this.enumeratorVersion != expectedEnumeratorVersion))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                map.SetValue(current.Key, value);
+            }
+        }
+
+        public class EnumerableSurrogate : IEnumerable<EntryMap<KeyType, ValueType>>
+        {
+            private readonly ReferenceMap<KeyType, ValueType> map;
+            private readonly bool forward;
+            private readonly bool robust;
+            private readonly bool startKeyed;
+            private readonly KeyType startKey;
+
+            public EnumerableSurrogate(ReferenceMap<KeyType, ValueType> map, bool forward, bool robust, bool startKeyed, KeyType startKey)
+            {
+                this.map = map;
+                this.forward = forward;
+                this.robust = robust;
+                this.startKeyed = startKeyed;
+                this.startKey = startKey;
+            }
+
+            public IEnumerator<EntryMap<KeyType, ValueType>> GetEnumerator()
+            {
+                return new Enumerator(map, forward, robust, startKeyed, startKey);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
         public IEnumerator<EntryMap<KeyType, ValueType>> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return this.GetEnumerator();
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetFastEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetRobustEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, true/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetRobustEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, true/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetEnumerable(KeyType startAt)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetEnumerable(KeyType startAt, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, true/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, true/*robust*/, true/*startKeyed*/, startAt);
         }
     }
 }

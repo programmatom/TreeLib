@@ -88,11 +88,15 @@ namespace BuildTool
         }
 
         private static readonly string[] RenameAttributes = new string[] { "Rename" };
-        private bool RenameMethod(BaseMethodDeclarationSyntax method, out ExpressionSyntax newNameStringOut)
+        private bool Rename(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax newNameStringOut)
         {
             foreach (FacetList facetsList in facetAxes)
             {
-                if (AttributeMatchUtil.TestEnumeratedFaceAttribute(method.AttributeLists, out newNameStringOut, RenameAttributes, facetsList))
+                if (AttributeMatchUtil.TestEnumeratedFacetAttribute(
+                    attributeLists,
+                    out newNameStringOut,
+                    RenameAttributes,
+                    facetsList))
                 {
                     return true;
                 }
@@ -150,7 +154,7 @@ namespace BuildTool
                     return null;
                 }
                 ExpressionSyntax newNameString;
-                if (RenameMethod(node, out newNameString))
+                if (Rename(node.AttributeLists, out newNameString))
                 {
                     string newName = ((LiteralExpressionSyntax)newNameString).Token.Text;
                     if (newName.StartsWith("\"") && newName.EndsWith("\""))
@@ -324,6 +328,46 @@ namespace BuildTool
                 return null;
             }
             return base.VisitBlock(node);
+        }
+
+        public override SyntaxNode VisitBreakStatement(BreakStatementSyntax node)
+        {
+            if (RemoveTestTriviaAnnotation(node.GetLeadingTrivia()))
+            {
+                return null;
+            }
+            return base.VisitBreakStatement(node);
+        }
+
+        public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            node = (IdentifierNameSyntax)base.VisitIdentifierName(node);
+
+            ExpressionSyntax newNameString;
+            if (Rename(AttributeMatchUtil.TriviaAnnotationToAttributesList(node.GetLeadingTrivia()), out newNameString))
+            {
+                string newName = ((LiteralExpressionSyntax)newNameString).Token.Text;
+                if (newName.StartsWith("\"") && newName.EndsWith("\""))
+                {
+                    newName = newName.Substring(1, newName.Length - 2);
+                }
+                node = node.WithIdentifier(SyntaxFactory.Identifier(newName));
+            }
+
+            return node;
+        }
+
+        public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            if (node.OperatorToken.TrailingTrivia.Count != 0)
+            {
+                SyntaxTriviaList trivia = node.Name.GetLeadingTrivia();
+                trivia = trivia.AddRange(node.OperatorToken.TrailingTrivia);
+                node = node.WithName(node.Name.WithLeadingTrivia(trivia));
+                node = node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia());
+            }
+
+            return base.VisitMemberAccessExpression(node);
         }
 
 

@@ -43,11 +43,10 @@ namespace TreeLib
         private const int DefaultMaxBlockSize = 512;
 
         [Widen]
-        private IRangeMap<T[]> tree;
-        private int maxBlockSize = DefaultMaxBlockSize;
+        private readonly IRangeMap<T[]> tree;
+        private readonly int maxBlockSize = DefaultMaxBlockSize;
         [Widen]
         private int currentStartIndex = -1; // start of the one and only segment that may contain extra space (last accessed)
-
         private ushort version;
 
         /// <summary>
@@ -227,25 +226,28 @@ namespace TreeLib
 
         public void InsertRange([Widen]int index, IEnumerable<T> collection)
         {
-            if (collection == null)
+            unchecked
             {
-                throw new ArgumentNullException();
-            }
-
-            T[] staging = new T[maxBlockSize];
-            int i = 0;
-            foreach (T item in collection)
-            {
-                staging[i] = item;
-                i++;
-                if (i == staging.Length)
+                if (collection == null)
                 {
-                    InsertRangeInternal(index, staging, 0, staging.Length);
-                    index += staging.Length;
-                    i = 0;
+                    throw new ArgumentNullException();
                 }
+
+                T[] staging = new T[maxBlockSize];
+                int i = 0;
+                foreach (T item in collection)
+                {
+                    staging[i] = item;
+                    i++;
+                    if (i == staging.Length)
+                    {
+                        InsertRangeInternal(index, staging, 0, staging.Length);
+                        index += staging.Length;
+                        i = 0;
+                    }
+                }
+                InsertRangeInternal(index, staging, 0, i);
             }
-            InsertRangeInternal(index, staging, 0, i);
         }
 
         public void Insert([Widen]int index, T item)
@@ -270,220 +272,223 @@ namespace TreeLib
 
         public void RemoveRange([Widen]int index, [Widen]int count)
         {
-            if ((index < 0) || (count < 0) || (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count) > unchecked((/*[Widen]*/uint)tree.GetExtent())))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            Debug.Assert((currentStartIndex == -1) || (tree.GetLength(currentStartIndex) < tree.GetValue(currentStartIndex).Length));
-
-            /*[Widen]*/
-            int start;
-            /*[Widen]*/
-            int segmentCount;
-            T[] segment;
-            tree.NearestLessOrEqual(index, out start, out segmentCount, out segment);
-
-            /*[Widen]*/
-            int beforeStart;
-            if (!tree.NearestLess(start, out beforeStart))
-            {
-                beforeStart = -1;
-            }
-
-            while (count != 0)
-            {
-                int offset = unchecked((int)(index - start));
-                int apportionedToFirstSegment = unchecked((int)Math.Min(segmentCount - offset, count));
-
-                /*[Widen]*/
-                int nextStart;
-                /*[Widen]*/
-                int nextSegmentCount;
-                T[] nextSegment;
-                if (tree.NearestGreaterOrEqual(index, out nextStart, out nextSegmentCount, out nextSegment)
-                    && (count - (nextStart == index ? 0 : apportionedToFirstSegment) >= nextSegmentCount))
+                if ((index < 0) || (count < 0) || (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count) > unchecked((/*[Widen]*/uint)tree.GetExtent())))
                 {
-                    // following segment can be deleted in entirity
-
-                    Debug.Assert((nextStart == start) == (start == index));
-
-                    tree.Delete(nextStart);
-
-                    if (currentStartIndex == nextStart)
-                    {
-                        currentStartIndex = -1;
-                    }
-                    else if (currentStartIndex > nextStart)
-                    {
-                        // CASE (A4)
-                        currentStartIndex -= nextSegmentCount;
-                    }
-
-                    count -= nextSegmentCount;
-
-                    segmentCount = 0;
-                    if (index != tree.GetExtent())
-                    {
-                        tree.NearestLessOrEqual(index, out start, out segmentCount, out segment);
-                    }
+                    throw new ArgumentOutOfRangeException();
                 }
-                else
-                {
-                    // removal apportioned between current and next (next's portion may be 0)
 
-                    if (nextStart == index)
-                    {
-                        tree.NearestGreater(index, out nextStart, out nextSegmentCount, out nextSegment);
-                    }
+                Debug.Assert((currentStartIndex == -1) || (tree.GetLength(currentStartIndex) < tree.GetValue(currentStartIndex).Length));
+
+                /*[Widen]*/
+                int start;
+                /*[Widen]*/
+                int segmentCount;
+                T[] segment;
+                tree.NearestLessOrEqual(index, out start, out segmentCount, out segment);
+
+                /*[Widen]*/
+                int beforeStart;
+                if (!tree.NearestLess(start, out beforeStart))
+                {
+                    beforeStart = -1;
+                }
+
+                while (count != 0)
+                {
+                    int offset = unchecked((int)(index - start));
+                    int apportionedToFirstSegment = unchecked((int)Math.Min(segmentCount - offset, count));
 
                     /*[Widen]*/
-                    int originalSegmentCount = segmentCount;
-
-                    if (segmentCount + nextSegmentCount - count <= maxBlockSize)
+                    int nextStart;
+                    /*[Widen]*/
+                    int nextSegmentCount;
+                    T[] nextSegment;
+                    if (tree.NearestGreaterOrEqual(index, out nextStart, out nextSegmentCount, out nextSegment)
+                        && (count - (nextStart == index ? 0 : apportionedToFirstSegment) >= nextSegmentCount))
                     {
-                        // one segment will hold this and next, so merge
+                        // following segment can be deleted in entirity
 
-                        // CASE (A2), (A7)
+                        Debug.Assert((nextStart == start) == (start == index));
 
-                        if (segment.Length < maxBlockSize)
-                        {
-                            // CASE (A6)
-                            Array.Resize(ref segment, maxBlockSize);
-                            // write segment back to tree deferred to below
-                        }
+                        tree.Delete(nextStart);
 
-                        Array.Copy(segment, offset + apportionedToFirstSegment, segment, offset, unchecked((int)(segmentCount - (offset + apportionedToFirstSegment))));
-                        segmentCount -= apportionedToFirstSegment;
-                        count -= apportionedToFirstSegment;
-
-                        int fromNextSegment = unchecked((int)(nextSegmentCount - count));
-                        if (fromNextSegment != 0)
-                        {
-                            // CASE (A5), (A7)
-                            Array.Copy(nextSegment, unchecked((int)count), segment, unchecked((int)segmentCount), fromNextSegment);
-                            segmentCount += fromNextSegment;
-                        }
-                        count = 0;
-
-                        if (originalSegmentCount - segmentCount > 0)
-                        {
-                            Array.Clear(segment, unchecked((int)segmentCount), unchecked((int)(originalSegmentCount - segmentCount)));
-                        }
-
-                        if (nextSegmentCount != 0) // might be at end (no next segment)
-                        {
-                            tree.Delete(nextStart);
-                            if (currentStartIndex == nextStart)
-                            {
-                                // CASE A21
-                                currentStartIndex = -1;
-                            }
-                        }
-                        tree.Set(start, segmentCount, segment);
-
-                        if (currentStartIndex == start)
+                        if (currentStartIndex == nextStart)
                         {
                             currentStartIndex = -1;
                         }
-                        else if (currentStartIndex > start)
+                        else if (currentStartIndex > nextStart)
                         {
-                            currentStartIndex -= originalSegmentCount - segmentCount + nextSegmentCount;
-                            Debug.Assert(currentStartIndex >= start + segmentCount);
+                            // CASE (A4)
+                            currentStartIndex -= nextSegmentCount;
                         }
 
-                        if (segmentCount < maxBlockSize)
+                        count -= nextSegmentCount;
+
+                        segmentCount = 0;
+                        if (index != tree.GetExtent())
                         {
-                            ClearIfNotCurrentSegment(start);
-                            currentStartIndex = start; // created some free space - CASE (A2)
+                            tree.NearestLessOrEqual(index, out start, out segmentCount, out segment);
                         }
                     }
                     else
                     {
-                        // either range is contained in one segment,
-                        // OR range spans two segments, but after reduction still too large for one segment, so adjust both
+                        // removal apportioned between current and next (next's portion may be 0)
 
-                        // keeping the excess in the current (as opposed to next) is more likely to be useful because of the
-                        // chance of subsequent insert at that index.
-
-                        // CASE (A1)
-
-                        if (currentStartIndex == nextStart)
+                        if (nextStart == index)
                         {
-                            // CASE (A3)
-                            Debug.Assert(nextSegmentCount < nextSegment.Length);
-                            // trim is deferred until after values are removed
+                            tree.NearestGreater(index, out nextStart, out nextSegmentCount, out nextSegment);
+                        }
+
+                        /*[Widen]*/
+                        int originalSegmentCount = segmentCount;
+
+                        if (segmentCount + nextSegmentCount - count <= maxBlockSize)
+                        {
+                            // one segment will hold this and next, so merge
+
+                            // CASE (A2), (A7)
+
+                            if (segment.Length < maxBlockSize)
+                            {
+                                // CASE (A6)
+                                Array.Resize(ref segment, maxBlockSize);
+                                // write segment back to tree deferred to below
+                            }
+
+                            Array.Copy(segment, offset + apportionedToFirstSegment, segment, offset, unchecked((int)(segmentCount - (offset + apportionedToFirstSegment))));
+                            segmentCount -= apportionedToFirstSegment;
+                            count -= apportionedToFirstSegment;
+
+                            int fromNextSegment = unchecked((int)(nextSegmentCount - count));
+                            if (fromNextSegment != 0)
+                            {
+                                // CASE (A5), (A7)
+                                Array.Copy(nextSegment, unchecked((int)count), segment, unchecked((int)segmentCount), fromNextSegment);
+                                segmentCount += fromNextSegment;
+                            }
+                            count = 0;
+
+                            if (originalSegmentCount - segmentCount > 0)
+                            {
+                                Array.Clear(segment, unchecked((int)segmentCount), unchecked((int)(originalSegmentCount - segmentCount)));
+                            }
+
+                            if (nextSegmentCount != 0) // might be at end (no next segment)
+                            {
+                                tree.Delete(nextStart);
+                                if (currentStartIndex == nextStart)
+                                {
+                                    // CASE A21
+                                    currentStartIndex = -1;
+                                }
+                            }
+                            tree.Set(start, segmentCount, segment);
+
+                            if (currentStartIndex == start)
+                            {
+                                currentStartIndex = -1;
+                            }
+                            else if (currentStartIndex > start)
+                            {
+                                currentStartIndex -= originalSegmentCount - segmentCount + nextSegmentCount;
+                                Debug.Assert(currentStartIndex >= start + segmentCount);
+                            }
+
+                            if (segmentCount < maxBlockSize)
+                            {
+                                ClearIfNotCurrentSegment(start);
+                                currentStartIndex = start; // created some free space - CASE (A2)
+                            }
                         }
                         else
                         {
-                            ClearIfNotCurrentSegment(start);
-                        }
+                            // either range is contained in one segment,
+                            // OR range spans two segments, but after reduction still too large for one segment, so adjust both
 
-                        if (segment.Length < maxBlockSize)
-                        {
-                            // CASE (A3)
-                            Array.Resize(ref segment, maxBlockSize);
-                            tree.SetValue(start, segment);
-                        }
+                            // keeping the excess in the current (as opposed to next) is more likely to be useful because of the
+                            // chance of subsequent insert at that index.
 
-                        Array.Copy(segment, offset + apportionedToFirstSegment, segment, offset, unchecked((int)(segmentCount - (offset + apportionedToFirstSegment))));
-                        Array.Clear(segment, (int)(segmentCount - apportionedToFirstSegment), apportionedToFirstSegment);
-                        segmentCount -= apportionedToFirstSegment;
-                        count -= apportionedToFirstSegment;
-                        tree.SetLength(start, segmentCount);
-                        Debug.Assert((currentStartIndex == -1) || (currentStartIndex == start) || (currentStartIndex == nextStart));
-                        if (currentStartIndex == nextStart)
-                        {
-                            currentStartIndex -= apportionedToFirstSegment;
-                        }
-                        nextStart -= apportionedToFirstSegment;
+                            // CASE (A1)
 
-                        if (count != 0)
-                        {
-                            // CASE (A8)
+                            if (currentStartIndex == nextStart)
+                            {
+                                // CASE (A3)
+                                Debug.Assert(nextSegmentCount < nextSegment.Length);
+                                // trim is deferred until after values are removed
+                            }
+                            else
+                            {
+                                ClearIfNotCurrentSegment(start);
+                            }
+
+                            if (segment.Length < maxBlockSize)
+                            {
+                                // CASE (A3)
+                                Array.Resize(ref segment, maxBlockSize);
+                                tree.SetValue(start, segment);
+                            }
+
+                            Array.Copy(segment, offset + apportionedToFirstSegment, segment, offset, unchecked((int)(segmentCount - (offset + apportionedToFirstSegment))));
+                            Array.Clear(segment, (int)(segmentCount - apportionedToFirstSegment), apportionedToFirstSegment);
+                            segmentCount -= apportionedToFirstSegment;
+                            count -= apportionedToFirstSegment;
+                            tree.SetLength(start, segmentCount);
+                            Debug.Assert((currentStartIndex == -1) || (currentStartIndex == start) || (currentStartIndex == nextStart));
+                            if (currentStartIndex == nextStart)
+                            {
+                                currentStartIndex -= apportionedToFirstSegment;
+                            }
+                            nextStart -= apportionedToFirstSegment;
+
+                            if (count != 0)
+                            {
+                                // CASE (A8)
+
+                                Debug.Assert(nextSegmentCount != 0);
+
+                                Array.Copy(nextSegment, (int)count, nextSegment, 0, unchecked((int)nextSegmentCount) - count);
+                                //Array.Clear(nextSegment, nextSegmentCount - count, count);
+                                nextSegmentCount -= count;
+                                count = 0;
+                                tree.SetLength(nextStart, nextSegmentCount);
+                                // At this point nextSegment is invalid because it contains excess space but is not necessarily
+                                // maxBlockSize length. Also, free space hasn't been cleared. However, this will all be fixed up
+                                // in one resize pass just below where we call TrimSegment().
+                            }
 
                             Debug.Assert(nextSegmentCount != 0);
+                            // CASE (A3)
+                            // trim segment (either not needed or follows from speculative condition above)
+                            TrimSegment(nextStart);
 
-                            Array.Copy(nextSegment, (int)count, nextSegment, 0, unchecked((int)nextSegmentCount) - count);
-                            //Array.Clear(nextSegment, nextSegmentCount - count, count);
-                            nextSegmentCount -= count;
-                            count = 0;
-                            tree.SetLength(nextStart, nextSegmentCount);
-                            // At this point nextSegment is invalid because it contains excess space but is not necessarily
-                            // maxBlockSize length. Also, free space hasn't been cleared. However, this will all be fixed up
-                            // in one resize pass just below where we call TrimSegment().
+                            currentStartIndex = start;
+
+                            // move start to next segment upon exiting loop, since that one may need to be coalesced with the one
+                            // that follows if it is sufficiently small
+                            start += segmentCount;
+                            segmentCount = nextSegmentCount;
                         }
-
-                        Debug.Assert(nextSegmentCount != 0);
-                        // CASE (A3)
-                        // trim segment (either not needed or follows from speculative condition above)
-                        TrimSegment(nextStart);
-
-                        currentStartIndex = start;
-
-                        // move start to next segment upon exiting loop, since that one may need to be coalesced with the one
-                        // that follows if it is sufficiently small
-                        start += segmentCount;
-                        segmentCount = nextSegmentCount;
                     }
                 }
-            }
 
 
-            // By construction, segments at start and nextStart will have been joined above, if possible.
-            // Try to coalesce any adjacent segments that will now fit
+                // By construction, segments at start and nextStart will have been joined above, if possible.
+                // Try to coalesce a leading or trailing segment that will now fit
 
-            /*[Widen]*/
-            int lengthTest;
-            Debug.Assert((start == tree.GetExtent()) || tree.TryGetLength(start, out lengthTest));
-            Debug.Assert((start == tree.GetExtent()) == (segmentCount == 0));
-            if (segmentCount != 0)
-            {
-                TryJoinNext(start);
-            }
-            if (beforeStart >= 0)
-            {
-                TryJoinNext(beforeStart);
+                /*[Widen]*/
+                int lengthTest;
+                Debug.Assert((start == tree.GetExtent()) || tree.TryGetLength(start, out lengthTest));
+                Debug.Assert((start == tree.GetExtent()) == (segmentCount == 0));
+                if (segmentCount != 0)
+                {
+                    TryJoinNext(start);
+                }
+                if (beforeStart >= 0)
+                {
+                    TryJoinNext(beforeStart);
+                }
             }
         }
 
@@ -507,116 +512,122 @@ namespace TreeLib
         [Widen]
         public int RemoveAll(Predicate<T> match)
         {
-            if (match == null)
+            unchecked
             {
-                throw new ArgumentNullException();
-            }
-
-            ClearCurrentSegment();
-
-            /*[Widen]*/
-            int start = 0;
-            /*[Widen]*/
-            int removed = 0;
-            /*[Widen]*/
-            int previousStart = 0;
-            /*[Widen]*/
-            int previousCount = 0;
-            /*[Widen]*/
-            int previousPreviousStart = 0;
-            /*[Widen]*/
-            int previousPreviousCount = 0;
-            ushort version = this.version;
-            while (true)
-            {
-                if ((previousPreviousCount != 0) && (previousCount != 0) && (previousPreviousCount + previousCount <= maxBlockSize))
+                if (match == null)
                 {
-                    bool f = TryJoinNext(previousPreviousStart);
-                    Debug.Assert(f && (tree.GetLength(previousPreviousStart) == previousPreviousCount + previousCount));
-                    previousStart = previousPreviousStart;
-                    previousCount += previousPreviousCount;
-                    previousPreviousCount = 0;
+                    throw new ArgumentNullException();
                 }
 
-                if (start == Count)
-                {
-                    break;
-                }
+                ClearCurrentSegment();
 
-                T[] segment;
                 /*[Widen]*/
-                int segmentCount;
-                tree.Get(start, out segmentCount, out segment);
-
-                int index = 0;
-                for (int i = 0; i < segmentCount; i++)
+                int start = 0;
+                /*[Widen]*/
+                int removed = 0;
+                /*[Widen]*/
+                int previousStart = 0;
+                /*[Widen]*/
+                int previousCount = 0;
+                /*[Widen]*/
+                int previousPreviousStart = 0;
+                /*[Widen]*/
+                int previousPreviousCount = 0;
+                ushort version = this.version;
+                while (true)
                 {
-                    segment[index] = segment[i];
-                    if (!match(segment[i]))
+                    if ((previousPreviousCount != 0) && (previousCount != 0) && (previousPreviousCount + previousCount <= maxBlockSize))
                     {
-                        ++index;
-                    }
-                }
-
-                if (version != this.version)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                if (index < segmentCount)
-                {
-                    removed += segmentCount;
-
-                    if (index == 0)
-                    {
-                        tree.Delete(start);
-                        continue;
+                        bool f = TryJoinNext(previousPreviousStart);
+                        Debug.Assert(f && (tree.GetLength(previousPreviousStart) == previousPreviousCount + previousCount));
+                        previousStart = previousPreviousStart;
+                        previousCount += previousPreviousCount;
+                        previousPreviousCount = 0;
                     }
 
-                    Array.Resize(ref segment, index);
-                    tree.Set(start, index, segment);
+                    if (start == Count)
+                    {
+                        break;
+                    }
 
-                    removed -= index;
+                    T[] segment;
+                    /*[Widen]*/
+                    int segmentCount;
+                    tree.Get(start, out segmentCount, out segment);
+
+                    int index = 0;
+                    for (int i = 0; i < segmentCount; i++)
+                    {
+                        segment[index] = segment[i];
+                        if (!match(segment[i]))
+                        {
+                            ++index;
+                        }
+                    }
+
+                    if (version != this.version)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    if (index < segmentCount)
+                    {
+                        removed += segmentCount;
+
+                        if (index == 0)
+                        {
+                            tree.Delete(start);
+                            continue;
+                        }
+
+                        Array.Resize(ref segment, index);
+                        tree.Set(start, index, segment);
+
+                        removed -= index;
+                    }
+
+                    previousPreviousCount = previousCount;
+                    previousPreviousStart = previousStart;
+                    previousCount = index;
+                    previousStart = start;
+
+                    start += index;
                 }
 
-                previousPreviousCount = previousCount;
-                previousPreviousStart = previousStart;
-                previousCount = index;
-                previousStart = start;
-
-                start += index;
+                return removed;
             }
-
-            return removed;
         }
 
         public void ReplaceRange([Widen]int index, [Widen]int count, T[] items, [Widen]int offset, [Widen]int count2)
         {
-            if ((index < 0) || (count < 0) || (offset < 0) || (count2 < 0))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (items == null)
-            {
-                throw new ArgumentNullException();
-            }
-            if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent())
-                || unchecked((/*[Widen]*/uint)offset + (/*[Widen]*/uint)count2 > (/*[Widen]*/uint)items.Length))
-            {
-                throw new ArgumentException();
-            }
+                if ((index < 0) || (count < 0) || (offset < 0) || (count2 < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (items == null)
+                {
+                    throw new ArgumentNullException();
+                }
+                if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent())
+                    || unchecked((/*[Widen]*/uint)offset + (/*[Widen]*/uint)count2 > (/*[Widen]*/uint)items.Length))
+                {
+                    throw new ArgumentException();
+                }
 
-            /*[Widen]*/
-            int delta = count2 - count;
-            if (delta < 0)
-            {
-                RemoveRange(index, -delta);
-                CopyFrom(index, items, offset, count2);
-            }
-            else
-            {
-                InsertRange(index + count, items, offset + count, delta);
-                CopyFrom(index, items, offset, count);
+                /*[Widen]*/
+                int delta = count2 - count;
+                if (delta < 0)
+                {
+                    RemoveRange(index, -delta);
+                    CopyFrom(index, items, offset, count2);
+                }
+                else
+                {
+                    InsertRange(index + count, items, offset + count, delta);
+                    CopyFrom(index, items, offset, count);
+                }
             }
         }
 
@@ -627,7 +638,9 @@ namespace TreeLib
 
         public void Clear()
         {
-            RemoveRange(0, Count);
+            tree.Clear();
+            currentStartIndex = -1;
+            version = unchecked((ushort)(version + 1));
         }
 
         public void CopyTo([Widen]int index, T[] array, [Widen]int arrayIndex, [Widen]int count)
@@ -670,120 +683,136 @@ namespace TreeLib
 
         public void IterateRange([Widen]int index, T[] external, [Widen]int externalOffset, [Widen]int count, IterateOperator<T> op)
         {
-            IterateRangeBatch(
-                index,
-                external,
-                externalOffset,
-                count,
-                // must declare anonymous delegate because 'op' is captured
-                delegate (T[] v, /*[Widen]*/int vOffset, T[] x, /*[Widen]*/int xOffset, /*[Widen]*/int count1)
-                {
-                    if (x != null)
+            unchecked
+            {
+                IterateRangeBatch(
+                    index,
+                    external,
+                    externalOffset,
+                    count,
+                    // must declare anonymous delegate because 'op' is captured
+                    delegate (T[] v, /*[Widen]*/int vOffset, T[] x, /*[Widen]*/int xOffset, /*[Widen]*/int count1)
                     {
-                        for (/*[Widen]*/int i = 0; i < count1; i++)
+                        if (x != null)
                         {
-                            op(ref v[i + vOffset], ref x[i + xOffset]);
+                            for (/*[Widen]*/int i = 0; i < count1; i++)
+                            {
+                                op(ref v[i + vOffset], ref x[i + xOffset]);
+                            }
                         }
-                    }
-                    else
-                    {
-                        for (/*[Widen]*/int i = 0; i < count1; i++)
+                        else
                         {
-                            T unused = default(T);
-                            op(ref v[i + vOffset], ref unused);
+                            for (/*[Widen]*/int i = 0; i < count1; i++)
+                            {
+                                T unused = default(T);
+                                op(ref v[i + vOffset], ref unused);
+                            }
                         }
-                    }
-                });
+                    });
+            }
         }
 
         public void IterateRangeBatch([Widen]int index, T[] external, [Widen]int externalOffset, [Widen]int count, [Widen]IterateOperatorBatch<T> op)
         {
-            if ((count < 0) || (index < 0) || (externalOffset < 0))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)this.Count))
-            {
-                throw new ArgumentException();
-            }
-            if (external != null)
-            {
-                if (unchecked((/*[Widen]*/uint)externalOffset + (/*[Widen]*/uint)count > (/*[Widen]*/uint)external.Length))
+                if ((count < 0) || (index < 0) || (externalOffset < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)this.Count))
                 {
                     throw new ArgumentException();
                 }
-            }
+                if (external != null)
+                {
+                    if (unchecked((/*[Widen]*/uint)externalOffset + (/*[Widen]*/uint)count > (/*[Widen]*/uint)external.Length))
+                    {
+                        throw new ArgumentException();
+                    }
+                }
 
-            /*[Widen]*/
-            int j = externalOffset;
-            while (count > 0)
-            {
+                if (count == 0)
+                {
+                    return;
+                }
+
                 /*[Widen]*/
                 int start;
-                /*[Widen]*/
-                int segmentCount;
-                T[] segment;
-                tree.NearestLessOrEqual(index, out start, out segmentCount, out segment);
+                tree.NearestLessOrEqual(index, out start);
 
                 /*[Widen]*/
-                int offset = index - start;
+                int j = externalOffset;
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(start))
+                {
+                    /*[Widen]*/
+                    int offset = index - segmentEntry.Start;
 
-                /*[Widen]*/
-                int contiguous = Math.Min(count, segmentCount - offset);
-                op(segment, offset, external, j, contiguous);
-                j += contiguous;
+                    /*[Widen]*/
+                    int contiguous = Math.Min(count, segmentEntry.Length - offset);
+                    op(segmentEntry.Value, offset, external, j, contiguous);
+                    j += contiguous;
 
-                count -= contiguous;
-                index += contiguous;
+                    count -= contiguous;
+                    index += contiguous;
+
+                    if (count == 0)
+                    {
+                        break;
+                    }
+                }
             }
         }
 
         [Widen]
         public int BinarySearch([Widen]int start, [Widen]int count, T value, IComparer<T> comparer, bool multi)
         {
-            if ((start < 0) || (count < 0))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (unchecked((/*[Widen]*/uint)start + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
-            {
-                throw new ArgumentException();
-            }
-            if (comparer == null)
-            {
-                comparer = Comparer<T>.Default;
-            }
-            /*[Widen]*/
-            int lower = start;
-            /*[Widen]*/
-            int upper = start + count - 1;
-            while (lower <= upper)
-            {
+                if ((start < 0) || (count < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (unchecked((/*[Widen]*/uint)start + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
+                {
+                    throw new ArgumentException();
+                }
+                if (comparer == null)
+                {
+                    comparer = Comparer<T>.Default;
+                }
                 /*[Widen]*/
-                int middle = unchecked((/*[Widen]*/int)(((/*[Widen]*/uint)lower + (/*[Widen]*/uint)upper) / 2)); // avoid overflow for large arrays
+                int lower = start;
+                /*[Widen]*/
+                int upper = start + count - 1;
+                while (lower <= upper)
+                {
+                    /*[Widen]*/
+                    int middle = unchecked((/*[Widen]*/int)(((/*[Widen]*/uint)lower + (/*[Widen]*/uint)upper) / 2)); // avoid overflow for large arrays
 
-                int c = comparer.Compare(this[middle], value);
-                if (c == 0)
-                {
-                    if (multi)
+                    int c = comparer.Compare(this[middle], value);
+                    if (c == 0)
                     {
-                        while ((middle > start) && (0 == comparer.Compare(this[middle - 1], value)))
+                        if (multi)
                         {
-                            middle--;
+                            while ((middle > start) && (0 == comparer.Compare(this[middle - 1], value)))
+                            {
+                                middle--;
+                            }
                         }
+                        return middle;
                     }
-                    return middle;
+                    else if (c < 0)
+                    {
+                        lower = middle + 1;
+                    }
+                    else
+                    {
+                        upper = middle - 1;
+                    }
                 }
-                else if (c < 0)
-                {
-                    lower = middle + 1;
-                }
-                else
-                {
-                    upper = middle - 1;
-                }
+                return ~lower;
             }
-            return ~lower;
         }
 
         [Widen]
@@ -805,78 +834,99 @@ namespace TreeLib
         }
 
         [Widen]
-        public int IndexOfAny(T[] values, [Widen]int start, [Widen]int count)
+        public int IndexOfAny(T[] values, [Widen]int index, [Widen]int count)
         {
-            if (values == null)
+            unchecked
             {
-                throw new ArgumentNullException();
-            }
-            if ((start < 0) || (count < 0))
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (unchecked((/*[Widen]*/uint)start + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
-            {
-                throw new ArgumentException();
-            }
-
-            while (count != 0)
-            {
-                int offset;
-                int segmentLength;
-                T[] segment = Select(start, out offset, out segmentLength);
-
-                int c = unchecked((int)Math.Min(segmentLength - offset, count));
-                int bestIndex = segmentLength;
-                for (int i = 0; i < values.Length; i++)
+                if (values == null)
                 {
-                    int index = Array.IndexOf<T>(segment, values[i], offset, c);
-                    if ((index >= 0) && (bestIndex > index))
+                    throw new ArgumentNullException();
+                }
+                if ((index < 0) || (count < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
+                {
+                    throw new ArgumentException();
+                }
+
+                /*[Widen]*/
+                int start;
+                tree.NearestLessOrEqual(index, out start);
+
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(start))
+                {
+                    int offset = unchecked((int)(index - segmentEntry.Start));
+
+                    int c = unchecked((int)Math.Min(segmentEntry.Length - offset, count));
+                    int bestIndex = unchecked((int)(segmentEntry.Length));
+                    for (int i = 0; i < values.Length; i++)
                     {
-                        bestIndex = index;
+                        int p = Array.IndexOf<T>(segmentEntry.Value, values[i], offset, c);
+                        if ((p >= 0) && (bestIndex > p))
+                        {
+                            bestIndex = p;
+                        }
+                    }
+                    if (bestIndex < segmentEntry.Length)
+                    {
+                        return segmentEntry.Start + bestIndex;
+                    }
+
+                    index += c;
+                    count -= c;
+
+                    if (count == 0)
+                    {
+                        break;
                     }
                 }
-                if (bestIndex < segmentLength)
-                {
-                    return start + bestIndex - offset;
-                }
 
-                start += c;
-                count -= c;
+                return -1;
             }
-
-            return -1;
         }
 
         [Widen]
-        public int IndexOf(T value, [Widen]int start, [Widen]int count)
+        public int IndexOf(T value, [Widen]int index, [Widen]int count)
         {
-            if ((start < 0) || (count < 0))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (unchecked((/*[Widen]*/uint)start + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
-            {
-                throw new ArgumentException();
-            }
-
-            while (count != 0)
-            {
-                int offset, segmentLength;
-                T[] segment = Select(start, out offset, out segmentLength);
-
-                int c = unchecked((int)Math.Min(segmentLength - offset, count));
-                int index = Array.IndexOf<T>(segment, value, offset, c);
-                if (index >= 0)
+                if ((index < 0) || (count < 0))
                 {
-                    return start + index - offset;
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
+                {
+                    throw new ArgumentException();
                 }
 
-                start += c;
-                count -= c;
-            }
+                /*[Widen]*/
+                int start;
+                tree.NearestLessOrEqual(index, out start);
 
-            return -1;
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(start))
+                {
+                    int offset = unchecked((int)(index - segmentEntry.Start));
+
+                    int c = unchecked((int)Math.Min(segmentEntry.Length - offset, count));
+                    int p = Array.IndexOf<T>(segmentEntry.Value, value, offset, c);
+                    if (p >= 0)
+                    {
+                        return segmentEntry.Start + p;
+                    }
+
+                    index += c;
+                    count -= c;
+
+                    if (count == 0)
+                    {
+                        break;
+                    }
+                }
+
+                return -1;
+            }
         }
 
         [Widen]
@@ -892,38 +942,49 @@ namespace TreeLib
         }
 
         [Widen]
-        public int FindIndex([Widen]int start, [Widen]int count, Predicate<T> match)
+        public int FindIndex([Widen]int index, [Widen]int count, Predicate<T> match)
         {
-            if (match == null)
+            unchecked
             {
-                throw new ArgumentNullException();
-            }
-            if ((start < 0) || (count < 0))
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (unchecked((/*[Widen]*/uint)start + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
-            {
-                throw new ArgumentException();
-            }
-
-            while (count != 0)
-            {
-                int offset, segmentLength;
-                T[] segment = Select(start, out offset, out segmentLength);
-
-                int c = unchecked((int)Math.Min(segmentLength - offset, count));
-                int p = Array.FindIndex(segment, offset, c, match);
-                if (p >= 0)
+                if (match == null)
                 {
-                    return start - offset + p;
+                    throw new ArgumentNullException();
+                }
+                if ((index < 0) || (count < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (unchecked((/*[Widen]*/uint)index + (/*[Widen]*/uint)count > (/*[Widen]*/uint)tree.GetExtent()))
+                {
+                    throw new ArgumentException();
                 }
 
-                start += c;
-                count -= c;
-            }
+                /*[Widen]*/
+                int start;
+                tree.NearestLessOrEqual(index, out start);
 
-            return -1;
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(start))
+                {
+                    int offset = unchecked((int)(index - segmentEntry.Start));
+
+                    int c = unchecked((int)Math.Min(segmentEntry.Length - offset, count));
+                    int p = Array.FindIndex(segmentEntry.Value, offset, c, match);
+                    if (p >= 0)
+                    {
+                        return segmentEntry.Start + p;
+                    }
+
+                    index += c;
+                    count -= c;
+
+                    if (count == 0)
+                    {
+                        break;
+                    }
+                }
+
+                return -1;
+            }
         }
 
         [Widen]
@@ -941,99 +1002,113 @@ namespace TreeLib
         [Widen]
         public int LastIndexOfAny(T[] values, [Widen]int end, [Widen]int count)
         {
-            if (values == null)
+            unchecked
             {
-                throw new ArgumentNullException();
-            }
-            if ((tree.GetExtent() != 0) && (end < 0))
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if ((tree.GetExtent() != 0) && (count < 0))
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (tree.GetExtent() == 0)
-            {
-                return -1;
-            }
-            if (end >= tree.GetExtent())
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (count > end + 1)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            while (count != 0)
-            {
-                int offset, segmentLength;
-                T[] segment = Select(end, out offset, out segmentLength);
-
-                int c = unchecked((int)Math.Min(offset + 1, count));
-                int p = -1;
-                for (int i = 0; i < values.Length; i++)
+                if (values == null)
                 {
-                    int index = Array.LastIndexOf<T>(segment, values[i], offset, c);
-                    if (p < index)
+                    throw new ArgumentNullException();
+                }
+                if ((tree.GetExtent() != 0) && (end < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if ((tree.GetExtent() != 0) && (count < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (tree.GetExtent() == 0)
+                {
+                    return -1;
+                }
+                if (end >= tree.GetExtent())
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (count > end + 1)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(end, false/*forward*/))
+                {
+                    int offset = unchecked((int)(end - segmentEntry.Start));
+
+                    int c = unchecked((int)Math.Min(offset + 1, count));
+                    int bestIndex = -1;
+                    for (int i = 0; i < values.Length; i++)
                     {
-                        p = index;
+                        int p = Array.LastIndexOf<T>(segmentEntry.Value, values[i], offset, c);
+                        if (bestIndex < p)
+                        {
+                            bestIndex = p;
+                        }
+                    }
+                    if (bestIndex >= 0)
+                    {
+                        return segmentEntry.Start + bestIndex;
+                    }
+
+                    end -= offset + 1;
+                    count -= c;
+
+                    if (count == 0)
+                    {
+                        break;
                     }
                 }
-                if (p >= 0)
-                {
-                    return end - offset + p;
-                }
 
-                end -= offset + 1;
-                count -= c;
+                return -1;
             }
-
-            return -1;
         }
 
         [Widen]
         public int LastIndexOf(T value, [Widen]int end, [Widen]int count)
         {
-            if ((tree.GetExtent() != 0) && (end < 0))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-            if ((tree.GetExtent() != 0) && (count < 0))
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (tree.GetExtent() == 0)
-            {
-                return -1;
-            }
-            if (end >= tree.GetExtent())
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (count > end + 1)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            while (count != 0)
-            {
-                int offset, segmentLength;
-                T[] segment = Select(end, out offset, out segmentLength);
-
-                int c = unchecked((int)Math.Min(offset + 1, count));
-                int p = Array.LastIndexOf<T>(segment, value, offset, c);
-                if (p >= 0)
+                if ((tree.GetExtent() != 0) && (end < 0))
                 {
-                    return end - offset + p;
+                    throw new ArgumentOutOfRangeException();
+                }
+                if ((tree.GetExtent() != 0) && (count < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (tree.GetExtent() == 0)
+                {
+                    return -1;
+                }
+                if (end >= tree.GetExtent())
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (count > end + 1)
+                {
+                    throw new ArgumentOutOfRangeException();
                 }
 
-                end -= offset + 1;
-                count -= c;
-            }
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(end, false/*forward*/))
+                {
+                    int offset = unchecked((int)(end - segmentEntry.Start));
 
-            return -1;
+                    int c = unchecked((int)Math.Min(offset + 1, count));
+                    int p = Array.LastIndexOf<T>(segmentEntry.Value, value, offset, c);
+                    if (p >= 0)
+                    {
+                        return segmentEntry.Start + p;
+                    }
+
+                    end -= offset + 1;
+                    count -= c;
+
+                    if (count == 0)
+                    {
+                        break;
+                    }
+                }
+
+                return -1;
+            }
         }
 
         [Widen]
@@ -1051,54 +1126,67 @@ namespace TreeLib
         [Widen]
         public int FindLastIndex([Widen]int end, [Widen]int count, Predicate<T> match)
         {
-            if (tree.GetExtent() == 0)
+            unchecked
             {
-                if (end != -1)
+                if (tree.GetExtent() == 0)
+                {
+                    if (end != -1)
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
+                }
+                else
+                {
+                    if (unchecked((/*[Widen]*/uint)end >= (/*[Widen]*/uint)tree.GetExtent()))
+                    {
+                        throw new ArgumentOutOfRangeException();
+                    }
+                }
+                if ((count < 0) || (end - count + 1 < 0))
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-            }
-            else
-            {
-                if (unchecked((/*[Widen]*/uint)end >= (/*[Widen]*/uint)tree.GetExtent()))
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
-            }
-            if ((count < 0) || (end - count + 1 < 0))
-            {
-                throw new ArgumentOutOfRangeException();
-            }
 
-            while (count != 0)
-            {
-                int offset, segmentLength;
-                T[] segment = Select(end, out offset, out segmentLength);
-
-                int c = unchecked((int)Math.Min(offset + 1, count));
-                int p = Array.FindLastIndex<T>(segment, offset, c, match);
-                if (p >= 0)
+                foreach (/*[Widen]*/EntryRangeMap<T[]> segmentEntry in tree.GetEnumerable(end, false/*forward*/))
                 {
-                    return end - offset + p;
+                    int offset = unchecked((int)(end - segmentEntry.Start));
+
+                    int c = unchecked((int)Math.Min(offset + 1, count));
+                    int p = Array.FindLastIndex<T>(segmentEntry.Value, offset, c, match);
+                    if (p >= 0)
+                    {
+                        return segmentEntry.Start + p;
+                    }
+
+                    end -= offset + 1;
+                    count -= c;
+
+                    if (count == 0)
+                    {
+                        break;
+                    }
                 }
 
-                end -= offset + 1;
-                count -= c;
+                return -1;
             }
-
-            return -1;
         }
 
         [Widen]
         public int FindLastIndex([Widen]int startIndex, Predicate<T> match)
         {
-            return FindLastIndex(startIndex, Count == 0 ? 0 : startIndex + 1, match);
+            unchecked
+            {
+                return FindLastIndex(startIndex, Count == 0 ? 0 : startIndex + 1, match);
+            }
         }
 
         [Widen]
         public int FindLastIndex(Predicate<T> match)
         {
-            return FindLastIndex(Count - 1, match);
+            unchecked
+            {
+                return FindLastIndex(Count - 1, match);
+            }
         }
 
         public bool Contains(T value)
@@ -1120,370 +1208,373 @@ namespace TreeLib
 
         private void InsertRangeInternal([Widen]int index, T[] source/*optional*/, [Widen]int sourceIndex, [Widen]int count)
         {
-            if ((index < 0) || (sourceIndex < 0) || (count < 0))
+            unchecked
             {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (index > tree.GetExtent())
-            {
-                throw new ArgumentException();
-            }
-            checked
-            {
-                /*[Widen]*/
-                int q;
-                q = checked(index + count);
-            }
-            if (source != null)
-            {
-                if (unchecked((/*[Widen]*/uint)sourceIndex + (/*[Widen]*/uint)count > (/*[Widen]*/uint)source.Length))
+                if ((index < 0) || (sourceIndex < 0) || (count < 0))
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (index > tree.GetExtent())
                 {
                     throw new ArgumentException();
                 }
-            }
-
-            if (count == 0)
-            {
-                return;
-            }
-
-            version = unchecked((ushort)(version + 1));
-
-
-            /*[Widen]*/
-            int previousStart = 0;
-            /*[Widen]*/
-            int previousSegmentCount = 0;
-            T[] previousSegment = null;
-
-            /*[Widen]*/
-            int start;
-            /*[Widen]*/
-            int segmentCount;
-            T[] segment;
-
-            if (tree.NearestLessOrEqual(index, out start, out segmentCount, out segment))
-            {
-                if ((start + segmentCount == index) && (segmentCount == maxBlockSize) && (index == tree.GetExtent()))
+                checked
                 {
-                    // if end of tree and previous segment is full, force new segment insertion
-                    start = index;
-                    segmentCount = 0;
-                    segment = null;
+                    /*[Widen]*/
+                    int q;
+                    q = checked(index + count);
                 }
-                // obtain preceding segment (if index is at start of a segment, it is viewed as if index is between two segments)
-                tree.NearestLess(start, out previousStart, out previousSegmentCount, out previousSegment);
-            }
-            Debug.Assert((segmentCount == 0) || (index - start <= maxBlockSize));
+                if (source != null)
+                {
+                    if (unchecked((/*[Widen]*/uint)sourceIndex + (/*[Widen]*/uint)count > (/*[Widen]*/uint)source.Length))
+                    {
+                        throw new ArgumentException();
+                    }
+                }
 
-            /*[Widen]*/
-            int originalStart = start;
+                if (count == 0)
+                {
+                    return;
+                }
 
-            T[] extra = null;
-            int extraOffset = 0;
-            int extraCount = 0;
+                version = unchecked((ushort)(version + 1));
 
-            while ((count != 0) || (extraCount != 0))
-            {
+
+                /*[Widen]*/
+                int previousStart = 0;
+                /*[Widen]*/
+                int previousSegmentCount = 0;
+                T[] previousSegment = null;
+
+                /*[Widen]*/
+                int start;
+                /*[Widen]*/
+                int segmentCount;
+                T[] segment;
+
+                if (tree.NearestLessOrEqual(index, out start, out segmentCount, out segment))
+                {
+                    if ((start + segmentCount == index) && (segmentCount == maxBlockSize) && (index == tree.GetExtent()))
+                    {
+                        // if end of tree and previous segment is full, force new segment insertion
+                        start = index;
+                        segmentCount = 0;
+                        segment = null;
+                    }
+                    // obtain preceding segment (if index is at start of a segment, it is viewed as if index is between two segments)
+                    tree.NearestLess(start, out previousStart, out previousSegmentCount, out previousSegment);
+                }
                 Debug.Assert((segmentCount == 0) || (index - start <= maxBlockSize));
-                Debug.Assert((previousSegmentCount == 0) || ((currentStartIndex == previousStart) == (previousSegment.Length > previousSegmentCount)));
 
-                if ((start == index) && (previousSegmentCount != 0)
-                    && ((currentStartIndex == previousStart) || (previousSegmentCount < maxBlockSize)))
+                /*[Widen]*/
+                int originalStart = start;
+
+                T[] extra = null;
+                int extraOffset = 0;
+                int extraCount = 0;
+
+                while ((count != 0) || (extraCount != 0))
                 {
-                    // index is at start of current and previous segment has room, fill at end as much as will fit
+                    Debug.Assert((segmentCount == 0) || (index - start <= maxBlockSize));
+                    Debug.Assert((previousSegmentCount == 0) || ((currentStartIndex == previousStart) == (previousSegment.Length > previousSegmentCount)));
 
-                    // CASE (A9), (A10)
-
-                    Debug.Assert(extraCount == 0);
-
-                    int c;
-                    if (currentStartIndex == previousStart)
+                    if ((start == index) && (previousSegmentCount != 0)
+                        && ((currentStartIndex == previousStart) || (previousSegmentCount < maxBlockSize)))
                     {
+                        // index is at start of current and previous segment has room, fill at end as much as will fit
+
                         // CASE (A9), (A10)
-                        Debug.Assert(previousSegment.Length == maxBlockSize);
-                        c = unchecked((int)Math.Min(count, maxBlockSize - previousSegmentCount));
-                    }
-                    else
-                    {
-                        // CASE (A15)
-                        Debug.Assert(currentStartIndex != previousStart);
-                        ClearCurrentSegment();
 
-                        Array.Resize(ref previousSegment, maxBlockSize);
-                        // write segment back to tree deferred to below
-                        c = unchecked((int)Math.Min(count, maxBlockSize - previousSegmentCount));
-                        currentStartIndex = previousStart;
-                    }
+                        Debug.Assert(extraCount == 0);
 
-                    if (source != null)
-                    {
-                        Array.Copy(source, (int)sourceIndex, previousSegment, unchecked((int)previousSegmentCount), c);
-                    }
-
-                    previousSegmentCount += c;
-
-                    tree.Set(previousStart, previousSegmentCount, previousSegment);
-
-                    Debug.Assert((currentStartIndex == -1) || (currentStartIndex == previousStart));
-                    if (previousSegmentCount == maxBlockSize)
-                    {
-                        // CASE (A9)
-                        currentStartIndex = -1; // we just filled it completely
-                    }
-                    // else CASE (A10)
-
-                    Debug.Assert(originalStart == index);
-                    originalStart += c; // this is just for the benefit of the asserts at the end of the method
-
-                    sourceIndex += c;
-                    count -= c;
-                    index += c;
-                    start += c;
-                }
-                else if (((start == index) && ((count >= maxBlockSize) || (segmentCount == maxBlockSize))) || (segmentCount == 0))
-                {
-                    // at start of segment and at least one segment of data available, insert new full segment
-                    // OR list is empty or at end
-                    // OR previous (from preceding case) and next segments are full
-
-                    // CASE (A11), (A14) (occurs after the case that follows) [count == 0]
-                    // CASE (A15) (occurs after the previous case)
-
-                    T[] newSegment = new T[maxBlockSize];
-                    int newSegmentCount = unchecked((int)Math.Min(maxBlockSize, count)); // in case segment is empty
-                    if (source != null)
-                    {
-                        Array.Copy(source, sourceIndex, newSegment, 0, newSegmentCount);
-                    }
-                    count -= newSegmentCount;
-                    sourceIndex += newSegmentCount;
-
-                    if ((count == 0) && (extraCount != 0))
-                    {
-                        // CASE (A11)
-
-                        int c = unchecked((int)Math.Min(maxBlockSize - newSegmentCount, extraCount));
-                        Array.Copy(extra, extraOffset, newSegment, newSegmentCount, c);
-
-                        extraOffset += c;
-                        extraCount -= c;
-                        newSegmentCount += c;
-                    }
-                    Debug.Assert(newSegmentCount != 0);
-
-                    tree.Insert(index, newSegmentCount, newSegment);
-                    start = index;
-
-                    if (currentStartIndex >= start)
-                    {
-                        currentStartIndex += newSegmentCount;
-                    }
-                    if (newSegmentCount < maxBlockSize)
-                    {
-                        ClearCurrentSegment();
-                        currentStartIndex = start;
-                    }
-
-                    index += newSegmentCount;
-                    start = index;
-                }
-                else if (index != start)
-                {
-                    // insert into interior of segment - may generate extra
-                    // this may occur for count > maxBlockSize (handling the prefix before the above case reduces full blocks)
-
-                    Debug.Assert(extraCount == 0);
-
-                    int originalSegmentCount = unchecked((int)segmentCount);
-                    int offset = unchecked((int)(index - start));
-
-                    int c = unchecked((int)Math.Min(count, maxBlockSize - offset));
-                    if (segment.Length < maxBlockSize)
-                    {
-                        // CASE (A17)
-                        Array.Resize(ref segment, maxBlockSize);
-                        // write segment back to tree deferred to below
-                    }
-
-                    if (segmentCount + count <= maxBlockSize)
-                    {
-                        Array.Copy(segment, offset, segment, offset + c, segmentCount - offset);
-                        if (source == null)
+                        int c;
+                        if (currentStartIndex == previousStart)
                         {
-                            Array.Clear(segment, offset, c);
+                            // CASE (A9), (A10)
+                            Debug.Assert(previousSegment.Length == maxBlockSize);
+                            c = unchecked((int)Math.Min(count, maxBlockSize - previousSegmentCount));
                         }
-                        segmentCount += c;
-                    }
-                    else
-                    {
-                        // CASE (A11), (A12), (A13)
+                        else
+                        {
+                            // CASE (A15)
+                            Debug.Assert(currentStartIndex != previousStart);
+                            ClearCurrentSegment();
 
-                        extra = segment;
-                        extraOffset = offset;
-                        extraCount = unchecked((int)segmentCount) - offset;
+                            Array.Resize(ref previousSegment, maxBlockSize);
+                            // write segment back to tree deferred to below
+                            c = unchecked((int)Math.Min(count, maxBlockSize - previousSegmentCount));
+                            currentStartIndex = previousStart;
+                        }
+
+                        if (source != null)
+                        {
+                            Array.Copy(source, (int)sourceIndex, previousSegment, unchecked((int)previousSegmentCount), c);
+                        }
+
+                        previousSegmentCount += c;
+
+                        tree.Set(previousStart, previousSegmentCount, previousSegment);
+
+                        Debug.Assert((currentStartIndex == -1) || (currentStartIndex == previousStart));
+                        if (previousSegmentCount == maxBlockSize)
+                        {
+                            // CASE (A9)
+                            currentStartIndex = -1; // we just filled it completely
+                        }
+                        // else CASE (A10)
+
+                        Debug.Assert(originalStart == index);
+                        originalStart += c; // this is just for the benefit of the asserts at the end of the method
+
+                        sourceIndex += c;
+                        count -= c;
+                        index += c;
+                        start += c;
+                    }
+                    else if (((start == index) && ((count >= maxBlockSize) || (segmentCount == maxBlockSize))) || (segmentCount == 0))
+                    {
+                        // at start of segment and at least one segment of data available, insert new full segment
+                        // OR list is empty or at end
+                        // OR previous (from preceding case) and next segments are full
+
+                        // CASE (A11), (A14) (occurs after the case that follows) [count == 0]
+                        // CASE (A15) (occurs after the previous case)
+
+                        T[] newSegment = new T[maxBlockSize];
+                        int newSegmentCount = unchecked((int)Math.Min(maxBlockSize, count)); // in case segment is empty
+                        if (source != null)
+                        {
+                            Array.Copy(source, sourceIndex, newSegment, 0, newSegmentCount);
+                        }
+                        count -= newSegmentCount;
+                        sourceIndex += newSegmentCount;
+
+                        if ((count == 0) && (extraCount != 0))
+                        {
+                            // CASE (A11)
+
+                            int c = unchecked((int)Math.Min(maxBlockSize - newSegmentCount, extraCount));
+                            Array.Copy(extra, extraOffset, newSegment, newSegmentCount, c);
+
+                            extraOffset += c;
+                            extraCount -= c;
+                            newSegmentCount += c;
+                        }
+                        Debug.Assert(newSegmentCount != 0);
+
+                        tree.Insert(index, newSegmentCount, newSegment);
+                        start = index;
+
+                        if (currentStartIndex >= start)
+                        {
+                            currentStartIndex += newSegmentCount;
+                        }
+                        if (newSegmentCount < maxBlockSize)
+                        {
+                            ClearCurrentSegment();
+                            currentStartIndex = start;
+                        }
+
+                        index += newSegmentCount;
+                        start = index;
+                    }
+                    else if (index != start)
+                    {
+                        // insert into interior of segment - may generate extra
+                        // this may occur for count > maxBlockSize (handling the prefix before the above case reduces full blocks)
+
+                        Debug.Assert(extraCount == 0);
+
+                        int originalSegmentCount = unchecked((int)segmentCount);
+                        int offset = unchecked((int)(index - start));
+
+                        int c = unchecked((int)Math.Min(count, maxBlockSize - offset));
+                        if (segment.Length < maxBlockSize)
+                        {
+                            // CASE (A17)
+                            Array.Resize(ref segment, maxBlockSize);
+                            // write segment back to tree deferred to below
+                        }
+
+                        if (segmentCount + count <= maxBlockSize)
+                        {
+                            Array.Copy(segment, offset, segment, offset + c, segmentCount - offset);
+                            if (source == null)
+                            {
+                                Array.Clear(segment, offset, c);
+                            }
+                            segmentCount += c;
+                        }
+                        else
+                        {
+                            // CASE (A11), (A12), (A13)
+
+                            extra = segment;
+                            extraOffset = offset;
+                            extraCount = unchecked((int)segmentCount) - offset;
+
+                            segment = new T[maxBlockSize];
+                            Array.Copy(extra, 0, segment, 0, offset);
+                            // write segment back to tree deferred to below
+
+                            segmentCount = offset + c;
+                        }
+                        if (source != null)
+                        {
+                            Array.Copy(source, sourceIndex, segment, offset, c);
+                        }
+                        count -= c;
+                        sourceIndex += c;
+
+                        // for small blocks, we can incorporate some extra
+                        int d = unchecked((int)Math.Min(extraCount, maxBlockSize - segmentCount));
+                        if (d != 0)
+                        {
+                            Array.Copy(extra, extraOffset, segment, segmentCount, d);
+                            extraOffset += d;
+                            extraCount -= d;
+                            segmentCount += d;
+                        }
+
+                        tree.Set(start, segmentCount, segment);
+
+                        Debug.Assert(maxBlockSize >= offset + c + d);
+                        Debug.Assert(maxBlockSize >= segmentCount);
+                        if (currentStartIndex > start)
+                        {
+                            // CASE (A12)
+                            currentStartIndex += (segmentCount - originalSegmentCount);
+                        }
+                        if (segmentCount < maxBlockSize)
+                        {
+                            ClearIfNotCurrentSegment(start);
+                            currentStartIndex = start;
+                        }
+                        else if (currentStartIndex == start)
+                        {
+                            currentStartIndex = -1;
+                        }
+
+                        start += segmentCount;
+                        index = start;
+
+                        tree.TryGet(start, out segmentCount, out segment);
+                    }
+                    else if ((count != 0) && ((count + extraCount > maxBlockSize) || (extraCount + segmentCount > maxBlockSize)))
+                    {
+                        // still can't fit in a single segment - insert all of count, and as much of extra as will fit
+
+                        // CASE (A18)
+
+                        Debug.Assert(count < maxBlockSize);
+                        Debug.Assert((count != 0) && (extraCount != 0));
+                        Debug.Assert(index == start);
 
                         segment = new T[maxBlockSize];
-                        Array.Copy(extra, 0, segment, 0, offset);
-                        // write segment back to tree deferred to below
+                        if (source != null)
+                        {
+                            Array.Copy(source, sourceIndex, segment, 0, count);
+                        }
+                        //sourceIndex += count;
+                        segmentCount = count;
+                        count = 0;
 
-                        segmentCount = offset + c;
-                    }
-                    if (source != null)
-                    {
-                        Array.Copy(source, sourceIndex, segment, offset, c);
-                    }
-                    count -= c;
-                    sourceIndex += c;
-
-                    // for small blocks, we can incorporate some extra
-                    int d = unchecked((int)Math.Min(extraCount, maxBlockSize - segmentCount));
-                    if (d != 0)
-                    {
+                        int d = unchecked((int)Math.Min(extraCount, maxBlockSize - segmentCount));
+                        Debug.Assert(d != 0);
                         Array.Copy(extra, extraOffset, segment, segmentCount, d);
                         extraOffset += d;
                         extraCount -= d;
                         segmentCount += d;
-                    }
 
-                    tree.Set(start, segmentCount, segment);
+                        tree.Insert(start, segmentCount, segment);
 
-                    Debug.Assert(maxBlockSize >= offset + c + d);
-                    Debug.Assert(maxBlockSize >= segmentCount);
-                    if (currentStartIndex > start)
-                    {
-                        // CASE (A12)
-                        currentStartIndex += (segmentCount - originalSegmentCount);
-                    }
-                    if (segmentCount < maxBlockSize)
-                    {
+                        if (currentStartIndex >= start)
+                        {
+                            // CASE (A18)
+                            currentStartIndex += segmentCount;
+                        } // else CASE (A20)
                         ClearIfNotCurrentSegment(start);
-                        currentStartIndex = start;
-                    }
-                    else if (currentStartIndex == start)
-                    {
-                        currentStartIndex = -1;
-                    }
+                        if (segmentCount < maxBlockSize)
+                        {
+                            // CASE (A22)
+                            currentStartIndex = start;
+                        }
 
-                    start += segmentCount;
-                    index = start;
+                        start += segmentCount;
+                        index = start;
 
-                    tree.TryGet(start, out segmentCount, out segment);
-                }
-                else if ((count != 0) && ((count + extraCount > maxBlockSize) || (extraCount + segmentCount > maxBlockSize)))
-                {
-                    // still can't fit in a single segment - insert all of count, and as much of extra as will fit
-
-                    // CASE (A18)
-
-                    Debug.Assert(count < maxBlockSize);
-                    Debug.Assert((count != 0) && (extraCount != 0));
-                    Debug.Assert(index == start);
-
-                    segment = new T[maxBlockSize];
-                    if (source != null)
-                    {
-                        Array.Copy(source, sourceIndex, segment, 0, count);
-                    }
-                    //sourceIndex += count;
-                    segmentCount = count;
-                    count = 0;
-
-                    int d = unchecked((int)Math.Min(extraCount, maxBlockSize - segmentCount));
-                    Debug.Assert(d != 0);
-                    Array.Copy(extra, extraOffset, segment, segmentCount, d);
-                    extraOffset += d;
-                    extraCount -= d;
-                    segmentCount += d;
-
-                    tree.Insert(start, segmentCount, segment);
-
-                    if (currentStartIndex >= start)
-                    {
-                        // CASE (A18)
-                        currentStartIndex += segmentCount;
-                    } // else CASE (A20)
-                    ClearIfNotCurrentSegment(start);
-                    if (segmentCount < maxBlockSize)
-                    {
-                        // CASE (A22)
-                        currentStartIndex = start;
-                    }
-
-                    start += segmentCount;
-                    index = start;
-
-                    tree.TryGet(start, out segmentCount, out segment);
-                }
-                else
-                {
-                    // insert any remaining count and extra
-
-                    // CASE (A0)
-
-                    Debug.Assert(index == start);
-                    Debug.Assert(count + extraCount <= maxBlockSize);
-                    Debug.Assert((currentStartIndex != start) || (segment.Length > segmentCount));
-
-                    bool canAbsorbFollower = count + extraCount + segmentCount <= maxBlockSize;
-                    if (!canAbsorbFollower || (currentStartIndex != start))
-                    {
-                        // CASE (A12), (A13)
-                        ClearCurrentSegment();
-                    }
-
-                    T[] newSegment = new T[maxBlockSize];
-                    if (source != null)
-                    {
-                        Array.Copy(source, sourceIndex, newSegment, 0, count);
-                    }
-                    if (extraCount != 0)
-                    {
-                        // CASE (A12)
-                        Array.Copy(extra, extraOffset, newSegment, count, extraCount);
-                    }
-                    int newSegmentCount = unchecked((int)(count + extraCount));
-                    count = 0;
-                    extraCount = 0;
-
-                    // try to absorb the following
-                    if (newSegmentCount + segmentCount <= maxBlockSize)
-                    {
-                        // CASE (A0)
-                        Debug.Assert(canAbsorbFollower);
-                        Array.Copy(segment, 0, newSegment, newSegmentCount, segmentCount);
-                        newSegmentCount += unchecked((int)segmentCount);
-                        tree.Delete(start);
+                        tree.TryGet(start, out segmentCount, out segment);
                     }
                     else
                     {
-                        // CASE (A13)
-                        Debug.Assert(!canAbsorbFollower);
+                        // insert any remaining count and extra
+
+                        // CASE (A0)
+
+                        Debug.Assert(index == start);
+                        Debug.Assert(count + extraCount <= maxBlockSize);
+                        Debug.Assert((currentStartIndex != start) || (segment.Length > segmentCount));
+
+                        bool canAbsorbFollower = count + extraCount + segmentCount <= maxBlockSize;
+                        if (!canAbsorbFollower || (currentStartIndex != start))
+                        {
+                            // CASE (A12), (A13)
+                            ClearCurrentSegment();
+                        }
+
+                        T[] newSegment = new T[maxBlockSize];
+                        if (source != null)
+                        {
+                            Array.Copy(source, sourceIndex, newSegment, 0, count);
+                        }
+                        if (extraCount != 0)
+                        {
+                            // CASE (A12)
+                            Array.Copy(extra, extraOffset, newSegment, count, extraCount);
+                        }
+                        int newSegmentCount = unchecked((int)(count + extraCount));
+                        count = 0;
+                        extraCount = 0;
+
+                        // try to absorb the following
+                        if (newSegmentCount + segmentCount <= maxBlockSize)
+                        {
+                            // CASE (A0)
+                            Debug.Assert(canAbsorbFollower);
+                            Array.Copy(segment, 0, newSegment, newSegmentCount, segmentCount);
+                            newSegmentCount += unchecked((int)segmentCount);
+                            tree.Delete(start);
+                        }
+                        else
+                        {
+                            // CASE (A13)
+                            Debug.Assert(!canAbsorbFollower);
+                        }
+
+                        tree.Insert(start, newSegmentCount, newSegment);
+
+                        currentStartIndex = -1;
+                        if (newSegmentCount < maxBlockSize)
+                        {
+                            currentStartIndex = start;
+                        }
+
+                        index += newSegmentCount; // must exit loop with on valid segment
                     }
 
-                    tree.Insert(start, newSegmentCount, newSegment);
-
-                    currentStartIndex = -1;
-                    if (newSegmentCount < maxBlockSize)
-                    {
-                        currentStartIndex = start;
-                    }
-
-                    index += newSegmentCount; // must exit loop with on valid segment
+                    previousSegmentCount = 0;
                 }
 
-                previousSegmentCount = 0;
+
+                // verify no mergeable blocks were left at the start edge or end edge
+                Debug.Assert((0 == tree.GetExtent()) || (tree.GetLength(originalStart) + originalStart == tree.GetExtent())
+                    || (tree.GetLength(originalStart) + tree.GetLength(originalStart + tree.GetLength(originalStart)) > maxBlockSize));
+                /*[Widen]*/
+                int previousStartTest;
+                Debug.Assert((index == tree.GetExtent())
+                    || (tree.NearestLess(index, out previousStartTest)
+                        && (tree.GetLength(previousStartTest) + tree.GetLength(index) > maxBlockSize)));
             }
-
-
-            // verify no mergeable blocks were left at the start edge or end edge
-            Debug.Assert((0 == tree.GetExtent()) || (tree.GetLength(originalStart) + originalStart == tree.GetExtent())
-                || (tree.GetLength(originalStart) + tree.GetLength(originalStart + tree.GetLength(originalStart)) > maxBlockSize));
-            /*[Widen]*/
-            int previousStartTest;
-            Debug.Assert((index == tree.GetExtent())
-                || (tree.NearestLess(index, out previousStartTest)
-                    && (tree.GetLength(previousStartTest) + tree.GetLength(index) > maxBlockSize)));
         }
 
         private T[] Select([Widen]int index, out int offset, out int count)
@@ -1505,83 +1596,86 @@ namespace TreeLib
 
         private bool TryJoinNext([Widen]int index)
         {
-            /*[Widen]*/
-            int countL;
-            T[] segmentL;
-            tree.Get(index, out countL, out segmentL);
-
-            /*[Widen]*/
-            int countR;
-            T[] segmentR;
-            if (!tree.TryGet(index + countL, out countR, out segmentR))
+            unchecked
             {
+                /*[Widen]*/
+                int countL;
+                T[] segmentL;
+                tree.Get(index, out countL, out segmentL);
+
+                /*[Widen]*/
+                int countR;
+                T[] segmentR;
+                if (!tree.TryGet(index + countL, out countR, out segmentR))
+                {
+                    return false;
+                }
+
+                if (countL + countR <= maxBlockSize)
+                {
+                    if (segmentL.Length > countL)
+                    {
+                        // left side has excess - absorb right into left's buffer
+
+                        Debug.Assert(currentStartIndex == index);
+                        Debug.Assert(segmentL.Length == maxBlockSize);
+
+                        Array.Copy(segmentR, 0, segmentL, countL, countR);
+
+                        tree.Delete(index + countL);
+                        tree.SetLength(index, countL + countR);
+
+                        if (countL + countR == maxBlockSize)
+                        {
+                            // CASE (A24)
+                            currentStartIndex = -1; // used up all the capacity
+                        }
+                    }
+                    else if (segmentR.Length > countR)
+                    {
+                        // right side has excess - absorb left into right's buffer
+
+                        Debug.Assert(currentStartIndex == index + countL);
+                        Debug.Assert(segmentR.Length == maxBlockSize);
+
+                        Array.Copy(segmentR, 0, segmentR, countL, countR);
+                        Array.Copy(segmentL, 0, segmentR, 0, countL);
+
+                        tree.Delete(index);
+                        tree.SetLength(index, countL + countR);
+
+                        currentStartIndex = index;
+                        if (countL + countR == maxBlockSize)
+                        {
+                            currentStartIndex = -1; // used it up
+                        }
+                    }
+                    else
+                    {
+                        // CASE (A23)
+
+                        Debug.Assert((currentStartIndex != index) && (currentStartIndex != index + countL));
+
+                        ClearCurrentSegment();
+
+                        T[] segment = new T[maxBlockSize];
+                        Array.Copy(segmentL, 0, segment, 0, countL);
+                        Array.Copy(segmentR, 0, segment, countL, countR);
+
+                        tree.Delete(index);
+                        tree.Set(index, countL + countR, segment);
+
+                        if (countL + countR < maxBlockSize)
+                        {
+                            currentStartIndex = index;
+                        } // else: CASE (A25)
+                    }
+
+                    return true;
+                }
+
                 return false;
             }
-
-            if (countL + countR <= maxBlockSize)
-            {
-                if (segmentL.Length > countL)
-                {
-                    // left side has excess - absorb right into left's buffer
-
-                    Debug.Assert(currentStartIndex == index);
-                    Debug.Assert(segmentL.Length == maxBlockSize);
-
-                    Array.Copy(segmentR, 0, segmentL, countL, countR);
-
-                    tree.Delete(index + countL);
-                    tree.SetLength(index, countL + countR);
-
-                    if (countL + countR == maxBlockSize)
-                    {
-                        // CASE (A24)
-                        currentStartIndex = -1; // used up all the capacity
-                    }
-                }
-                else if (segmentR.Length > countR)
-                {
-                    // right side has excess - absorb left into right's buffer
-
-                    Debug.Assert(currentStartIndex == index + countL);
-                    Debug.Assert(segmentR.Length == maxBlockSize);
-
-                    Array.Copy(segmentR, 0, segmentR, countL, countR);
-                    Array.Copy(segmentL, 0, segmentR, 0, countL);
-
-                    tree.Delete(index);
-                    tree.SetLength(index, countL + countR);
-
-                    currentStartIndex = index;
-                    if (countL + countR == maxBlockSize)
-                    {
-                        currentStartIndex = -1; // used it up
-                    }
-                }
-                else
-                {
-                    // CASE (A23)
-
-                    Debug.Assert((currentStartIndex != index) && (currentStartIndex != index + countL));
-
-                    ClearCurrentSegment();
-
-                    T[] segment = new T[maxBlockSize];
-                    Array.Copy(segmentL, 0, segment, 0, countL);
-                    Array.Copy(segmentR, 0, segment, countL, countR);
-
-                    tree.Delete(index);
-                    tree.Set(index, countL + countR, segment);
-
-                    if (countL + countR < maxBlockSize)
-                    {
-                        currentStartIndex = index;
-                    } // else: CASE (A25)
-                }
-
-                return true;
-            }
-
-            return false;
         }
 
         private void TrimSegment([Widen]int startIndex)
@@ -1646,17 +1740,18 @@ namespace TreeLib
 
         private class Enumerator : IEnumerator<T>
         {
+            private readonly IEnumerator</*[Widen]*/EntryRangeMap<T[]>> inner;
             private readonly HugeListBase<T> list;
-            private T[] segment;
-            /*[Widen]*/
-            private int start;
-            private int count;
+            [Widen]
+            private EntryRangeMap<T[]> current;
             private int offset;
+            private bool started, valid;
             private ushort version;
 
             public Enumerator(HugeListBase<T> list)
             {
                 this.list = list;
+                this.inner = list.tree.GetEnumerator();
                 Reset();
             }
 
@@ -1664,11 +1759,11 @@ namespace TreeLib
             {
                 get
                 {
-                    if ((segment == null) || (start == list.Count))
+                    if (valid)
                     {
-                        throw new InvalidOperationException();
+                        return current.Value[offset];
                     }
-                    return segment[offset];
+                    return default(T);
                 }
             }
 
@@ -1680,30 +1775,39 @@ namespace TreeLib
 
             public bool MoveNext()
             {
-                if ((start == list.Count) || (version != list.version))
+                unchecked
                 {
-                    throw new InvalidOperationException();
-                }
-                offset++;
-                if (offset == count)
-                {
-                    start += count;
-                    if (start == list.Count)
+                    if (!started)
                     {
-                        return false;
+                        started = true;
+                        valid = inner.MoveNext();
+                        current = inner.Current; // make current.Length = 0 for below
+                        offset = -1;
                     }
-                    segment = list.Select(start, out offset, out count);
-                    Debug.Assert(offset == 0);
+                    if (valid)
+                    {
+                        if (version != list.version)
+                        {
+                            throw new InvalidOperationException();
+                        }
+                        offset++;
+                        Debug.Assert((offset >= 0) && (offset <= current.Length));
+                        if (offset == current.Length)
+                        {
+                            valid = inner.MoveNext();
+                            current = inner.Current;
+                            offset = 0;
+                        }
+                    }
+                    return valid;
                 }
-                return true;
             }
 
             public void Reset()
             {
-                segment = null;
-                start = -1;
-                count = 1;
-                offset = 0;
+                inner.Reset();
+                started = false;
+                valid = false;
                 version = list.version;
             }
         }

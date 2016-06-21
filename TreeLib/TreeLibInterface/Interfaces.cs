@@ -58,7 +58,11 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
-    public interface IOrderedMap<KeyType, ValueType> : IEnumerable<EntryMap<KeyType, ValueType>> where KeyType : IComparable<KeyType>
+    public interface IOrderedMap<KeyType, ValueType> :
+        IEnumerable<EntryMap<KeyType, ValueType>>,
+        ITreeEnumerable<EntryMap<KeyType, ValueType>>,
+        IKeyedTreeEnumerable<KeyType, EntryMap<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of key-value pairs in the collection as an unsigned int.
@@ -245,7 +249,11 @@ namespace TreeLib
     /// Represents an ordered key collection.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
-    public interface IOrderedList<KeyType> : IEnumerable<EntryList<KeyType>> where KeyType : IComparable<KeyType>
+    public interface IOrderedList<KeyType> :
+        IEnumerable<EntryList<KeyType>>,
+        ITreeEnumerable<EntryList<KeyType>>,
+        IKeyedTreeEnumerable<KeyType, EntryList<KeyType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of keys in the collection as an unsigned int.
@@ -383,7 +391,11 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
-    public interface IRankMap<KeyType, ValueType> : IEnumerable<EntryRankMap<KeyType, ValueType>> where KeyType : IComparable<KeyType>
+    public interface IRankMap<KeyType, ValueType> :
+        IEnumerable<EntryRankMap<KeyType, ValueType>>,
+        ITreeEnumerable<EntryRankMap<KeyType, ValueType>>,
+        IKeyedTreeEnumerable<KeyType, EntryRankMap<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of key-value pairs in the collection as an unsigned int.
@@ -645,7 +657,11 @@ namespace TreeLib
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
-    public interface IRankList<KeyType> : IEnumerable<EntryRankList<KeyType>> where KeyType : IComparable<KeyType>
+    public interface IRankList<KeyType> :
+        IEnumerable<EntryRankList<KeyType>>,
+        ITreeEnumerable<EntryRankList<KeyType>>,
+        IKeyedTreeEnumerable<KeyType, EntryRankList<KeyType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of keys in the collection as an unsigned int.
@@ -853,7 +869,11 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
-    public interface IRankMapLong<KeyType, ValueType> : IEnumerable<EntryRankMapLong<KeyType, ValueType>> where KeyType : IComparable<KeyType>
+    public interface IRankMapLong<KeyType, ValueType> :
+        IEnumerable<EntryRankMapLong<KeyType, ValueType>>,
+        ITreeEnumerable<EntryRankMapLong<KeyType, ValueType>>,
+        IKeyedTreeEnumerable<KeyType, EntryRankMapLong<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of key-value pairs in the collection as an unsigned int.
@@ -1115,7 +1135,11 @@ namespace TreeLib
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
-    public interface IRankListLong<KeyType> : IEnumerable<EntryRankListLong<KeyType>> where KeyType : IComparable<KeyType>
+    public interface IRankListLong<KeyType> :
+        IEnumerable<EntryRankListLong<KeyType>>,
+        ITreeEnumerable<EntryRankListLong<KeyType>>,
+        IKeyedTreeEnumerable<KeyType, EntryRankListLong<KeyType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of keys in the collection as an unsigned int.
@@ -1331,7 +1355,11 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
-    public interface IMultiRankMap<KeyType, ValueType> : IEnumerable<EntryMultiRankMap<KeyType, ValueType>> where KeyType : IComparable<KeyType>
+    public interface IMultiRankMap<KeyType, ValueType> :
+        IEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
+        ITreeEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
+        IKeyedTreeEnumerable<KeyType, EntryMultiRankMap<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of key-value pairs in the collection as an unsigned int.
@@ -1749,7 +1777,11 @@ namespace TreeLib
     /// index is the index at which the first instance of a particular key would occur in a sorted array containing all keys.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
-    public interface IMultiRankList<KeyType> : IEnumerable<EntryMultiRankList<KeyType>> where KeyType : IComparable<KeyType>
+    public interface IMultiRankList<KeyType> :
+        IEnumerable<EntryMultiRankList<KeyType>>,
+        ITreeEnumerable<EntryMultiRankList<KeyType>>,
+        IKeyedTreeEnumerable<KeyType, EntryMultiRankList<KeyType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of keys in the collection as an unsigned int.
@@ -2106,7 +2138,11 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
-    public interface IMultiRankMapLong<KeyType, ValueType> : IEnumerable<EntryMultiRankMapLong<KeyType, ValueType>> where KeyType : IComparable<KeyType>
+    public interface IMultiRankMapLong<KeyType, ValueType> :
+        IEnumerable<EntryMultiRankMapLong<KeyType, ValueType>>,
+        ITreeEnumerable<EntryMultiRankMapLong<KeyType, ValueType>>,
+        IKeyedTreeEnumerable<KeyType, EntryMultiRankMapLong<KeyType, ValueType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of key-value pairs in the collection as an unsigned int.
@@ -2524,7 +2560,11 @@ namespace TreeLib
     /// index is the index at which the first instance of a particular key would occur in a sorted array containing all keys.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
-    public interface IMultiRankListLong<KeyType> : IEnumerable<EntryMultiRankListLong<KeyType>> where KeyType : IComparable<KeyType>
+    public interface IMultiRankListLong<KeyType> :
+        IEnumerable<EntryMultiRankListLong<KeyType>>,
+        ITreeEnumerable<EntryMultiRankListLong<KeyType>>,
+        IKeyedTreeEnumerable<KeyType, EntryMultiRankListLong<KeyType>>
+        where KeyType : IComparable<KeyType>
     {
         /// <summary>
         /// Returns the number of keys in the collection as an unsigned int.
@@ -2887,7 +2927,10 @@ namespace TreeLib
     /// All ranges must have a length of at least 1.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range</typeparam>
-    public interface IRangeMap<ValueType> : IEnumerable<EntryRangeMap<ValueType>>
+    public interface IRangeMap<ValueType> :
+        IEnumerable<EntryRangeMap<ValueType>>,
+        ITreeEnumerable<EntryRangeMap<ValueType>>,
+        IIndexedTreeEnumerable<EntryRangeMap<ValueType>>
     {
         /// <summary>
         /// Returns the number of ranges in the collection as an unsigned int.
@@ -3192,7 +3235,10 @@ namespace TreeLib
     /// plus the length of the previous range. The 'extent' of the range collection is the sum of all lengths.
     /// All ranges must have a length of at least 1.
     /// </summary>
-    public interface IRangeList : IEnumerable<EntryRangeList>
+    public interface IRangeList :
+        IEnumerable<EntryRangeList>,
+        ITreeEnumerable<EntryRangeList>,
+        IIndexedTreeEnumerable<EntryRangeList>
     {
         /// <summary>
         /// Returns the number of ranges in the collection as an unsigned int.
@@ -3422,7 +3468,10 @@ namespace TreeLib
     /// All ranges must have a length of at least 1.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range</typeparam>
-    public interface IRangeMapLong<ValueType> : IEnumerable<EntryRangeMapLong<ValueType>>
+    public interface IRangeMapLong<ValueType> :
+        IEnumerable<EntryRangeMapLong<ValueType>>,
+        ITreeEnumerable<EntryRangeMapLong<ValueType>>,
+        IIndexedTreeEnumerableLong<EntryRangeMapLong<ValueType>>
     {
         /// <summary>
         /// Returns the number of ranges in the collection as an unsigned int.
@@ -3727,7 +3776,10 @@ namespace TreeLib
     /// plus the length of the previous range. The 'extent' of the range collection is the sum of all lengths.
     /// All ranges must have a length of at least 1.
     /// </summary>
-    public interface IRangeListLong : IEnumerable<EntryRangeListLong>
+    public interface IRangeListLong :
+        IEnumerable<EntryRangeListLong>,
+        ITreeEnumerable<EntryRangeListLong>,
+        IIndexedTreeEnumerableLong<EntryRangeListLong>
     {
         /// <summary>
         /// Returns the number of ranges in the collection as an unsigned int.
@@ -3980,7 +4032,10 @@ namespace TreeLib
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range pair</typeparam>
-    public interface IRange2Map<ValueType> : IEnumerable<EntryRange2Map<ValueType>>
+    public interface IRange2Map<ValueType> :
+        IEnumerable<EntryRange2Map<ValueType>>,
+        ITreeEnumerable<EntryRange2Map<ValueType>>,
+        IIndexed2TreeEnumerable<EntryRange2Map<ValueType>>
     {
         /// <summary>
         /// Returns the number of range pairs in the collection as an unsigned int.
@@ -4343,7 +4398,10 @@ namespace TreeLib
     /// The above applies separately to both the X side sequence and the Y side sequence.
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
-    public interface IRange2List : IEnumerable<EntryRange2List>
+    public interface IRange2List :
+        IEnumerable<EntryRange2List>,
+        ITreeEnumerable<EntryRange2List>,
+        IIndexed2TreeEnumerable<EntryRange2List>
     {
         /// <summary>
         /// Returns the number of range pairs in the collection as an unsigned int.
@@ -4661,7 +4719,10 @@ namespace TreeLib
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range pair</typeparam>
-    public interface IRange2MapLong<ValueType> : IEnumerable<EntryRange2MapLong<ValueType>>
+    public interface IRange2MapLong<ValueType> :
+        IEnumerable<EntryRange2MapLong<ValueType>>,
+        ITreeEnumerable<EntryRange2MapLong<ValueType>>,
+        IIndexed2TreeEnumerableLong<EntryRange2MapLong<ValueType>>
     {
         /// <summary>
         /// Returns the number of range pairs in the collection as an unsigned int.
@@ -5024,7 +5085,10 @@ namespace TreeLib
     /// The above applies separately to both the X side sequence and the Y side sequence.
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
-    public interface IRange2ListLong : IEnumerable<EntryRange2ListLong>
+    public interface IRange2ListLong :
+        IEnumerable<EntryRange2ListLong>,
+        ITreeEnumerable<EntryRange2ListLong>,
+        IIndexed2TreeEnumerableLong<EntryRange2ListLong>
     {
         /// <summary>
         /// Returns the number of range pairs in the collection as an unsigned int.
@@ -5328,5 +5392,374 @@ namespace TreeLib
         /// <param name="yLength">an out parameter receiving the length of the range on side Y</param>
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         bool NearestGreater(long position, Side side, out long nearestStart, out long otherStart, out long xLength, out long yLength);
+    }
+
+
+    //
+    // IEnumerable
+    //
+
+    /// <summary>
+    /// Provides access to multiple types of enumerators with initialization parameters, beyond what the standard
+    /// IEnumerable&lt;&gt; interface provides.
+    /// </summary>
+    /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    public interface ITreeEnumerable<out T> : IEnumerable<T>
+    {
+        /// <summary>
+        /// Create a new instance of the default enumerator. Equivalent to IEnumerable&lt;&gt;.GetEnumerator()
+        /// </summary>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable();
+        /// <summary>
+        /// Create a new instance of the default enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(bool forward);
+
+        /// <summary>
+        /// Create a new instance of the fast enumerator.
+        /// </summary>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable();
+        /// <summary>
+        /// Create a new instance of the fast enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(bool forward);
+
+        /// <summary>
+        /// Create a new instance of the robust enumerator.
+        /// </summary>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable();
+        /// <summary>
+        /// Create a new instance of the robust enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(bool forward);
+    }
+
+    /// <summary>
+    /// Provides access to multiple types of enumerators with initialization parameters, beyond what the standard
+    /// IEnumerable&lt;&gt; interface provides.
+    /// </summary>
+    /// <typeparam name="KeyType">The key type of the collection</typeparam>
+    /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    public interface IKeyedTreeEnumerable<KeyType, out T> : ITreeEnumerable<T>
+    {
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts with the next higher key in sort order.</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(KeyType startAt);
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts as follows: for forward enumeration, the next key higher in sort order; for reverse enumeration, the next lower
+        /// (i.e. previous) key in sort order</param>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(KeyType startAt, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts with the next higher key in sort order.</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(KeyType startAt);
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts as follows: for forward enumeration, the next key higher in sort order; for reverse enumeration, the next lower
+        /// (i.e. previous) key in sort order</param>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(KeyType startAt, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts with the next higher key in sort order.</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(KeyType startAt);
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts as follows: for forward enumeration, the next key higher in sort order; for reverse enumeration, the next lower
+        /// (i.e. previous) key in sort order</param>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(KeyType startAt, bool forward);
+    }
+
+    /// <summary>
+    /// Provides access to multiple types of enumerators with initialization parameters, beyond what the standard
+    /// IEnumerable&lt;&gt; interface provides.
+    /// </summary>
+    /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    public interface IIndexedTreeEnumerable<out T> : ITreeEnumerable<T>
+    {
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(int startAt);
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(int startAt, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(int startAt);
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(int startAt, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(int startAt);
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(int startAt, bool forward);
+    }
+
+    /// <summary>
+    /// Provides access to multiple types of enumerators with initialization parameters, beyond what the standard
+    /// IEnumerable&lt;&gt; interface provides.
+    /// </summary>
+    /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    public interface IIndexedTreeEnumerableLong<out T> : ITreeEnumerable<T>
+    {
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(long startAt);
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(long startAt, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(long startAt);
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(long startAt, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(long startAt);
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(long startAt, bool forward);
+    }
+
+    /// <summary>
+    /// Provides access to multiple types of enumerators with initialization parameters, beyond what the standard
+    /// IEnumerable&lt;&gt; interface provides.
+    /// </summary>
+    /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    public interface IIndexed2TreeEnumerable<out T> : ITreeEnumerable<T>
+    {
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(int startAt, Side side);
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(int startAt, Side side, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(int startAt, Side side);
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(int startAt, Side side, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(int startAt, Side side);
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(int startAt, Side side, bool forward);
+    }
+
+    /// <summary>
+    /// Provides access to multiple types of enumerators with initialization parameters, beyond what the standard
+    /// IEnumerable&lt;&gt; interface provides.
+    /// </summary>
+    /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    public interface IIndexed2TreeEnumerableLong<out T> : ITreeEnumerable<T>
+    {
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(long startAt, Side side);
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the default enumerator</returns>
+        IEnumerable<T> GetEnumerable(long startAt, Side side, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(long startAt, Side side);
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the fast enumerator</returns>
+        IEnumerable<T> GetFastEnumerable(long startAt, Side side, bool forward);
+
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration starts
+        /// with the following range.</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(long startAt, Side side);
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="side">The side (X or Y) to which the index pertains</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the robust enumerator</returns>
+        IEnumerable<T> GetRobustEnumerable(long startAt, Side side, bool forward);
     }
 }

@@ -39,6 +39,7 @@ namespace TreeLibTest
         where KeyType : IComparable<KeyType>
     {
         private readonly List<Item> items = new List<Item>();
+        private ushort version;
 
         private struct Item
         {
@@ -117,6 +118,7 @@ namespace TreeLibTest
             {
                 int overflow = checked(RankCount + count);
                 items.Insert(~i, new Item(key, value, count));
+                this.version = unchecked((ushort)(this.version + 1));
                 return true;
             }
             return false;
@@ -128,6 +130,7 @@ namespace TreeLibTest
             if (i >= 0)
             {
                 items.RemoveAt(i);
+                this.version = unchecked((ushort)(this.version + 1));
                 return true;
             }
             return false;
@@ -750,14 +753,246 @@ namespace TreeLibTest
         // IEnumerable
         //
 
+        private class Enumerator : IEnumerator<EntryMultiRankMap<KeyType, ValueType>>, ISetValue<ValueType>
+        {
+            private readonly ReferenceMultiRankMap<KeyType, ValueType> map;
+            private readonly bool forward;
+            private readonly bool robust;
+            private readonly bool startKeyed;
+            private readonly KeyType startKey;
+
+            private int index;
+            private EntryMultiRankMap<KeyType, ValueType> current;
+            private ushort mapVersion;
+            private ushort enumeratorVersion;
+
+            public Enumerator(ReferenceMultiRankMap<KeyType, ValueType> map, bool forward, bool robust, bool startKeyed, KeyType startKey)
+            {
+                this.map = map;
+                this.forward = forward;
+                this.robust = robust;
+                this.startKeyed = startKeyed;
+                this.startKey = startKey;
+
+                Reset();
+            }
+
+            public EntryMultiRankMap<KeyType, ValueType> Current { get { return current; } }
+
+            object IEnumerator.Current { get { return this.Current; } }
+
+            public void Dispose()
+            {
+            }
+
+            private EntryMultiRankMap<KeyType, ValueType> GetItem(int index)
+            {
+                int start = 0;
+                for (int i = 0; i < index; i++)
+                {
+                    start += map.items[i].count;
+                }
+                return new EntryMultiRankMap<KeyType, ValueType>(
+                    map.items[index].key,
+                    map.items[index].value,
+                    this,
+                    this.enumeratorVersion,
+                    start,
+                    map.items[index].count);
+            }
+
+            public bool MoveNext()
+            {
+                if (!robust && (mapVersion != map.version))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                if (((index >= 0) && (index < map.Count)) && (0 != Comparer<KeyType>.Default.Compare(current.Key, map.items[index].key)))
+                {
+                    if (forward)
+                    {
+                        index = 0;
+                        while ((index < map.items.Count) && (0 <= Comparer<KeyType>.Default.Compare(current.Key, map.items[index].key)))
+                        {
+                            index++;
+                        }
+                        index--;
+                    }
+                    else
+                    {
+                        index = map.items.Count - 1;
+                        while ((index >= 0) && (0 >= Comparer<KeyType>.Default.Compare(current.Key, map.items[index].key)))
+                        {
+                            index--;
+                        }
+                        index++;
+                    }
+                }
+
+                index = index + (forward ? 1 : -1);
+                current = new EntryMultiRankMap<KeyType, ValueType>();
+                if ((index >= 0) && (index < map.Count))
+                {
+                    current = GetItem(index);
+                    return true;
+                }
+                return false;
+            }
+
+            public void Reset()
+            {
+                this.mapVersion = map.version;
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                current = new EntryMultiRankMap<KeyType, ValueType>();
+
+                if (forward)
+                {
+                    index = -1;
+                    if (startKeyed)
+                    {
+                        while ((index + 1 < map.items.Count) && (0 < Comparer<KeyType>.Default.Compare(startKey, map.items[index + 1].key)))
+                        {
+                            index++;
+                        }
+                        if ((index >= 0) && (index < map.items.Count) && (0 == Comparer<KeyType>.Default.Compare(startKey, map.items[index].key)))
+                        {
+                            index--;
+                        }
+                    }
+                }
+                else
+                {
+                    index = map.items.Count;
+                    if (startKeyed)
+                    {
+                        while ((index - 1 >= 0) && (0 > Comparer<KeyType>.Default.Compare(startKey, map.items[index - 1].key)))
+                        {
+                            index--;
+                        }
+                        if ((index >= 0) && (index < map.items.Count) && (0 == Comparer<KeyType>.Default.Compare(startKey, map.items[index].key)))
+                        {
+                            index++;
+                        }
+                    }
+                }
+
+                if ((index >= 0) && (index < map.items.Count))
+                {
+                    current = GetItem(index);
+                }
+            }
+
+            public void SetValue(ValueType value, ushort expectedEnumeratorVersion)
+            {
+                if ((!robust && (this.mapVersion != map.version)) || (this.enumeratorVersion != expectedEnumeratorVersion))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                map.items[index] = new Item(map.items[index].key, value, map.items[index].count);
+            }
+        }
+
+        public class EnumerableSurrogate : IEnumerable<EntryMultiRankMap<KeyType, ValueType>>
+        {
+            private readonly ReferenceMultiRankMap<KeyType, ValueType> map;
+            private readonly bool forward;
+            private readonly bool robust;
+            private readonly bool startKeyed;
+            private readonly KeyType startKey;
+
+            public EnumerableSurrogate(ReferenceMultiRankMap<KeyType, ValueType> map, bool forward, bool robust, bool startKeyed, KeyType startKey)
+            {
+                this.map = map;
+                this.forward = forward;
+                this.robust = robust;
+                this.startKeyed = startKeyed;
+                this.startKey = startKey;
+            }
+
+            public IEnumerator<EntryMultiRankMap<KeyType, ValueType>> GetEnumerator()
+            {
+                return new Enumerator(map, forward, robust, startKeyed, startKey);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
         public IEnumerator<EntryMultiRankMap<KeyType, ValueType>> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerable().GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return this.GetEnumerator();
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable()
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, true/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable(bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, true/*robust*/, false/*startKeyed*/, default(KeyType));
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable(KeyType startAt)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable(KeyType startAt, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, false/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt)
+        {
+            return new EnumerableSurrogate(this, true/*forward*/, true/*robust*/, true/*startKeyed*/, startAt);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt, bool forward)
+        {
+            return new EnumerableSurrogate(this, forward, true/*robust*/, true/*startKeyed*/, startAt);
         }
     }
 }

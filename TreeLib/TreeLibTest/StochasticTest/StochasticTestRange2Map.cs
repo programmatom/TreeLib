@@ -1442,6 +1442,14 @@ namespace TreeLibTest
             }
         }
 
+        private void EnumerateAction(IRange2Map<float>[] collections, Random rnd, ref string description)
+        {
+            Range2MapEntry[] ranges = ((INonInvasiveRange2MapInspection)collections[0]).GetRanges();
+            StartLength[] xStartLengths = Array.ConvertAll(ranges, delegate (Range2MapEntry item) { return new StartLength(item.x.start, item.x.length); });
+            StartLength[] yStartLengths = Array.ConvertAll(ranges, delegate (Range2MapEntry item) { return new StartLength(item.y.start, item.y.length); });
+            IndexedEnumerateAction<EntryRange2Map<float>>(collections, rnd, ref description, TreeKind.Range2Map, xStartLengths, yStartLengths);
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -1490,6 +1498,8 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IRange2Map<float>>>(new Tuple<int, int>(150     , 150      ), NearestLessAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRange2Map<float>>>(new Tuple<int, int>(150     , 150      ), NearestGreaterOrEqualAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRange2Map<float>>>(new Tuple<int, int>(150     , 150      ), NearestGreaterAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IRange2Map<float>>>(new Tuple<int, int>(75      , 75       ), EnumerateAction),
             };
 
             return StochasticDriver(

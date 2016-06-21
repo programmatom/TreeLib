@@ -354,27 +354,120 @@ namespace TreeLibTest
 
 
         //
-        // IEnumerable
-        //
-
-        public IEnumerator<EntryMultiRankList<KeyType>> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-
-        //
         // ICloneable
         //
 
         public object Clone()
         {
             return new AdaptMultiRankListToMultiRankListLong<KeyType>((IMultiRankListLong<KeyType>)((ICloneable)inner).Clone());
+        }
+
+
+        //
+        // IEnumerable
+        //
+
+        private EntryMultiRankList<KeyType> Convert(EntryMultiRankListLong<KeyType> entry)
+        {
+            return new EntryMultiRankList<KeyType>(entry.Key, IntLong.ToInt(entry.Rank), IntLong.ToInt(entry.Count));
+        }
+
+        public IEnumerator<EntryMultiRankList<KeyType>> GetEnumerator()
+        {
+            return new AdaptEnumerator<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetEnumerator(),
+                Convert);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new AdaptEnumeratorOld<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                ((IEnumerable)inner).GetEnumerator(),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetEnumerable()
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetFastEnumerable()
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetFastEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetFastEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetFastEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetRobustEnumerable()
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetRobustEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetRobustEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetRobustEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetEnumerable(KeyType startAt)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetEnumerable(KeyType startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetFastEnumerable(KeyType startAt)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetFastEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetFastEnumerable(KeyType startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetFastEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetRobustEnumerable(KeyType startAt)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetRobustEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryMultiRankList<KeyType>> GetRobustEnumerable(KeyType startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryMultiRankList<KeyType>, EntryMultiRankListLong<KeyType>>(
+                inner.GetRobustEnumerable(startAt, forward),
+                Convert);
         }
     }
 }

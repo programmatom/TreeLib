@@ -690,7 +690,7 @@ namespace TreeLibTest
         private void AdjustLengthAction(IRangeList[] collections, Random rnd, ref string description)
         {
             Range2MapEntry[] items = ((INonInvasiveRange2MapInspection)collections[0]).GetRanges();
-            int extent = items.Length != 0 ? Length(items[items.Length - 1]) + Length(items[items.Length - 1]) : 0;
+            int extent = items.Length != 0 ? Start(items[items.Length - 1]) + Length(items[items.Length - 1]) : 0;
 
             int start, xLength;
             bool valid;
@@ -942,6 +942,13 @@ namespace TreeLibTest
             }
         }
 
+        private void EnumerateAction(IRangeList[] collections, Random rnd, ref string description)
+        {
+            Range2MapEntry[] ranges = ((INonInvasiveRange2MapInspection)collections[0]).GetRanges();
+            StartLength[] xStartLengths = Array.ConvertAll(ranges, delegate (Range2MapEntry item) { return new StartLength(item.x.start, item.x.length); });
+            IndexedEnumerateAction<EntryRangeList>(collections, rnd, ref description, TreeKind.RangeList, xStartLengths, null);
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -984,6 +991,8 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(150     , 150      ), NearestLessAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(150     , 150      ), NearestGreaterOrEqualAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(150     , 150      ), NearestGreaterAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IRangeList>>(new Tuple<int, int>(75      , 75       ), EnumerateAction),
             };
 
             return StochasticDriver(

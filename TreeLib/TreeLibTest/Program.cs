@@ -196,7 +196,7 @@ namespace TreeLibTest
 
         private readonly static string[] UnitTestTokens = new string[]
         {
-            "map", "range2map", "rangemap", "range2list", "rangelist", "multirankmap", "multiranklist", "alloc", "enum", "clone", "hugelist"
+            "map", "range2map", "rangemap", "range2list", "rangelist", "multirankmap", "rankmap", "alloc", "enum", "clone", "hugelist"
         };
         private delegate TestBase MakeTestBase(long startIteration);
         private static void UnitTestsKernel(Options options)
@@ -209,7 +209,7 @@ namespace TreeLibTest
                 new Tuple<string, MakeTestBase>("range2list",       delegate (long startIter) { return new UnitTestRange2List(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("rangelist",        delegate (long startIter) { return new UnitTestRangeList(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("multirankmap",     delegate (long startIter) { return new UnitTestMultiRankMap(options.breakIterations, startIter); }),
-                new Tuple<string, MakeTestBase>("multiranklist",    delegate (long startIter) { return new UnitTestRankMap(options.breakIterations, startIter); }),
+                new Tuple<string, MakeTestBase>("rankmap",          delegate (long startIter) { return new UnitTestRankMap(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("alloc",            delegate (long startIter) { return new UnitTestAllocation(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("enum",             delegate (long startIter) { return new UnitTestEnumeration(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("clone",            delegate (long startIter) { return new UnitTestClone(options.breakIterations, startIter); }),
@@ -487,7 +487,7 @@ namespace TreeLibTest
         private readonly static KeyValuePair<string, TestMethod>[] Tests = new KeyValuePair<string, TestMethod>[]
         {
             new KeyValuePair<string, TestMethod>("unit", UnitTests),
-            new KeyValuePair<string, TestMethod>("perf", delegate(Options options) { return PerfTestDriver.RunAllPerfTests(options.baseline); }),
+            new KeyValuePair<string, TestMethod>("perf", delegate(Options options) { return PerfTestDriver.RunAllPerfTests(options.baseline, options.perfGroup, options.perfEnables); }),
             new KeyValuePair<string, TestMethod>("random", StochasticTests),
         };
 
@@ -500,6 +500,49 @@ namespace TreeLibTest
             public long[] breakIterations;
             public KeyValuePair<string, bool>[] stochasticEnables;
             public KeyValuePair<string, bool>[] unitEnables;
+            public PerfTestDriver.Group perfGroup;
+            public KeyValuePair<string, bool>[] perfEnables;
+        }
+
+        private static bool HandledEnableDisable(string arg, Dictionary<string, bool> enables, string label, string descriptive, string[] tokens)
+        {
+            string plusForm = String.Format("+{0}:", label);
+            string minusForm = String.Format("-{0}:", label);
+            Debug.Assert(plusForm.Length == minusForm.Length);
+
+            if (arg.StartsWith(plusForm) || arg.StartsWith(minusForm))
+            {
+                bool enable = arg[0] == '+';
+                arg = arg.Substring(plusForm.Length);
+                if (String.Equals(arg, "all"))
+                {
+                    foreach (string key in tokens)
+                    {
+                        enables[key] = enable;
+                    }
+                }
+                else
+                {
+                    if (!enables.ContainsKey(arg))
+                    {
+                        throw new ArgumentException(String.Format("{1} \"{0}\" does not exist", arg, descriptive));
+                    }
+                    enables[arg] = enable;
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        private static Dictionary<string, bool> InitializeEnables(string[] tokens)
+        {
+            Dictionary<string, bool> enables = new Dictionary<string, bool>();
+            foreach (string token in tokens)
+            {
+                enables.Add(token, true);
+            }
+            return enables;
         }
 
         public static int Main(string[] args)
@@ -508,18 +551,12 @@ namespace TreeLibTest
 
             Options options = new Options();
             List<long> breakIterations = new List<long>();
-            Dictionary<string, bool> stochasticEnables = new Dictionary<string, bool>();
-            foreach (string token in StochasticTokens)
-            {
-                stochasticEnables.Add(token, true);
-            }
-            Dictionary<string, bool> unitEnables = new Dictionary<string, bool>();
-            foreach (string token in UnitTestTokens)
-            {
-                unitEnables.Add(token, true);
-            }
+            Dictionary<string, bool> stochasticEnables = InitializeEnables(StochasticTokens);
+            Dictionary<string, bool> unitEnables = InitializeEnables(UnitTestTokens);
+            Dictionary<string, bool> perfEnables = InitializeEnables(PerfTestDriver.CategoryTokens);
             options.seed = Environment.TickCount;
             bool[] disables = new bool[Tests.Length];
+            options.perfGroup = PerfTestDriver.Group.Priority;
             for (int n = 0; n < args.Length; n++)
             {
                 string arg = args[n];
@@ -569,45 +606,18 @@ namespace TreeLibTest
                 {
                     breakIterations.Add(Int64.Parse(arg.Substring(6)));
                 }
-                else if (arg.StartsWith("+unit:") || arg.StartsWith("-unit:"))
+                else if (String.Equals(arg, "fullperf"))
                 {
-                    bool enable = arg[0] == '+';
-                    arg = arg.Substring(6);
-                    if (String.Equals(arg, "all"))
-                    {
-                        foreach (string key in UnitTestTokens)
-                        {
-                            unitEnables[key] = enable;
-                        }
-                    }
-                    else
-                    {
-                        if (!unitEnables.ContainsKey(arg))
-                        {
-                            throw new ArgumentException(String.Format("Unit test \"{0}\" does not exist", arg));
-                        }
-                        unitEnables[arg] = enable;
-                    }
+                    options.perfGroup = PerfTestDriver.Group.Full;
                 }
-                else if (arg.StartsWith("+random:") || arg.StartsWith("-random:"))
+                else if (HandledEnableDisable(arg, unitEnables, "unit", "Unit test", UnitTestTokens))
                 {
-                    bool enable = arg[0] == '+';
-                    arg = arg.Substring(8);
-                    if (String.Equals(arg, "all"))
-                    {
-                        foreach (string key in StochasticTokens)
-                        {
-                            stochasticEnables[key] = enable;
-                        }
-                    }
-                    else
-                    {
-                        if (!stochasticEnables.ContainsKey(arg))
-                        {
-                            throw new ArgumentException(String.Format("Stochastic test \"{0}\" does not exist", arg));
-                        }
-                        stochasticEnables[arg] = enable;
-                    }
+                }
+                else if (HandledEnableDisable(arg, stochasticEnables, "random", "Stochastic test", StochasticTokens))
+                {
+                }
+                else if (HandledEnableDisable(arg, perfEnables, "perf", "Perf category", PerfTestDriver.CategoryTokens))
+                {
                 }
                 else
                 {
@@ -637,6 +647,7 @@ namespace TreeLibTest
             options.breakIterations = breakIterations.ToArray();
             options.stochasticEnables = new List<KeyValuePair<string, bool>>(stochasticEnables).ToArray();
             options.unitEnables = new List<KeyValuePair<string, bool>>(unitEnables).ToArray();
+            options.perfEnables = new List<KeyValuePair<string, bool>>(perfEnables).ToArray();
 
             int exitCode = 0;
 

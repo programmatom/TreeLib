@@ -73,6 +73,8 @@ namespace TreeLib
 
         IEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
         IEnumerable,
+        ITreeEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
+        /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/IKeyedTreeEnumerable<KeyType, EntryMultiRankMap<KeyType, ValueType>>,
 
         ICloneable
 
@@ -1999,9 +2001,6 @@ uint countNew;
                 int xPositionMatch = 0;
 
                 NodeRef parentOfMatch = Null;
-                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                /*[Widen]*/
-                int xPositionParentOfMatch = 0;
 
                 bool foundMatch = false;
 
@@ -2054,7 +2053,6 @@ uint countNew;
                                 if (parent == match)
                                 {
                                     parentOfMatch = sibling;
-                                    xPositionParentOfMatch = xPositionSibling;
                                 }
 
                                 // update sibling, this is necessary for following processing
@@ -2116,7 +2114,6 @@ uint countNew;
                                 if (parent == match)
                                 {
                                     parentOfMatch = newGrandParent;
-                                    xPositionParentOfMatch = xPositionNewGrandparent;
                                 }
                                 grandParent = newGrandParent;
                                 xPositionGrandparent = xPositionNewGrandparent;
@@ -2142,7 +2139,6 @@ uint countNew;
                         parentOfMatch = parent;
 
                         xPositionMatch = xPositionCurrent;
-                        xPositionParentOfMatch = xPositionParent;
                     }
 
                     grandParent = parent;
@@ -2944,7 +2940,7 @@ uint countNew;
 
 
         //
-        // Enumeration
+        // IEnumerable
         //
 
         /// <summary>
@@ -2961,6 +2957,20 @@ uint countNew;
             return this.GetEnumerator();
         }
 
+        //
+        // ITreeEnumerable
+        //
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable()
+        {
+            return new FastEnumerableSurrogate(this, true/*forward*/);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable(bool forward)
+        {
+            return new FastEnumerableSurrogate(this, forward);
+        }
+
         /// <summary>
         /// Get the robust enumerator. The robust enumerator uses an internal key cursor and queries the tree using the NextGreater()
         /// method to advance the enumerator. This enumerator is robust because it tolerates changes to the underlying tree. If a key
@@ -2973,27 +2983,12 @@ uint countNew;
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
         public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable()
         {
-            return new RobustEnumerableSurrogate(this);
+            return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
-        public struct RobustEnumerableSurrogate : IEnumerable<EntryMultiRankMap<KeyType, ValueType>>
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable(bool forward)
         {
-            private readonly RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree;
-
-            public RobustEnumerableSurrogate(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree)
-            {
-                this.tree = tree;
-            }
-
-            public IEnumerator<EntryMultiRankMap<KeyType, ValueType>> GetEnumerator()
-            {
-                return new RobustEnumerator(tree);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
+            return new RobustEnumerableSurrogate(this, forward);
         }
 
         /// <summary>
@@ -3007,21 +3002,150 @@ uint countNew;
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
         public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable()
         {
-            return new FastEnumerableSurrogate(this);
+            return new FastEnumerableSurrogate(this, true/*forward*/);
+        }
+
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new FastEnumerableSurrogate(this, forward);
+        }
+
+        //
+        // IKeyedTreeEnumerable
+        //
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable(KeyType startAt)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, true/*forward*/); // default
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetEnumerable(KeyType startAt,bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, forward); // default
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt)
+        {
+            return new FastEnumerableSurrogate(this, startAt, true/*forward*/);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt,bool forward)
+        {
+            return new FastEnumerableSurrogate(this, startAt, forward);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, true/*forward*/);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        public IEnumerable<EntryMultiRankMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt,bool forward)
+        {
+            return new RobustEnumerableSurrogate(this, startAt, forward);
+        }
+
+        //
+        // Surrogates
+        //
+
+        public struct RobustEnumerableSurrogate : IEnumerable<EntryMultiRankMap<KeyType, ValueType>>
+        {
+            private readonly RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree;
+            private readonly bool forward;
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly bool startKeyed;
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
+            // Construction
+
+            public RobustEnumerableSurrogate(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = false;
+                this.startKey = default(KeyType);
+            }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public RobustEnumerableSurrogate(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+            }
+
+            // IEnumerable
+
+            public IEnumerator<EntryMultiRankMap<KeyType, ValueType>> GetEnumerator()
+            {
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                if (startKeyed)
+                {
+                    return new RobustEnumerator(tree, startKey, forward);
+                }
+
+                return new RobustEnumerator(tree, forward);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
 
         public struct FastEnumerableSurrogate : IEnumerable<EntryMultiRankMap<KeyType, ValueType>>
         {
             private readonly RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree;
+            private readonly bool forward;
 
-            public FastEnumerableSurrogate(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly bool startKeyed;
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
+            // Construction
+
+            public FastEnumerableSurrogate(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = false;
+                this.startKey = default(KeyType);
             }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public FastEnumerableSurrogate(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+            }
+
+            // IEnumerable
 
             public IEnumerator<EntryMultiRankMap<KeyType, ValueType>> GetEnumerator()
             {
-                return new FastEnumerator(tree);
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                if (startKeyed)
+                {
+                    return new FastEnumerator(tree, startKey, forward);
+                }
+
+                return new FastEnumerator(tree, forward);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -3035,17 +3159,42 @@ uint countNew;
         /// it keeps a current key and uses NearestGreater to find the next one. However, since it uses queries it
         /// is slow, O(n lg(n)) to enumerate the entire tree.
         /// </summary>
-        public class RobustEnumerator : IEnumerator<EntryMultiRankMap<KeyType, ValueType>>
+        public class RobustEnumerator :
+            IEnumerator<EntryMultiRankMap<KeyType, ValueType>>,
+            /*[Payload(Payload.Value)]*/ISetValue<ValueType>
         {
             private readonly RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree;
+            private readonly bool forward;
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly bool startKeyed;
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
             private bool started;
             private bool valid;
+            private ushort enumeratorVersion;
+
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
 
-            public RobustEnumerator(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree)
+            public RobustEnumerator(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public RobustEnumerator(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+
                 Reset();
             }
 
@@ -3074,6 +3223,8 @@ uint countNew;
                             return new EntryMultiRankMap<KeyType, ValueType>(
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                                 /*[Payload(Payload.Value)]*/value,
+                                /*[Payload(Payload.Value)]*/this,
+                                /*[Payload(Payload.Value)]*/this.enumeratorVersion,
                                 /*[Feature(Feature.Rank, Feature.RankMulti)]*/rank,
                                 /*[Feature(Feature.RankMulti)]*/count);
                         }
@@ -3096,17 +3247,47 @@ uint countNew;
             public bool MoveNext()
             {
 
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
                 if (!started)
                 {
                     /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                    valid = tree.Least(out currentKey);
+                    if (!startKeyed)
+                    {
+                        if (forward)
+                        {
+                            valid = tree.Least(out currentKey);
+                        }
+                        else
+                        {
+                            valid = tree.Greatest(out currentKey);
+                        }
+                    }
+                    else
+                    {
+                        if (forward)
+                        {
+                            valid = tree.NearestGreaterOrEqual(startKey, out currentKey);
+                        }
+                        else
+                        {
+                            valid = tree.NearestLessOrEqual(startKey, out currentKey);
+                        }
+                    }
 
                     started = true;
                 }
                 else if (valid)
                 {
                     /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                    valid = tree.NearestGreater(currentKey, out currentKey);
+                    if (forward)
+                    {
+                        valid = tree.NearestGreater(currentKey, out currentKey);
+                    }
+                    else
+                    {
+                        valid = tree.NearestLess(currentKey, out currentKey);
+                    }
                 }
 
                 return valid;
@@ -3116,7 +3297,22 @@ uint countNew;
             {
                 started = false;
                 valid = false;
-                currentKey = default(KeyType);
+                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+            }
+
+            [Payload(Payload.Value)]
+            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            {
+                if (this.enumeratorVersion != requiredEnumeratorVersion)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
+                // the node directly
+
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                tree.SetValue(currentKey, value);
             }
         }
 
@@ -3124,22 +3320,51 @@ uint countNew;
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
-        public class FastEnumerator : IEnumerator<EntryMultiRankMap<KeyType, ValueType>>
+        public class FastEnumerator :
+            IEnumerator<EntryMultiRankMap<KeyType, ValueType>>,
+            /*[Payload(Payload.Value)]*/ISetValue<ValueType>
         {
             private readonly RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree;
-            private ushort version;
+            private readonly bool forward;
+
+            private readonly bool startKeyedOrIndexed;
+            //
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            private readonly KeyType startKey;
+
+            private ushort treeVersion;
+            private ushort enumeratorVersion;
+
             private NodeRef currentNode;
-            private NodeRef nextNode;
+            private NodeRef leadingNode;
+
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             private int currentXStart, nextXStart;
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
+            [Widen]
+            private int previousXStart;
 
             private readonly Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>> stack
                 = new Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>>();
 
-            public FastEnumerator(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree)
+            public FastEnumerator(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,bool forward)
             {
                 this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+            public FastEnumerator(RedBlackTreeArrayMultiRankMap<KeyType, ValueType> tree,KeyType startKey,bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyedOrIndexed = true;
+                this.startKey = startKey;
+
                 Reset();
             }
 
@@ -3150,11 +3375,29 @@ uint countNew;
                     if (currentNode != tree.Null)
                     {
 
+
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        /*[Widen]*/
+                        int currentXLength = 0;
+
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        if (forward)
+                        {
+                            currentXLength = nextXStart - currentXStart;
+                        }
+                        else
+                        {
+                            currentXLength = previousXStart - currentXStart;
+                        }
+
                         return new EntryMultiRankMap<KeyType, ValueType>(
-                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/tree.nodes[currentNode].key,
+                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                            tree.nodes[currentNode].key,
                             /*[Payload(Payload.Value)]*/tree.nodes[currentNode].value,
+                            /*[Payload(Payload.Value)]*/this,
+                            /*[Payload(Payload.Value)]*/this.enumeratorVersion,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/currentXStart,
-                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart - currentXStart);
+                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/currentXLength);
                     }
                     return new EntryMultiRankMap<KeyType, ValueType>();
                 }
@@ -3180,62 +3423,192 @@ uint countNew;
 
             public void Reset()
             {
-                stack.Clear();
-                currentNode = tree.Null;
-                nextNode = tree.Null;
-                currentXStart = 0;
-                nextXStart = 0;
-
-                this.version = tree.version;
-
-                PushSuccessor(
-                    tree.root,
-                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0);
-
-                Advance();
-            }
-
-            private void PushSuccessor(                NodeRef node,                [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xPosition)
-            {
-                while (node != tree.Null)
+                unchecked
                 {
-                    xPosition += tree.nodes[node].xOffset;
+                    stack.Clear();
 
-                    stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
-                        node,
-                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
-                    node = tree.nodes[node].left;
+                    currentNode = tree.Null;
+                    leadingNode = tree.Null;
+
+                    this.treeVersion = tree.version;
+
+                    // push search path to starting item
+
+                    NodeRef node = tree.root;
+                    /*[Widen]*/
+                    int xPosition = 0;
+                    /*[Widen]*/
+                    int yPosition = 0;
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    bool foundMatch = false;
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    bool lastGreaterAncestorValid = false;
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    /*[Widen]*/
+                    int xPositionLastGreaterAncestor = 0;
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    bool successorValid = false;
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    /*[Widen]*/
+                    int xPositionSuccessor = 0;
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    /*[Widen]*/
+                    int yPositionSuccessor = 0;
+                    while (node != tree.Null)
+                    {
+                        xPosition += tree.nodes[node].xOffset;
+
+                        bool foundMatch1 = false;
+                        /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        foundMatch1 = foundMatch;
+
+                        if (foundMatch1)
+                        {
+                            successorValid = true;
+                            xPositionSuccessor = xPosition;
+                            yPositionSuccessor = yPosition;
+                        }
+
+                        int c;
+                        if (foundMatch1)
+                        {
+                            // don't compare anymore after finding match - only descend successor path
+                            c = -1;
+                        }
+                        else
+                        {
+                            if (!startKeyedOrIndexed)
+                            {
+                                c = forward ? -1 : 1;
+                            }
+                            else
+                            {
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                                c = tree.comparer.Compare(startKey, tree.nodes[node].key);
+                            }
+                        }
+
+                        if (!foundMatch1 && (forward && (c <= 0)) || (!forward && (c >= 0)))
+                        {
+                            stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                                node,
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
+                        }
+
+                        if (c == 0)
+                        {
+                            foundMatch = true;
+
+                            // successor not needed for forward traversal
+                            if (forward)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (c < 0)
+                        {
+                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                            if (!foundMatch)
+                            {
+                                lastGreaterAncestorValid = true;
+                                xPositionLastGreaterAncestor = xPosition;
+                            }
+
+                            node = tree.nodes[node].left;
+                        }
+                        else
+                        {
+                            Debug.Assert(c >= 0);
+                            node = tree.nodes[node].right;
+                        }
+                    }
+
+                    /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    if (!forward)
+                    {
+                        // get position of successor for length of initial item
+                        if (successorValid)
+                        {
+                            nextXStart = xPositionSuccessor;
+                        }
+                        else if (lastGreaterAncestorValid)
+                        {
+                            nextXStart = xPositionLastGreaterAncestor;
+                        }
+                        else
+                        {
+                            nextXStart = tree.xExtent;
+                        }
+                    }
+
+                    Advance();
                 }
             }
 
             private void Advance()
             {
-                if (this.version != tree.version)
+                unchecked
+                {
+                    if (this.treeVersion != tree.version)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+
+                    previousXStart = currentXStart;
+                    currentNode = leadingNode;
+                    currentXStart = nextXStart;
+
+                    leadingNode = tree.Null;
+
+                    if (stack.Count == 0)
+                    {
+                        if (forward)
+                        {
+                            nextXStart = tree.xExtent;
+                        }
+                        else
+                        {
+                            nextXStart = 0;
+                        }
+                        return;
+                    }
+
+                    STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> cursor
+                        = stack.Pop();
+
+                    leadingNode = cursor.Item1;
+                    nextXStart = cursor.Item2;
+
+                    NodeRef node = forward ? tree.nodes[leadingNode].right : tree.nodes[leadingNode].left;
+                    /*[Widen]*/
+                    int xPosition = nextXStart;
+                    while (node != tree.Null)
+                    {
+                        xPosition += tree.nodes[node].xOffset;
+
+                        stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                            node,
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
+                        node = forward ? tree.nodes[node].left : tree.nodes[node].right;
+                    }
+                }
+            }
+
+            [Payload(Payload.Value)]
+            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            {
+                if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {
                     throw new InvalidOperationException();
                 }
 
-                currentNode = nextNode;
-                currentXStart = nextXStart;
-
-                nextNode = tree.Null;
-                nextXStart = tree.xExtent;
-
-                if (stack.Count == 0)
-                {
-                    nextXStart = tree.xExtent;
-                    return;
-                }
-
-                STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> cursor
-                    = stack.Pop();
-
-                nextNode = cursor.Item1;
-                nextXStart = cursor.Item2;
-
-                PushSuccessor(
-                    tree.nodes[nextNode].right,
-                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/nextXStart);
+                tree.nodes[currentNode].value = value;
             }
         }
 

@@ -23,13 +23,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 
 using TreeLib;
 using TreeLib.Internal;
 
 namespace TreeLibTest
 {
-    // This is a primary implementation
+    // This is a wrapper
 
     public class ReferenceRankMap<KeyType, ValueType> :
         IRankMap<KeyType, ValueType>,
@@ -38,24 +39,7 @@ namespace TreeLibTest
         IEnumerable<EntryRankMap<KeyType, ValueType>>
         where KeyType : IComparable<KeyType>
     {
-        private readonly List<Item> items = new List<Item>();
-
-        private struct Item
-        {
-            public KeyType key;
-            public ValueType value;
-
-            public Item(KeyType key, ValueType value)
-            {
-                this.key = key;
-                this.value = value;
-            }
-
-            public override string ToString()
-            {
-                return String.Format("({0}, {1})", key, value);
-            }
-        }
+        private readonly ReferenceMultiRankMap<KeyType, ValueType> inner = new ReferenceMultiRankMap<KeyType, ValueType>();
 
         //
         // Construction
@@ -67,7 +51,7 @@ namespace TreeLibTest
 
         public ReferenceRankMap(ReferenceRankMap<KeyType, ValueType> original)
         {
-            items.AddRange(original.items);
+            inner = new ReferenceMultiRankMap<KeyType, ValueType>(original.inner);
         }
 
         public ReferenceRankMap<KeyType, ValueType> Clone()
@@ -79,418 +63,177 @@ namespace TreeLibTest
         // IRankMap
         //
 
-        public uint Count { get { return (uint)items.Count; } }
+        public uint Count { get { return inner.Count; } }
 
-        public long LongCount { get { return items.Count; } }
+        public long LongCount { get { return inner.LongCount; } }
 
         public void Clear()
         {
-            items.Clear();
+            inner.Clear();
         }
 
         public bool ContainsKey(KeyType key)
         {
-            return BinarySearch(key) >= 0;
+            return inner.ContainsKey(key);
         }
 
         public bool TryAdd(KeyType key, ValueType value)
         {
-            int i = BinarySearch(key);
-            if (i < 0)
-            {
-                items.Insert(~i, new Item(key, value));
-                return true;
-            }
-            return false;
+            return inner.TryAdd(key, value, 1);
         }
 
         public bool TryRemove(KeyType key)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
-            {
-                items.RemoveAt(i);
-                return true;
-            }
-            return false;
+            return inner.TryRemove(key);
         }
 
         public bool TryGetValue(KeyType key, out ValueType value)
         {
-            int rank;
-            return TryGet(key, out value, out rank);
+            return inner.TryGetValue(key, out value);
         }
 
         public bool TrySetValue(KeyType key, ValueType value)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
-            {
-                items[i] = new Item(items[i].key, value);
-                return true;
-            }
-            return false;
+            return inner.TrySetValue(key, value);
         }
 
         public bool TryGet(KeyType key, out ValueType value, out int rank)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
-            {
-                rank = 0;
-                for (int j = 0; j < i; j++)
-                {
-                    rank += 1;
-                }
-
-                value = items[i].value;
-                return true;
-            }
-            value = default(ValueType);
-            rank = 0;
-            return false;
+            int count;
+            return inner.TryGet(key, out value, out rank, out count);
         }
 
         public bool TryGetKeyByRank(int rank, out KeyType key)
         {
-            if (rank < 0)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            int index, start;
-            if (Find(rank, out index, out start, false/*includeEnd*/))
-            {
-                key = items[index].key;
-                return true;
-            }
-            key = default(KeyType);
-            return false;
+            return inner.TryGetKeyByRank(rank, out key);
         }
 
         public void Add(KeyType key, ValueType value)
         {
-            if (!TryAdd(key, value))
-            {
-                throw new ArgumentException("item already in tree");
-            }
+            inner.Add(key, value, 1);
         }
 
         public void Remove(KeyType key)
         {
-            if (!TryRemove(key))
-            {
-                throw new ArgumentException("item not in tree");
-            }
+            inner.Remove(key);
         }
 
         public ValueType GetValue(KeyType key)
         {
-            ValueType value;
-            if (!TryGetValue(key, out value))
-            {
-                throw new ArgumentException("item not in tree");
-            }
-            return value;
+            return inner.GetValue(key);
         }
 
         public void SetValue(KeyType key, ValueType value)
         {
-            if (!TrySetValue(key, value))
-            {
-                throw new ArgumentException("item not in tree");
-            }
+            inner.SetValue(key, value);
         }
 
         public void Get(KeyType key, out ValueType value, out int rank)
         {
-            if (!TryGet(key, out value, out rank))
-            {
-                throw new ArgumentException("item not in tree");
-            }
+            int count;
+            inner.Get(key, out value, out rank, out count);
         }
 
         public KeyType GetKeyByRank(int rank)
         {
-            KeyType key;
-            if (!TryGetKeyByRank(rank, out key))
-            {
-                throw new ArgumentException("index not in tree");
-            }
-            return key;
+            return inner.GetKeyByRank(rank);
         }
 
         public void AdjustCount(KeyType key, int countAdjust)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
+            int count, rank;
+            ValueType value;
+            inner.TryGet(key, out value, out rank, out count);
+            if ((count + countAdjust < 0) || (count + countAdjust > 1))
             {
-                // update and possibly remove
-
-                if (countAdjust == 0)
-                {
-                }
-                else if (countAdjust == -1)
-                {
-                    items.RemoveAt(i);
-                }
-                else
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
+                throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                // add
 
-                if (countAdjust < 0)
-                {
-                    throw new ArgumentOutOfRangeException();
-                }
-                else if (countAdjust > 0)
-                {
-                    if (countAdjust > 1)
-                    {
-                        throw new ArgumentOutOfRangeException();
-                    }
-                    items.Insert(~i, new Item(key, default(ValueType)));
-                }
-                else
-                {
-                    // allow non-adding case
-                    Debug.Assert(countAdjust == 0);
-                }
-            }
+            inner.AdjustCount(key, countAdjust);
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)
         {
-            if (items.Count != 0)
-            {
-                leastOut = items[0].key;
-                valueOut = items[0].value;
-                return true;
-            }
-            leastOut = default(KeyType);
-            valueOut = default(ValueType);
-            return false;
+            return inner.Least(out leastOut, out valueOut);
         }
 
         public bool Least(out KeyType leastOut)
         {
-            ValueType value;
-            return Least(out leastOut, out value);
+            return inner.Least(out leastOut);
         }
 
         public bool Greatest(out KeyType greatestOut, out ValueType valueOut)
         {
-            if (items.Count != 0)
-            {
-                greatestOut = items[items.Count - 1].key;
-                valueOut = items[items.Count - 1].value;
-                return true;
-            }
-            greatestOut = default(KeyType);
-            valueOut = default(ValueType);
-            return false;
+            return inner.Greatest(out greatestOut, out valueOut);
         }
 
         public bool Greatest(out KeyType greatestOut)
         {
-            ValueType value;
-            return Greatest(out greatestOut, out value);
+            return inner.Greatest(out greatestOut);
         }
 
         public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
-            {
-                nearestKey = items[i].key;
-                valueOut = items[i].value;
-                return true;
-            }
-            i = ~i;
-            if (i > 0)
-            {
-                nearestKey = items[i - 1].key;
-                valueOut = items[i - 1].value;
-                return true;
-            }
-            nearestKey = default(KeyType);
-            valueOut = default(ValueType);
-            return false;
+            return inner.NearestLessOrEqual(key, out nearestKey, out valueOut);
         }
 
         public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
-            ValueType value;
-            return NearestLessOrEqual(key, out nearestKey, out value);
+            return inner.NearestLessOrEqual(key, out nearestKey);
         }
 
         public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
-            int i = BinarySearch(key);
-            if (i < 0)
-            {
-                i = ~i;
-            }
-            if (i > 0)
-            {
-                nearestKey = items[i - 1].key;
-                valueOut = items[i - 1].value;
-                return true;
-            }
-            valueOut = default(ValueType);
-            nearestKey = default(KeyType);
-            return false;
+            return inner.NearestLess(key, out nearestKey, out valueOut);
         }
 
         public bool NearestLess(KeyType key, out KeyType nearestKey)
         {
-            ValueType value;
-            return NearestLess(key, out nearestKey, out value);
+            return inner.NearestLess(key, out nearestKey);
         }
 
         public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
-            {
-                nearestKey = items[i].key;
-                valueOut = items[i].value;
-                return true;
-            }
-            i = ~i;
-            if (i < items.Count)
-            {
-                nearestKey = items[i].key;
-                valueOut = items[i].value;
-                return true;
-            }
-            nearestKey = default(KeyType);
-            valueOut = default(ValueType);
-            return false;
+            return inner.NearestGreaterOrEqual(key, out nearestKey, out valueOut);
         }
 
         public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
-            ValueType value;
-            return NearestGreaterOrEqual(key, out nearestKey, out value);
+            return inner.NearestGreaterOrEqual(key, out nearestKey);
         }
 
         public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType valueOut)
         {
-            int i = BinarySearch(key);
-            if (i >= 0)
-            {
-                i++;
-            }
-            else
-            {
-                i = ~i;
-            }
-            if (i < items.Count)
-            {
-                nearestKey = items[i].key;
-                valueOut = items[i].value;
-                return true;
-            }
-            nearestKey = default(KeyType);
-            valueOut = default(ValueType);
-            return false;
+            return inner.NearestGreater(key, out nearestKey, out valueOut);
         }
 
         public bool NearestGreater(KeyType key, out KeyType nearestKey)
         {
-            ValueType value;
-            return NearestGreater(key, out nearestKey, out value);
+            return inner.NearestGreater(key, out nearestKey);
         }
 
         public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
         {
-            value = default(ValueType);
-            rank = 0;
-            bool f = NearestLessOrEqual(key, out nearestKey);
-            if (f)
-            {
-                bool g = TryGet(nearestKey, out value, out rank);
-                Debug.Assert(g);
-            }
-            return f;
+            int count;
+            return inner.NearestLessOrEqual(key, out nearestKey, out value, out rank, out count);
         }
 
         public bool NearestLess(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
         {
-            value = default(ValueType);
-            rank = 0;
-            bool f = NearestLess(key, out nearestKey);
-            if (f)
-            {
-                bool g = TryGet(nearestKey, out value, out rank);
-                Debug.Assert(g);
-            }
-            return f;
+            int count;
+            return inner.NearestLess(key, out nearestKey, out value, out rank, out count);
         }
 
         public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
         {
-            value = default(ValueType);
-            rank = (int)Count;
-            bool f = NearestGreaterOrEqual(key, out nearestKey);
-            if (f)
-            {
-                bool g = TryGet(nearestKey, out value, out rank);
-                Debug.Assert(g);
-            }
-            return f;
+            int count;
+            return inner.NearestGreaterOrEqual(key, out nearestKey, out value, out rank, out count);
         }
 
         public bool NearestGreater(KeyType key, out KeyType nearestKey, out ValueType value, out int rank)
         {
-            value = default(ValueType);
-            rank = (int)Count;
-            bool f = NearestGreater(key, out nearestKey);
-            if (f)
-            {
-                bool g = TryGet(nearestKey, out value, out rank);
-                Debug.Assert(g);
-            }
-            return f;
-        }
-
-
-        //
-        // Internals
-        //
-
-        private bool Find(int position, out int index, out int start, bool includeEnd)
-        {
-            start = 0;
-            for (index = 0; index < items.Count; index++)
-            {
-                int end = start + 1;
-                if (position < end)
-                {
-                    return true;
-                }
-                start = end;
-            }
-            return includeEnd && (position == start);
-        }
-
-        private int BinarySearch(KeyType key)
-        {
-            return items.BinarySearch(new Item(key, default(ValueType)), Comparer);
-        }
-
-        private readonly static CompoundComparer Comparer = new CompoundComparer();
-        private class CompoundComparer : IComparer<Item>
-        {
-            public int Compare(Item x, Item y)
-            {
-                return Comparer<KeyType>.Default.Compare(x.key, y.key);
-            }
+            int count;
+            return inner.NearestGreater(key, out nearestKey, out value, out rank, out count);
         }
 
 
@@ -537,32 +280,12 @@ namespace TreeLibTest
 
         MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
         {
-            List<MultiRankMapEntry> ranks = new List<MultiRankMapEntry>();
-            int offset = 0;
-            for (int i = 0; i < items.Count; i++)
-            {
-                ranks.Add(
-                    new MultiRankMapEntry(
-                        items[i].key,
-                        new Range(offset, 1),
-                        items[i].value));
-                offset += 1;
-            }
-            return ranks.ToArray();
+            return ((INonInvasiveMultiRankMapInspection)inner).GetRanks();
         }
 
         void INonInvasiveMultiRankMapInspection.Validate()
         {
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (i > 0)
-                {
-                    if (!(Comparer<KeyType>.Default.Compare(items[i - 1].key, items[i].key) < 0))
-                    {
-                        throw new InvalidOperationException("ordering invariant violated");
-                    }
-                }
-            }
+            ((INonInvasiveMultiRankMapInspection)inner).Validate();
         }
 
 
@@ -570,14 +293,112 @@ namespace TreeLibTest
         // IEnumerable
         //
 
+        private EntryRankMap<KeyType, ValueType> Convert(EntryMultiRankMap<KeyType, ValueType> entry)
+        {
+            return new EntryRankMap<KeyType, ValueType>(
+                entry.Key,
+                entry.Value,
+                (ISetValue<ValueType>)entry.GetType().GetField("enumerator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                (ushort)entry.GetType().GetField("version", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                entry.Rank);
+        }
+
         public IEnumerator<EntryRankMap<KeyType, ValueType>> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return new AdaptEnumerator<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetEnumerator(),
+                Convert);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return new AdaptEnumeratorOld<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                ((IEnumerable)inner).GetEnumerator(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetEnumerable()
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetFastEnumerable()
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetFastEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetFastEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetFastEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetRobustEnumerable()
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetRobustEnumerable(),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetRobustEnumerable(bool forward)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetRobustEnumerable(forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetEnumerable(KeyType startAt)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetEnumerable(KeyType startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetFastEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetFastEnumerable(KeyType startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetFastEnumerable(startAt, forward),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetRobustEnumerable(startAt),
+                Convert);
+        }
+
+        public IEnumerable<EntryRankMap<KeyType, ValueType>> GetRobustEnumerable(KeyType startAt, bool forward)
+        {
+            return new AdaptEnumerable<EntryRankMap<KeyType, ValueType>, EntryMultiRankMap<KeyType, ValueType>>(
+                inner.GetRobustEnumerable(startAt, forward),
+                Convert);
         }
     }
 }

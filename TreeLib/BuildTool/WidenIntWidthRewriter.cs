@@ -226,12 +226,11 @@ namespace BuildTool
             node = NormalizeArgumentListUtil.NormalizeTypeArgumentList(node);
 
             int i = 0;
-            foreach (TypeSyntax type1 in node.Arguments)
+            foreach (TypeSyntax type in node.Arguments)
             {
-                if (AttributeMatchUtil.HasTriviaAnnotationSimple(type1.GetLeadingTrivia(), WidenAttributeName))
+                if (AttributeMatchUtil.HasTriviaAnnotationSimple(type.GetLeadingTrivia(), WidenAttributeName))
                 {
-                    PredefinedTypeSyntax type;
-                    if ((type = type1 as PredefinedTypeSyntax) != null)
+                    if ((type is PredefinedTypeSyntax) || (type is GenericNameSyntax))
                     {
                         node = node.WithArguments(
                             node.Arguments.RemoveAt(i).Insert(i, WidenType(type).WithTriviaFrom(type)));
@@ -321,6 +320,19 @@ namespace BuildTool
         public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
         {
             node = (ForEachStatementSyntax)base.VisitForEachStatement(node);
+
+            if (AttributeMatchUtil.HasTriviaAnnotationSimple(node.Type.GetLeadingTrivia(), WidenAttributeName)
+                || AttributeMatchUtil.HasTriviaAnnotationSimple(node.OpenParenToken.TrailingTrivia, WidenAttributeName))
+            {
+                node = node.WithType(WidenType(node.Type));
+            }
+
+            return node;
+        }
+
+        public override SyntaxNode VisitDefaultExpression(DefaultExpressionSyntax node)
+        {
+            node = (DefaultExpressionSyntax)base.VisitDefaultExpression(node);
 
             if (AttributeMatchUtil.HasTriviaAnnotationSimple(node.Type.GetLeadingTrivia(), WidenAttributeName)
                 || AttributeMatchUtil.HasTriviaAnnotationSimple(node.OpenParenToken.TrailingTrivia, WidenAttributeName))

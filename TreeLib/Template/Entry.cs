@@ -105,9 +105,28 @@ namespace TreeLib
         public int YLength { get { return yLength; } }
 
 
+        [Payload(Payload.Value)]
+        private readonly ISetValue<ValueType> enumerator;
+        [Payload(Payload.Value)]
+        private readonly ushort version;
+
+        [Payload(Payload.Value)]
+        public void SetValue(ValueType value)
+        {
+            if (enumerator == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            enumerator.SetValue(value, version);
+        }
+
+
         public Entry(
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
             [Payload(Payload.Value)] ValueType value,
+            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,
+            [Payload(Payload.Value)] ushort version,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
             [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
             [Feature(Feature.Range2)][Widen] int yStart,
@@ -119,6 +138,9 @@ namespace TreeLib
             this.xLength = xLength;
             this.yStart = yStart;
             this.yLength = yLength;
+
+            this.enumerator = enumerator;
+            this.version = version;
         }
 
         public override bool Equals(object obj)

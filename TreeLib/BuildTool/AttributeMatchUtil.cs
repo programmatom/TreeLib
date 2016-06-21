@@ -138,6 +138,8 @@ namespace BuildTool
 
         // Used for statements: where real attributes are not permitted, a fake attribute in a C-style comment
         // can be specified.
+        // Used for statements: where real attributes are not permitted, a fake attribute in a C-style comment
+        // can be specified.
         public static bool TestTriviaAnnotation(IEnumerable<SyntaxTrivia> trivia, FacetList[] facetAxes)
         {
             bool foundDisjuction = true;
@@ -193,7 +195,7 @@ namespace BuildTool
         }
 
 
-        public static bool TestEnumeratedFaceAttribute(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax expressionOut, string[] attributeAliases, FacetList facetsList)
+        public static bool TestEnumeratedFacetAttribute(SyntaxList<AttributeListSyntax> attributeLists, out ExpressionSyntax expressionOut, string[] attributeAliases, FacetList facetsList)
         {
             foreach (AttributeListSyntax attributeList in attributeLists)
             {
@@ -221,6 +223,88 @@ namespace BuildTool
 
             expressionOut = null;
             return false;
+        }
+
+
+        public static SyntaxList<AttributeListSyntax> TriviaAnnotationToAttributesList(IEnumerable<SyntaxTrivia> trivia)
+        {
+            SeparatedSyntaxList<AttributeSyntax> attributes = new SeparatedSyntaxList<AttributeSyntax>();
+            foreach (SyntaxTrivia trivium in trivia)
+            {
+                if (trivium.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                {
+                    // /*[...]*/
+
+                    string s = trivium.ToFullString().Trim();
+                    if (!(s.StartsWith("/*") && s.EndsWith("*/")))
+                    {
+                        continue;
+                    }
+                    s = s.Substring(2, s.Length - 2 - 2).Trim();
+                    if (!(s.StartsWith("[") && s.EndsWith("]")))
+                    {
+                        continue;
+                    }
+                    s = s.Substring(1, s.Length - 1 - 1).Trim();
+
+                    // (...) */
+
+                    int i = s.IndexOf('(');
+                    string attributeName = i >= 0 ? s.Substring(0, i) : s;
+                    int j = s.IndexOf(')');
+                    if ((i >= 0) != (j >= 0))
+                    {
+                        throw new ArgumentException();
+                    }
+
+                    /* <arg>, <arg>, ... */
+
+                    SeparatedSyntaxList<AttributeArgumentSyntax> args = new SeparatedSyntaxList<AttributeArgumentSyntax>();
+                    if (i >= 0)
+                    {
+                        s = s.Substring(i + 1, j - (i + 1)).Trim();
+                        if (!String.IsNullOrEmpty(s))
+                        {
+                            foreach (string arg1 in s.Split(','))
+                            {
+                                string arg = arg1.Trim();
+                                if (arg.StartsWith("\"") && arg.EndsWith("\""))
+                                {
+                                    args = args.Add(
+                                        SyntaxFactory.AttributeArgument(
+                                            SyntaxFactory.LiteralExpression(
+                                                SyntaxKind.StringLiteralExpression,
+                                                SyntaxFactory.Literal(arg.Substring(1, arg.Length - 2)))));
+                                }
+                                else
+                                {
+                                    int k = arg.IndexOf('.');
+                                    if (k < 0)
+                                    {
+                                        throw new ArgumentException();
+                                    }
+                                    string left = arg.Substring(0, k).Trim();
+                                    string right = arg.Substring(k + 1).Trim();
+                                    args = args.Add(
+                                        SyntaxFactory.AttributeArgument(
+                                            SyntaxFactory.MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                SyntaxFactory.IdentifierName(left),
+                                                SyntaxFactory.IdentifierName(right))));
+                                }
+                            }
+                        }
+                    }
+
+                    AttributeSyntax attribute = SyntaxFactory.Attribute(
+                        SyntaxFactory.IdentifierName(attributeName),
+                        SyntaxFactory.AttributeArgumentList(args));
+
+                    attributes = attributes.Add(attribute);
+                }
+            }
+
+            return new SyntaxList<AttributeListSyntax>().Add(SyntaxFactory.AttributeList(attributes));
         }
     }
 }
