@@ -2743,10 +2743,10 @@ out xPosition))
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
+        MultiRankMapEntry[] /*[Widen]*/INonInvasiveMultiRankMapInspection.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntry[] ranks = new MultiRankMapEntry[Count];
+            MultiRankMapEntry[] ranks = new /*[Widen]*/MultiRankMapEntry[Count];
             int i = 0;
 
             if (root != Null)
@@ -2774,8 +2774,7 @@ out xPosition))
                     object value = null;
                     value = node.value;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntry(key, new Range(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntry(key, new /*[Widen]*/Range(xOffset, 0), value);
 
                     node = node.right_child ? node.right : Null;
                     while (node != Null)
@@ -2805,7 +2804,7 @@ out xPosition))
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspection.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

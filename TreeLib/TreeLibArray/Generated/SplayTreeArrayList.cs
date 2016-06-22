@@ -81,45 +81,6 @@ namespace TreeLib
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             public KeyType key;
-
-            //#if DEBUG
-            //            public bool scratch_debug;
-            //#endif
-            //            public override string ToString()
-            //            {
-            //#if DEBUG
-            //                if (scratch_debug)
-            //                {
-            //                    return "Scratch";
-            //                }
-            //#endif
-
-            //                string keyText = null;
-            //                /*[Storage(Storage.Object)]*/
-            //                try
-            //                {
-            //                    keyText = key.ToString();
-            //                }
-            //                catch (NullReferenceException)
-            //                {
-            //                }
-
-            //                string valueText = null;
-            //                /*[Storage(Storage.Object)]*/
-            //                try
-            //                {
-            //                    valueText = value.ToString();
-            //                }
-            //                catch (NullReferenceException)
-            //                {
-            //                }
-
-            //                string leftText = left == Nil ? "Nil" : left.ToString();
-
-            //                string rightText = right == Nil ? "Nil" : right.ToString();
-
-            //                return String.Format("[{0}]*{2}={3}*[{1}])", leftText, rightText, keyText, valueText);
-            //            }
         }
 
         [Storage(Storage.Array)]
@@ -156,11 +117,6 @@ namespace TreeLib
             public override int GetHashCode()
             {
                 return node.GetHashCode();
-            }
-
-            public override string ToString()
-            {
-                return node.ToString();
             }
         }
 

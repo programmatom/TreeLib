@@ -131,11 +131,6 @@ namespace TreeLib
             {
                 return node.GetHashCode();
             }
-
-            public override string ToString()
-            {
-                return node.ToString();
-            }
         }
 
         [Storage(Storage.Array)]
@@ -2465,10 +2460,10 @@ uint countNew = checked(this.count + 1);
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
+        MultiRankMapEntry[] /*[Widen]*/INonInvasiveMultiRankMapInspection.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntry[] ranks = new MultiRankMapEntry[Count];
+            MultiRankMapEntry[] ranks = new /*[Widen]*/MultiRankMapEntry[Count];
             int i = 0;
 
             if (root != Null)
@@ -2495,8 +2490,7 @@ uint countNew = checked(this.count + 1);
                     key = nodes[node].key;
                     object value = null;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntry(key, new Range(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntry(key, new /*[Widen]*/Range(xOffset, 0), value);
 
                     node = nodes[node].right_child ? nodes[node].right : Null;
                     while (node != Null)
@@ -2526,7 +2520,7 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspection.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

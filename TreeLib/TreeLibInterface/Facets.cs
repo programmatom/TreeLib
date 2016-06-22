@@ -149,4 +149,11 @@ namespace TreeLib.Internal
         {
         }
     }
+
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
+    public class DocumentationSourceAttribute : Attribute
+    {
+    }
 }

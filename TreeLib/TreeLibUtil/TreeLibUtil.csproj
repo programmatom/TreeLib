@@ -50,6 +50,14 @@
       <Project>{cbe10293-74c4-4d29-af8e-b1fb8fef851b}</Project>
       <Name>TreeLibInterface</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TreeLibLong\TreeLibLong.csproj">
+      <Project>{4b00cf37-a8f0-427b-9048-48aae1c2aa4f}</Project>
+      <Name>TreeLibLong</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TreeLib\TreeLib.csproj">
+      <Project>{9f8074c9-ade0-4cbd-b507-2698b6ae98f8}</Project>
+      <Name>TreeLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="transform.xml" />

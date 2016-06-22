@@ -91,61 +91,6 @@ namespace TreeLib
                 nil.right = nil;
                 return nil;
             }
-
-            public override string ToString()
-            {
-                if (this.IsNil)
-                {
-                    return "Nil";
-                }
-
-                string keyText = null;
-                try
-                {
-                    keyText = key.ToString();
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                string valueText = null;
-                try
-                {
-                    valueText = value.ToString();
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                string leftKeyText = null;
-                try
-                {
-                    leftKeyText = left == null ? "null" : (((Node)left).IsNil ? "Nil" : ((Node)left).key.ToString());
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                string rightKeyText = null;
-                try
-                {
-                    rightKeyText = right == null ? "null" : (((Node)right).IsNil ? "Nil" : ((Node)right).key.ToString());
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                return String.Format("({0})*{2}={3}*({1})", leftKeyText, rightKeyText, keyText, valueText);
-            }
-
-            private bool IsNil
-            {
-                get
-                {
-                    Debug.Assert((this == left) == (this == right));
-                    return this == left;
-                }
-            }
         }
 
         // TODO: ensure fields of the Nil object are not written to, then make it a shared static.

@@ -96,13 +96,6 @@ namespace TreeLib
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             public int xOffset;
-
-            //public override string ToString()
-            //{
-            //    return (left == null) && (right == null)
-            //        ? "Nil"
-            //        : String.Format("({0})*{2}={3}*({1})", left.node.left == null ? "Nil" : left.node.key.ToString(), right.node.left == null ? "Nil" : right.node.key.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Object)]
@@ -2745,10 +2738,10 @@ namespace TreeLib
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
+        MultiRankMapEntry[] /*[Widen]*/INonInvasiveMultiRankMapInspection.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntry[] ranks = new MultiRankMapEntry[Count];
+            MultiRankMapEntry[] ranks = new /*[Widen]*/MultiRankMapEntry[Count];
             int i = 0;
 
             if (root != Null)
@@ -2775,8 +2768,7 @@ namespace TreeLib
                     key = node.key;
                     object value = null;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntry(key, new Range(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntry(key, new /*[Widen]*/Range(xOffset, 0), value);
 
                     node = node.right;
                     while (node != Null)
@@ -2806,7 +2798,7 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspection.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

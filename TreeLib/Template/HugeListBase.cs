@@ -50,6 +50,30 @@ namespace TreeLib
         private ushort version;
 
         /// <summary>
+        /// Create a new HugeList based on a splay tree.
+        /// The HugeList will use the default maximum block size of 512.
+        /// </summary>
+        public HugeListBase()
+        {
+            this.tree = new /*[Widen]*/SplayTreeRangeMap<T[]>();
+        }
+
+        /// <summary>
+        /// Create a new HugeList based on a splay tree, with the specified maximum block size.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">maxBlockSize is less than 1</exception>
+        public HugeListBase(int maxBlockSize)
+            : this()
+        {
+            if (maxBlockSize < 1)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            this.maxBlockSize = maxBlockSize;
+        }
+
+        /// <summary>
         /// Create a new HugeList based on the provided underlying tree implementation. All tree implementations are functionally
         /// equivalent but may have different performance characteristics. It is recommended to measure the scenario to determine
         /// which works best. The tree implementation must be one of the following: AVLTreeRangeMap, RedBlackTreeRangeMap, or
@@ -1593,7 +1617,6 @@ namespace TreeLib
             /*[Widen]*/
             int start, count2;
             T[] segment;
-            /*[Widen]*/
             tree.NearestLessOrEqual(index, out start, out count2, out segment);
             offset = unchecked((int)(index - start));
             count = unchecked((int)count2);

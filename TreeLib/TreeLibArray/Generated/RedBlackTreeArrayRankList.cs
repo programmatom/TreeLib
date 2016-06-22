@@ -95,11 +95,6 @@ namespace TreeLib
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             public int xOffset;
-
-            //public override string ToString()
-            //{
-            //    return String.Format("({0})*{2}={3}*({1})", left == Null ? "null" : left.ToString(), right == Null ? "null" : right.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Array)]
@@ -136,11 +131,6 @@ namespace TreeLib
             public override int GetHashCode()
             {
                 return node.GetHashCode();
-            }
-
-            public override string ToString()
-            {
-                return node != _Null ? node.ToString() : "null";
             }
         }
 
@@ -2317,10 +2307,10 @@ uint countNew;
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
+        MultiRankMapEntry[] /*[Widen]*/INonInvasiveMultiRankMapInspection.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntry[] ranks = new MultiRankMapEntry[Count];
+            MultiRankMapEntry[] ranks = new /*[Widen]*/MultiRankMapEntry[Count];
             int i = 0;
 
             if (root != Null)
@@ -2347,8 +2337,7 @@ uint countNew;
                     key = nodes[node].key;
                     object value = null;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntry(key, new Range(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntry(key, new /*[Widen]*/Range(xOffset, 0), value);
 
                     node = nodes[node].right;
                     while (node != Null)
@@ -2378,7 +2367,7 @@ uint countNew;
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspection.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

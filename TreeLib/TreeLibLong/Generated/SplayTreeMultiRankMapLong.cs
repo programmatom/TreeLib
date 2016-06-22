@@ -61,8 +61,10 @@ namespace TreeLib
     public class SplayTreeMultiRankMapLong<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType, [Payload(Payload.Value)] ValueType> :
 
         /*[Feature(Feature.RankMulti)]*//*[Payload(Payload.Value)]*//*[Widen]*/IMultiRankMapLong<KeyType, ValueType>,
+
         INonInvasiveTreeInspection,
         /*[Feature(Feature.Rank, Feature.RankMulti)]*//*[Widen]*/INonInvasiveMultiRankMapInspectionLong,
+
         IEnumerable<EntryMultiRankMapLong<KeyType, ValueType>>,
         IEnumerable,
         ITreeEnumerable<EntryMultiRankMapLong<KeyType, ValueType>>,
@@ -97,61 +99,6 @@ namespace TreeLib
                 nil.left = nil;
                 nil.right = nil;
                 return nil;
-            }
-
-            public override string ToString()
-            {
-                if (this.IsNil)
-                {
-                    return "Nil";
-                }
-
-                string keyText = null;
-                try
-                {
-                    keyText = key.ToString();
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                string valueText = null;
-                try
-                {
-                    valueText = value.ToString();
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                string leftKeyText = null;
-                try
-                {
-                    leftKeyText = left == null ? "null" : (((Node)left).IsNil ? "Nil" : ((Node)left).key.ToString());
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                string rightKeyText = null;
-                try
-                {
-                    rightKeyText = right == null ? "null" : (((Node)right).IsNil ? "Nil" : ((Node)right).key.ToString());
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                return String.Format("({0})*{2}={3}*({1})", leftKeyText, rightKeyText, keyText, valueText);
-            }
-
-            private bool IsNil
-            {
-                get
-                {
-                    Debug.Assert((this == left) == (this == right));
-                    return this == left;
-                }
             }
         }
 
@@ -2266,10 +2213,10 @@ namespace TreeLib
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntryLong[] INonInvasiveMultiRankMapInspectionLong.GetRanks()
+        MultiRankMapEntryLong[] /*[Widen]*/INonInvasiveMultiRankMapInspectionLong.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntryLong[] ranks = new MultiRankMapEntryLong[Count];
+            MultiRankMapEntryLong[] ranks = new /*[Widen]*/MultiRankMapEntryLong[Count];
             int i = 0;
 
             if (root != Nil)
@@ -2297,8 +2244,7 @@ namespace TreeLib
                     object value = null;
                     value = node.value;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntryLong(key, new RangeLong(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntryLong(key, new /*[Widen]*/RangeLong(xOffset, 0), value);
 
                     node = node.right;
                     while (node != Nil)
@@ -2328,7 +2274,7 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspectionLong.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspectionLong.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

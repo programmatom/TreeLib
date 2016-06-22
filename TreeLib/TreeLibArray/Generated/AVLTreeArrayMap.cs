@@ -129,11 +129,6 @@ namespace TreeLib
             {
                 return node.GetHashCode();
             }
-
-            public override string ToString()
-            {
-                return node.ToString();
-            }
         }
 
         [Storage(Storage.Array)]

@@ -22,6 +22,8 @@
 using System;
 using System.Collections.Generic;
 
+using TreeLib.Internal;
+
 namespace TreeLib
 {
     /// <summary>
@@ -58,6 +60,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
+    [DocumentationSource]
     public interface IOrderedMap<KeyType, ValueType> :
         IEnumerable<EntryMap<KeyType, ValueType>>,
         ITreeEnumerable<EntryMap<KeyType, ValueType>>,
@@ -249,6 +252,7 @@ namespace TreeLib
     /// Represents an ordered key collection.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
+    [DocumentationSource]
     public interface IOrderedList<KeyType> :
         IEnumerable<EntryList<KeyType>>,
         ITreeEnumerable<EntryList<KeyType>>,
@@ -391,6 +395,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
+    [DocumentationSource]
     public interface IRankMap<KeyType, ValueType> :
         IEnumerable<EntryRankMap<KeyType, ValueType>>,
         ITreeEnumerable<EntryRankMap<KeyType, ValueType>>,
@@ -657,6 +662,7 @@ namespace TreeLib
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
+    [DocumentationSource]
     public interface IRankList<KeyType> :
         IEnumerable<EntryRankList<KeyType>>,
         ITreeEnumerable<EntryRankList<KeyType>>,
@@ -869,6 +875,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
+    [DocumentationSource]
     public interface IRankMapLong<KeyType, ValueType> :
         IEnumerable<EntryRankMapLong<KeyType, ValueType>>,
         ITreeEnumerable<EntryRankMapLong<KeyType, ValueType>>,
@@ -1135,6 +1142,7 @@ namespace TreeLib
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
+    [DocumentationSource]
     public interface IRankListLong<KeyType> :
         IEnumerable<EntryRankListLong<KeyType>>,
         ITreeEnumerable<EntryRankListLong<KeyType>>,
@@ -1355,6 +1363,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
+    [DocumentationSource]
     public interface IMultiRankMap<KeyType, ValueType> :
         IEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
         ITreeEnumerable<EntryMultiRankMap<KeyType, ValueType>>,
@@ -1777,6 +1786,7 @@ namespace TreeLib
     /// index is the index at which the first instance of a particular key would occur in a sorted array containing all keys.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
+    [DocumentationSource]
     public interface IMultiRankList<KeyType> :
         IEnumerable<EntryMultiRankList<KeyType>>,
         ITreeEnumerable<EntryMultiRankList<KeyType>>,
@@ -2138,6 +2148,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
+    [DocumentationSource]
     public interface IMultiRankMapLong<KeyType, ValueType> :
         IEnumerable<EntryMultiRankMapLong<KeyType, ValueType>>,
         ITreeEnumerable<EntryMultiRankMapLong<KeyType, ValueType>>,
@@ -2560,6 +2571,7 @@ namespace TreeLib
     /// index is the index at which the first instance of a particular key would occur in a sorted array containing all keys.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
+    [DocumentationSource]
     public interface IMultiRankListLong<KeyType> :
         IEnumerable<EntryMultiRankListLong<KeyType>>,
         ITreeEnumerable<EntryMultiRankListLong<KeyType>>,
@@ -2927,6 +2939,7 @@ namespace TreeLib
     /// All ranges must have a length of at least 1.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range</typeparam>
+    [DocumentationSource]
     public interface IRangeMap<ValueType> :
         IEnumerable<EntryRangeMap<ValueType>>,
         ITreeEnumerable<EntryRangeMap<ValueType>>,
@@ -3235,6 +3248,7 @@ namespace TreeLib
     /// plus the length of the previous range. The 'extent' of the range collection is the sum of all lengths.
     /// All ranges must have a length of at least 1.
     /// </summary>
+    [DocumentationSource]
     public interface IRangeList :
         IEnumerable<EntryRangeList>,
         ITreeEnumerable<EntryRangeList>,
@@ -3468,6 +3482,7 @@ namespace TreeLib
     /// All ranges must have a length of at least 1.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range</typeparam>
+    [DocumentationSource]
     public interface IRangeMapLong<ValueType> :
         IEnumerable<EntryRangeMapLong<ValueType>>,
         ITreeEnumerable<EntryRangeMapLong<ValueType>>,
@@ -3776,6 +3791,7 @@ namespace TreeLib
     /// plus the length of the previous range. The 'extent' of the range collection is the sum of all lengths.
     /// All ranges must have a length of at least 1.
     /// </summary>
+    [DocumentationSource]
     public interface IRangeListLong :
         IEnumerable<EntryRangeListLong>,
         ITreeEnumerable<EntryRangeListLong>,
@@ -4032,6 +4048,7 @@ namespace TreeLib
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range pair</typeparam>
+    [DocumentationSource]
     public interface IRange2Map<ValueType> :
         IEnumerable<EntryRange2Map<ValueType>>,
         ITreeEnumerable<EntryRange2Map<ValueType>>,
@@ -4398,6 +4415,7 @@ namespace TreeLib
     /// The above applies separately to both the X side sequence and the Y side sequence.
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
+    [DocumentationSource]
     public interface IRange2List :
         IEnumerable<EntryRange2List>,
         ITreeEnumerable<EntryRange2List>,
@@ -4719,6 +4737,7 @@ namespace TreeLib
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
     /// <typeparam name="ValueType">type of the value associated with each range pair</typeparam>
+    [DocumentationSource]
     public interface IRange2MapLong<ValueType> :
         IEnumerable<EntryRange2MapLong<ValueType>>,
         ITreeEnumerable<EntryRange2MapLong<ValueType>>,
@@ -5085,6 +5104,7 @@ namespace TreeLib
     /// The above applies separately to both the X side sequence and the Y side sequence.
     /// All ranges must have a lengths of at least 1, on both sides.
     /// </summary>
+    [DocumentationSource]
     public interface IRange2ListLong :
         IEnumerable<EntryRange2ListLong>,
         ITreeEnumerable<EntryRange2ListLong>,
@@ -5404,6 +5424,7 @@ namespace TreeLib
     /// IEnumerable&lt;&gt; interface provides.
     /// </summary>
     /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    [DocumentationSource]
     public interface ITreeEnumerable<out T> : IEnumerable<T>
     {
         /// <summary>
@@ -5449,6 +5470,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="KeyType">The key type of the collection</typeparam>
     /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    [DocumentationSource]
     public interface IKeyedTreeEnumerable<KeyType, out T> : ITreeEnumerable<T>
     {
         /// <summary>
@@ -5508,6 +5530,7 @@ namespace TreeLib
     /// IEnumerable&lt;&gt; interface provides.
     /// </summary>
     /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    [DocumentationSource]
     public interface IIndexedTreeEnumerable<out T> : ITreeEnumerable<T>
     {
         /// <summary>
@@ -5570,6 +5593,7 @@ namespace TreeLib
     /// IEnumerable&lt;&gt; interface provides.
     /// </summary>
     /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    [DocumentationSource]
     public interface IIndexedTreeEnumerableLong<out T> : ITreeEnumerable<T>
     {
         /// <summary>
@@ -5632,6 +5656,7 @@ namespace TreeLib
     /// IEnumerable&lt;&gt; interface provides.
     /// </summary>
     /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    [DocumentationSource]
     public interface IIndexed2TreeEnumerable<out T> : ITreeEnumerable<T>
     {
         /// <summary>
@@ -5700,6 +5725,7 @@ namespace TreeLib
     /// IEnumerable&lt;&gt; interface provides.
     /// </summary>
     /// <typeparam name="T">The entry record type of the enumeration</typeparam>
+    [DocumentationSource]
     public interface IIndexed2TreeEnumerableLong<out T> : ITreeEnumerable<T>
     {
         /// <summary>

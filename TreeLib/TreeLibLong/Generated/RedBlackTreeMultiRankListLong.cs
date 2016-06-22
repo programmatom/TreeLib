@@ -65,8 +65,10 @@ namespace TreeLib
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     public class RedBlackTreeMultiRankListLong<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType> :
         /*[Feature(Feature.RankMulti)]*//*[Payload(Payload.None)]*//*[Widen]*/IMultiRankListLong<KeyType>,
+
         INonInvasiveTreeInspection,
         /*[Feature(Feature.Rank, Feature.RankMulti)]*//*[Widen]*/INonInvasiveMultiRankMapInspectionLong,
+
         IEnumerable<EntryMultiRankListLong<KeyType>>,
         IEnumerable,
         ITreeEnumerable<EntryMultiRankListLong<KeyType>>,
@@ -94,13 +96,6 @@ namespace TreeLib
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             public long xOffset;
-
-            //public override string ToString()
-            //{
-            //    return (left == null) && (right == null)
-            //        ? "Nil"
-            //        : String.Format("({0})*{2}={3}*({1})", left.node.left == null ? "Nil" : left.node.key.ToString(), right.node.left == null ? "Nil" : right.node.key.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Object)]
@@ -2744,10 +2739,10 @@ namespace TreeLib
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntryLong[] INonInvasiveMultiRankMapInspectionLong.GetRanks()
+        MultiRankMapEntryLong[] /*[Widen]*/INonInvasiveMultiRankMapInspectionLong.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntryLong[] ranks = new MultiRankMapEntryLong[Count];
+            MultiRankMapEntryLong[] ranks = new /*[Widen]*/MultiRankMapEntryLong[Count];
             int i = 0;
 
             if (root != Null)
@@ -2774,8 +2769,7 @@ namespace TreeLib
                     key = node.key;
                     object value = null;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntryLong(key, new RangeLong(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntryLong(key, new /*[Widen]*/RangeLong(xOffset, 0), value);
 
                     node = node.right;
                     while (node != Null)
@@ -2805,7 +2799,7 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspectionLong.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspectionLong.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }
