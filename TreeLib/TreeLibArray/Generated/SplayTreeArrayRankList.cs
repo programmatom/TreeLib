@@ -87,45 +87,6 @@ namespace TreeLib
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             public int xOffset;
-
-            //#if DEBUG
-            //            public bool scratch_debug;
-            //#endif
-            //            public override string ToString()
-            //            {
-            //#if DEBUG
-            //                if (scratch_debug)
-            //                {
-            //                    return "Scratch";
-            //                }
-            //#endif
-
-            //                string keyText = null;
-            //                /*[Storage(Storage.Object)]*/
-            //                try
-            //                {
-            //                    keyText = key.ToString();
-            //                }
-            //                catch (NullReferenceException)
-            //                {
-            //                }
-
-            //                string valueText = null;
-            //                /*[Storage(Storage.Object)]*/
-            //                try
-            //                {
-            //                    valueText = value.ToString();
-            //                }
-            //                catch (NullReferenceException)
-            //                {
-            //                }
-
-            //                string leftText = left == Nil ? "Nil" : left.ToString();
-
-            //                string rightText = right == Nil ? "Nil" : right.ToString();
-
-            //                return String.Format("[{0}]*{2}={3}*[{1}])", leftText, rightText, keyText, valueText);
-            //            }
         }
 
         [Storage(Storage.Array)]
@@ -162,11 +123,6 @@ namespace TreeLib
             public override int GetHashCode()
             {
                 return node.GetHashCode();
-            }
-
-            public override string ToString()
-            {
-                return node.ToString();
             }
         }
 
@@ -1703,10 +1659,10 @@ uint countNew = checked(this.count + 1);
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        MultiRankMapEntry[] INonInvasiveMultiRankMapInspection.GetRanks()
+        MultiRankMapEntry[] /*[Widen]*/INonInvasiveMultiRankMapInspection.GetRanks()
         {
             /*[Widen]*/
-            MultiRankMapEntry[] ranks = new MultiRankMapEntry[Count];
+            MultiRankMapEntry[] ranks = new /*[Widen]*/MultiRankMapEntry[Count];
             int i = 0;
 
             if (root != Nil)
@@ -1733,8 +1689,7 @@ uint countNew = checked(this.count + 1);
                     key = nodes[node].key;
                     object value = null;
 
-                    /*[Widen]*/
-                    ranks[i++] = new MultiRankMapEntry(key, new Range(xOffset, 0), value);
+                    ranks[i++] = new /*[Widen]*/MultiRankMapEntry(key, new /*[Widen]*/Range(xOffset, 0), value);
 
                     node = nodes[node].right;
                     while (node != Nil)
@@ -1764,7 +1719,7 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        void INonInvasiveMultiRankMapInspection.Validate()
+        void /*[Widen]*/INonInvasiveMultiRankMapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

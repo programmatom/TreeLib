@@ -91,13 +91,6 @@ namespace TreeLib
             public KeyType key;
             [Payload(Payload.Value)]
             public ValueType value;
-
-            //public override string ToString()
-            //{
-            //    return (left == null) && (right == null)
-            //        ? "Nil"
-            //        : String.Format("({0})*{2}={3}*({1})", left.node.left == null ? "Nil" : left.node.key.ToString(), right.node.left == null ? "Nil" : right.node.key.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Object)]

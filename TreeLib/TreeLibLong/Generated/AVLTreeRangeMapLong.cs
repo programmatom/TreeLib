@@ -61,12 +61,15 @@ namespace TreeLib
     public class AVLTreeRangeMapLong<[Payload(Payload.Value)] ValueType> :
 
         /*[Feature(Feature.Range)]*//*[Payload(Payload.Value)]*//*[Widen]*/IRangeMapLong<ValueType>,
+
         INonInvasiveTreeInspection,
         /*[Feature(Feature.Range, Feature.Range2)]*//*[Widen]*/INonInvasiveRange2MapInspectionLong,
+
         IEnumerable<EntryRangeMapLong<ValueType>>,
         IEnumerable,
         ITreeEnumerable<EntryRangeMapLong<ValueType>>,
         /*[Feature(Feature.Range)]*//*[Widen]*/IIndexedTreeEnumerableLong<EntryRangeMapLong<ValueType>>,
+
         ICloneable
     {
         //
@@ -2533,10 +2536,10 @@ out length))
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        Range2MapEntryLong[] INonInvasiveRange2MapInspectionLong.GetRanges()
+        Range2MapEntryLong[] /*[Widen]*/INonInvasiveRange2MapInspectionLong.GetRanges()
         {
             /*[Widen]*/
-            Range2MapEntryLong[] ranges = new Range2MapEntryLong[Count];
+            Range2MapEntryLong[] ranges = new /*[Widen]*/Range2MapEntryLong[Count];
             int i = 0;
 
             if (root != Null)
@@ -2565,8 +2568,7 @@ out length))
                     object value = null;
                     value = node.value;
 
-                    /*[Widen]*/
-                    ranges[i++] = new Range2MapEntryLong(new RangeLong(xOffset, 0), new RangeLong(yOffset, 0), value);
+                    ranges[i++] = new /*[Widen]*/Range2MapEntryLong(new /*[Widen]*/RangeLong(xOffset, 0), new /*[Widen]*/RangeLong(yOffset, 0), value);
 
                     node = node.right_child ? node.right : Null;
                     while (node != Null)
@@ -2596,7 +2598,7 @@ out length))
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        void INonInvasiveRange2MapInspectionLong.Validate()
+        void /*[Widen]*/INonInvasiveRange2MapInspectionLong.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

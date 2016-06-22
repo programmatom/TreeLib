@@ -30,7 +30,7 @@ namespace TreeLib.Internal
     public enum CompareKeyMode { Key, Position };
 
     //
-    // While waiting for C# 7, we'll provide our own struct-STuple. (The built-in STuple is a class, which results in
+    // While waiting for C# 7, we'll provide our own struct-Tuple. (The built-in Tuple is a class, which results in
     // unnecessary heap allocations)
     //
 

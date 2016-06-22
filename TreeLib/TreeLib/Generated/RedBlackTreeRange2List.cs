@@ -97,13 +97,6 @@ namespace TreeLib
             [Feature(Feature.Range2)]
             [Widen]
             public int yOffset;
-
-            //public override string ToString()
-            //{
-            //    return (left == null) && (right == null)
-            //        ? "Nil"
-            //        : String.Format("({0})*{2}={3}*({1})", left.node.left == null ? "Nil" : left.node.key.ToString(), right.node.left == null ? "Nil" : right.node.key.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Object)]
@@ -2475,10 +2468,10 @@ namespace TreeLib
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        Range2MapEntry[] INonInvasiveRange2MapInspection.GetRanges()
+        Range2MapEntry[] /*[Widen]*/INonInvasiveRange2MapInspection.GetRanges()
         {
             /*[Widen]*/
-            Range2MapEntry[] ranges = new Range2MapEntry[Count];
+            Range2MapEntry[] ranges = new /*[Widen]*/Range2MapEntry[Count];
             int i = 0;
 
             if (root != Null)
@@ -2507,8 +2500,7 @@ namespace TreeLib
 
                     object value = null;
 
-                    /*[Widen]*/
-                    ranges[i++] = new Range2MapEntry(new Range(xOffset, 0), new Range(yOffset, 0), value);
+                    ranges[i++] = new /*[Widen]*/Range2MapEntry(new /*[Widen]*/Range(xOffset, 0), new /*[Widen]*/Range(yOffset, 0), value);
 
                     node = node.right;
                     while (node != Null)
@@ -2545,7 +2537,7 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        void INonInvasiveRange2MapInspection.Validate()
+        void /*[Widen]*/INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

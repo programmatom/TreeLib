@@ -40,7 +40,12 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="T">Type of item contained in the collection</typeparam>
     public class HugeListLong<T> :
-        /*[Widen]*/IHugeListLong<T>,        /*[Widen]*/IListLong<T>,        /*[Widen]*/ICollectionLong<T>,        /*[Widen]*/IReadOnlyListLong<T>,        /*[Widen]*/IReadOnlyCollectionLong<T>,        IEnumerable<T>,
+        /*[Widen]*/IHugeListLong<T>,
+        /*[Widen]*/IListLong<T>,
+        /*[Widen]*/ICollectionLong<T>,
+        /*[Widen]*/IReadOnlyListLong<T>,
+        /*[Widen]*/IReadOnlyCollectionLong<T>,
+        IEnumerable<T>,
         IHugeListValidation
     {
         private const int DefaultMaxBlockSize = 512;
@@ -51,6 +56,30 @@ namespace TreeLib
         [Widen]
         private long currentStartIndex = -1; // start of the one and only segment that may contain extra space (last accessed)
         private ushort version;
+
+        /// <summary>
+        /// Create a new HugeList based on a splay tree.
+        /// The HugeList will use the default maximum block size of 512.
+        /// </summary>
+        public HugeListLong()
+        {
+            this.tree = new /*[Widen]*/SplayTreeRangeMapLong<T[]>();
+        }
+
+        /// <summary>
+        /// Create a new HugeList based on a splay tree, with the specified maximum block size.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">maxBlockSize is less than 1</exception>
+        public HugeListLong(int maxBlockSize)
+            : this()
+        {
+            if (maxBlockSize < 1)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            this.maxBlockSize = maxBlockSize;
+        }
 
         /// <summary>
         /// Create a new HugeList based on the provided underlying tree implementation. All tree implementations are functionally
@@ -188,10 +217,16 @@ namespace TreeLib
         public int MaxBlockSize { get { return maxBlockSize; } }
 
         
+        /// <summary>
+        /// Returns the number of items in the collection
+        /// </summary>
         [Widen]
-        public long Count { get { return unchecked((/*[Widen]*/long )tree.GetExtent()); } }
+        public long Count { get { return unchecked((long )tree.GetExtent()); } }
 
         
+        /// <summary>
+        /// Returns true if the collection is read-only or false if the collection can be modified
+        /// </summary>
         public bool IsReadOnly { get { return false; } }
 
         public T this[[Widen] long index]
@@ -301,12 +336,22 @@ namespace TreeLib
         }
 
         
+        /// <summary>
+        /// Insert the specified item into the list at the specified index
+        /// </summary>
+        /// <param name="index">The index to insert before</param>
+        /// <param name="item">The item value to insert</param>
+        /// <exception cref="ArgumentOutOfRangeException">The index is less than zero or greater than the number of items</exception>
         public void Insert([Widen]long index,T item)
         {
             InsertRange(index, new T[1] { item });
         }
 
         
+        /// <summary>
+        /// Add the specified item at the end of the collection
+        /// </summary>
+        /// <param name="item">The item to add</param>
         public void Add(T item)
         {
             Insert(Count, item);
@@ -346,7 +391,7 @@ namespace TreeLib
         {
             unchecked
             {
-                if ((index < 0) || (count < 0) || (unchecked((/*[Widen]*/ulong )index + (/*[Widen]*/ulong )count) > unchecked((/*[Widen]*/ulong )tree.GetExtent())))
+                if ((index < 0) || (count < 0) || (unchecked((ulong )index + (ulong )count) > unchecked((ulong )tree.GetExtent())))
                 {
                     throw new ArgumentOutOfRangeException();
                 }
@@ -565,12 +610,22 @@ namespace TreeLib
         }
 
         
+        /// <summary>
+        /// Remove the item at the specified index
+        /// </summary>
+        /// <param name="index">The index of the item to remove</param>
+        /// <exception cref="ArgumentOutOfRangeException">The index is less than zero or beyond the last item in the list</exception>
         public void RemoveAt([Widen]long index)
         {
             RemoveRange(index, 1);
         }
 
         
+        /// <summary>
+        /// Try to remove the first occurrence of an item from the collection
+        /// </summary>
+        /// <param name="item">The item to remove</param>
+        /// <returns>Returns true if the item was removed; false if the item was not found</returns>
         public bool Remove(T item)
         {
             /*[Widen]*/
@@ -705,8 +760,8 @@ namespace TreeLib
                 {
                     throw new ArgumentNullException();
                 }
-                if (unchecked((/*[Widen]*/ulong )index + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )tree.GetExtent())
-                    || unchecked((/*[Widen]*/ulong )offset + (/*[Widen]*/ulong )count2 > (/*[Widen]*/ulong )items.Length))
+                if (unchecked((ulong )index + (ulong )count > (ulong )tree.GetExtent())
+                    || unchecked((ulong )offset + (ulong )count2 > (ulong )items.Length))
                 {
                     throw new ArgumentException();
                 }
@@ -743,6 +798,9 @@ namespace TreeLib
         }
 
         
+        /// <summary>
+        /// Remove all items from the collection
+        /// </summary>
         public void Clear()
         {
             tree.Clear();
@@ -772,7 +830,7 @@ namespace TreeLib
             {
                 throw new ArgumentOutOfRangeException();
             }
-            if (unchecked((/*[Widen]*/ulong )arrayIndex + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )array.Length))
+            if (unchecked((ulong )arrayIndex + (ulong )count > (ulong )array.Length))
             {
                 throw new ArgumentException();
             }
@@ -791,6 +849,15 @@ namespace TreeLib
         }
 
         
+        /// <summary>
+        /// Copy the collection to an array
+        /// </summary>
+        /// <param name="array">The array to copy items into</param>
+        /// <param name="arrayIndex">An offset into the array at which the first item will be copied</param>
+        /// <exception cref="ArgumentNullException">array is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">arrayIndex is less than zero</exception>
+        /// <exception cref="ArgumentException">The number of items in the collection is too large to fit into the
+        /// array starting at arrayIndex</exception>
         public void CopyTo(T[] items,[Widen]long arrayIndex)
         {
             CopyTo(0, items, arrayIndex, Math.Min(items.Length - arrayIndex, Count));
@@ -869,13 +936,13 @@ namespace TreeLib
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                if (unchecked((/*[Widen]*/ulong )index + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )this.Count))
+                if (unchecked((ulong )index + (ulong )count > (ulong )this.Count))
                 {
                     throw new ArgumentException();
                 }
                 if (external != null)
                 {
-                    if (unchecked((/*[Widen]*/ulong )externalOffset + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )external.Length))
+                    if (unchecked((ulong )externalOffset + (ulong )count > (ulong )external.Length))
                     {
                         throw new ArgumentException();
                     }
@@ -940,7 +1007,7 @@ namespace TreeLib
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                if (unchecked((/*[Widen]*/ulong )start + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )tree.GetExtent()))
+                if (unchecked((ulong )start + (ulong )count > (ulong )tree.GetExtent()))
                 {
                     throw new ArgumentException();
                 }
@@ -955,7 +1022,7 @@ namespace TreeLib
                 while (lower <= upper)
                 {
                     /*[Widen]*/
-                    long middle = unchecked((/*[Widen]*/long )(((/*[Widen]*/ulong )lower + (/*[Widen]*/ulong )upper) / 2)) ; // avoid overflow for large arrays
+                    long middle = unchecked((long )(((ulong )lower + (ulong )upper) / 2)) ; // avoid overflow for large arrays
 
                     int c = comparer.Compare(this[middle], value);
                     if (c == 0)
@@ -1061,7 +1128,7 @@ namespace TreeLib
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                if (unchecked((/*[Widen]*/ulong )index + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )tree.GetExtent()))
+                if (unchecked((ulong )index + (ulong )count > (ulong )tree.GetExtent()))
                 {
                     throw new ArgumentException();
                 }
@@ -1123,7 +1190,7 @@ namespace TreeLib
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                if (unchecked((/*[Widen]*/ulong )index + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )tree.GetExtent()))
+                if (unchecked((ulong )index + (ulong )count > (ulong )tree.GetExtent()))
                 {
                     throw new ArgumentException();
                 }
@@ -1174,6 +1241,11 @@ namespace TreeLib
         }
 
         
+        /// <summary>
+        /// Find the index of the first occurrence of item in the list
+        /// </summary>
+        /// <param name="item">The item to find</param>
+        /// <returns>The index of the first occurrence of item in the list, or -1 if no item was found</returns>
         [Widen]
         public long IndexOf(T value)
         {
@@ -1206,7 +1278,7 @@ namespace TreeLib
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                if (unchecked((/*[Widen]*/ulong )index + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )tree.GetExtent()))
+                if (unchecked((ulong )index + (ulong )count > (ulong )tree.GetExtent()))
                 {
                     throw new ArgumentException();
                 }
@@ -1471,7 +1543,7 @@ namespace TreeLib
                 }
                 else
                 {
-                    if (unchecked((/*[Widen]*/ulong )end >= (/*[Widen]*/ulong )tree.GetExtent()))
+                    if (unchecked((ulong )end >= (ulong )tree.GetExtent()))
                     {
                         throw new ArgumentOutOfRangeException();
                     }
@@ -1545,6 +1617,11 @@ namespace TreeLib
         }
 
         
+        /// <summary>
+        /// Determine if an item is in the collection
+        /// </summary>
+        /// <param name="item">The item to search for</param>
+        /// <returns>Returns true if the item is in the collection or false if it is not</returns>
         public bool Contains(T value)
         {
             return IndexOf(value) >= 0;
@@ -1587,7 +1664,7 @@ namespace TreeLib
                 }
                 if (source != null)
                 {
-                    if (unchecked((/*[Widen]*/ulong )sourceIndex + (/*[Widen]*/ulong )count > (/*[Widen]*/ulong )source.Length))
+                    if (unchecked((ulong )sourceIndex + (ulong )count > (ulong )source.Length))
                     {
                         throw new ArgumentException();
                     }
@@ -1940,7 +2017,7 @@ namespace TreeLib
 
         private T[] Select([Widen]long index,out int offset,out int count)
         {
-            if (unchecked((/*[Widen]*/ulong )index >= (/*[Widen]*/ulong )tree.GetExtent()))
+            if (unchecked((ulong )index >= (ulong )tree.GetExtent()))
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -1948,7 +2025,6 @@ namespace TreeLib
             /*[Widen]*/
             long start, count2 ;
             T[] segment;
-            /*[Widen]*/
             tree.NearestLessOrEqual(index, out start, out count2, out segment);
             offset = unchecked((int)(index - start));
             count = unchecked((int)count2);

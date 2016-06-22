@@ -67,12 +67,15 @@ namespace TreeLib
     public class RedBlackTreeRangeMapLong<[Payload(Payload.Value)] ValueType> :
 
         /*[Feature(Feature.Range)]*//*[Payload(Payload.Value)]*//*[Widen]*/IRangeMapLong<ValueType>,
+
         INonInvasiveTreeInspection,
         /*[Feature(Feature.Range, Feature.Range2)]*//*[Widen]*/INonInvasiveRange2MapInspectionLong,
+
         IEnumerable<EntryRangeMapLong<ValueType>>,
         IEnumerable,
         ITreeEnumerable<EntryRangeMapLong<ValueType>>,
         /*[Feature(Feature.Range)]*//*[Widen]*/IIndexedTreeEnumerableLong<EntryRangeMapLong<ValueType>>,
+
         ICloneable
     {
         //
@@ -92,13 +95,6 @@ namespace TreeLib
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             [Widen]
             public long xOffset;
-
-            //public override string ToString()
-            //{
-            //    return (left == null) && (right == null)
-            //        ? "Nil"
-            //        : String.Format("({0})*{2}={3}*({1})", left.node.left == null ? "Nil" : left.node.key.ToString(), right.node.left == null ? "Nil" : right.node.key.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Object)]
@@ -2322,10 +2318,10 @@ namespace TreeLib
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        Range2MapEntryLong[] INonInvasiveRange2MapInspectionLong.GetRanges()
+        Range2MapEntryLong[] /*[Widen]*/INonInvasiveRange2MapInspectionLong.GetRanges()
         {
             /*[Widen]*/
-            Range2MapEntryLong[] ranges = new Range2MapEntryLong[Count];
+            Range2MapEntryLong[] ranges = new /*[Widen]*/Range2MapEntryLong[Count];
             int i = 0;
 
             if (root != Null)
@@ -2354,8 +2350,7 @@ namespace TreeLib
                     object value = null;
                     value = node.value;
 
-                    /*[Widen]*/
-                    ranges[i++] = new Range2MapEntryLong(new RangeLong(xOffset, 0), new RangeLong(yOffset, 0), value);
+                    ranges[i++] = new /*[Widen]*/Range2MapEntryLong(new /*[Widen]*/RangeLong(xOffset, 0), new /*[Widen]*/RangeLong(yOffset, 0), value);
 
                     node = node.right;
                     while (node != Null)
@@ -2385,7 +2380,7 @@ namespace TreeLib
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        void INonInvasiveRange2MapInspectionLong.Validate()
+        void /*[Widen]*/INonInvasiveRange2MapInspectionLong.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

@@ -129,11 +129,6 @@ namespace TreeLib
             {
                 return node.GetHashCode();
             }
-
-            public override string ToString()
-            {
-                return node.ToString();
-            }
         }
 
         [Storage(Storage.Array)]
@@ -2250,10 +2245,10 @@ uint countNew = checked(this.count + 1);
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        Range2MapEntry[] INonInvasiveRange2MapInspection.GetRanges()
+        Range2MapEntry[] /*[Widen]*/INonInvasiveRange2MapInspection.GetRanges()
         {
             /*[Widen]*/
-            Range2MapEntry[] ranges = new Range2MapEntry[Count];
+            Range2MapEntry[] ranges = new /*[Widen]*/Range2MapEntry[Count];
             int i = 0;
 
             if (root != Null)
@@ -2281,8 +2276,7 @@ uint countNew = checked(this.count + 1);
 
                     object value = null;
 
-                    /*[Widen]*/
-                    ranges[i++] = new Range2MapEntry(new Range(xOffset, 0), new Range(yOffset, 0), value);
+                    ranges[i++] = new /*[Widen]*/Range2MapEntry(new /*[Widen]*/Range(xOffset, 0), new /*[Widen]*/Range(yOffset, 0), value);
 
                     node = nodes[node].right_child ? nodes[node].right : Null;
                     while (node != Null)
@@ -2312,7 +2306,7 @@ uint countNew = checked(this.count + 1);
         /// guarrantee that it will be supported in future versions.
         /// </summary>
         [Feature(Feature.Range, Feature.Range2)]
-        void INonInvasiveRange2MapInspection.Validate()
+        void /*[Widen]*/INonInvasiveRange2MapInspection.Validate()
         {
             ((INonInvasiveTreeInspection)this).Validate();
         }

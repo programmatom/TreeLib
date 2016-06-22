@@ -1655,6 +1655,11 @@ namespace TreeLibTest
             // special case - max block size 2
             HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), 2); }, false/*checkBlockSize*/);
             HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), 2)); }, false/*checkBlockSize*/);
+            // default (splay) constructor variation
+            HugeListTestSpecific(delegate () { return new HugeList<int>(); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>()); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(HugeListInternalChunkSize); }, true/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(HugeListInternalChunkSize)); }, true/*checkBlockSize*/);
 
             // validate constructor error checking
             TestThrow("constructor", typeof(ArgumentNullException), delegate () { new HugeList<int>((AVLTreeRangeMap<int[]>)null); });

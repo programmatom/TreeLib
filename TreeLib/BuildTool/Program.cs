@@ -27,7 +27,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
 using Microsoft.CodeAnalysis;
@@ -174,6 +174,7 @@ namespace BuildTool
         }
     }
 
+
     public class Timing
     {
         private readonly List<Tuple<string, double>> intervals = new List<Tuple<string, double>>();
@@ -220,6 +221,7 @@ namespace BuildTool
             }
         }
     }
+
 
     public class Program
     {
@@ -306,188 +308,6 @@ namespace BuildTool
             return compilation;
         }
 
-        private static SyntaxTriviaList CookDocumentationTrivia(SyntaxTriviaList original)
-        {
-            List<SyntaxTrivia> trivia = new List<SyntaxTrivia>();
-            bool lastWasNewLine = false;
-            foreach (SyntaxTrivia one in original)
-            {
-                if (one.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    if (lastWasNewLine)
-                    {
-                        trivia.Clear();
-                    }
-                    lastWasNewLine = true;
-                }
-                else
-                {
-                    lastWasNewLine = false;
-                    trivia.Add(one);
-                }
-            }
-            return new SyntaxTriviaList().AddRange(trivia);
-        }
-
-        private static SyntaxNode PropagateDocumentation(Compilation compilation, SyntaxNode root, SyntaxNode targetTypeDeclaration)
-        {
-            // Couldn't get SymbolFinder.FindImplementedInterfaceMembersAsync or .FindImplementations working, so doing it the hard hacky way.
-
-            if (targetTypeDeclaration is StructDeclarationSyntax)
-            {
-                return root; // not propagating documentation into the structs (used for enumeration entry definitions)
-            }
-
-            // collect all interfaces and the methods/properties they declare
-            Dictionary<InterfaceDeclarationSyntax, List<MemberDeclarationSyntax>> interfaces = new Dictionary<InterfaceDeclarationSyntax, List<MemberDeclarationSyntax>>();
-            foreach (SyntaxTree interfaceTree in compilation.SyntaxTrees.Where(
-                delegate (SyntaxTree candidate)
-                {
-                    return String.Equals(Path.GetFileName(candidate.FilePath), "Interfaces.cs")
-                        || String.Equals(Path.GetFileName(candidate.FilePath), "local-Interfaces.cs");
-                }))
-            {
-                foreach (SyntaxNode node in interfaceTree.GetRoot().DescendantNodesAndSelf().Where(
-                    delegate (SyntaxNode candidate) { return candidate.IsKind(SyntaxKind.InterfaceDeclaration); }))
-                {
-                    List<MemberDeclarationSyntax> members = new List<MemberDeclarationSyntax>();
-                    foreach (SyntaxNode decl in node.DescendantNodesAndSelf().Where(delegate (SyntaxNode candidate)
-                    { return candidate.IsKind(SyntaxKind.MethodDeclaration) || candidate.IsKind(SyntaxKind.PropertyDeclaration); }))
-                    {
-                        members.Add((MemberDeclarationSyntax)decl);
-                    }
-                    interfaces.Add((InterfaceDeclarationSyntax)node, members);
-                }
-            }
-
-            // enumrate base types of generated class
-            List<BaseTypeSyntax> baseTypes = new List<BaseTypeSyntax>();
-            {
-                IEnumerable<BaseTypeSyntax> baseTypeList = ((ClassDeclarationSyntax)targetTypeDeclaration).BaseList.Types;
-                foreach (BaseTypeSyntax baseType in baseTypeList)
-                {
-                    baseTypes.Add(baseType);
-                }
-            }
-
-            Dictionary<SyntaxNode, SyntaxNode> replacements = new Dictionary<SyntaxNode, SyntaxNode>();
-            foreach (BaseTypeSyntax baseType in baseTypes)
-            {
-                // can we find an interface that matches this?
-                foreach (KeyValuePair<InterfaceDeclarationSyntax, List<MemberDeclarationSyntax>> interfaceItem in interfaces)
-                {
-                    InterfaceDeclarationSyntax interfaceDeclaration = interfaceItem.Key;
-                    // hack
-                    if (String.Equals(baseType.Type.ToString(), String.Concat(interfaceDeclaration.Identifier.Text, interfaceDeclaration.TypeParameterList != null ? interfaceDeclaration.TypeParameterList.ToString() : null)))
-                    {
-                        // can we find any members we implemented that are in the interface?
-                        foreach (SyntaxNode node in targetTypeDeclaration.DescendantNodes(delegate (SyntaxNode descendInto) { return (descendInto == targetTypeDeclaration) || descendInto.IsKind(SyntaxKind.MethodDeclaration) || descendInto.IsKind(SyntaxKind.PropertyDeclaration); })
-                            .Where(delegate (SyntaxNode candidate) { return candidate.IsKind(SyntaxKind.MethodDeclaration) || candidate.IsKind(SyntaxKind.PropertyDeclaration); }))
-                        {
-                            if (node.IsKind(SyntaxKind.MethodDeclaration))
-                            {
-                                MethodDeclarationSyntax implementation = (MethodDeclarationSyntax)node;
-                                if (default(SyntaxToken) == implementation.Modifiers.FirstOrDefault(delegate (SyntaxToken candidate) { return candidate.IsKind(SyntaxKind.PublicKeyword); }))
-                                {
-                                    continue; // non-public can't be from an interface
-                                }
-                                foreach (MemberDeclarationSyntax prototype1 in interfaceItem.Value)
-                                {
-                                    if (prototype1.IsKind(SyntaxKind.MethodDeclaration))
-                                    {
-                                        MethodDeclarationSyntax prototype = (MethodDeclarationSyntax)prototype1;
-                                        // HACK: should check argument and return types
-                                        if (SyntaxFactory.AreEquivalent(implementation.Identifier, prototype.Identifier)
-                                            && (implementation.ParameterList.Parameters.Count == prototype.ParameterList.Parameters.Count))
-                                        {
-                                            // copy documentation
-                                            SyntaxNode replacement =
-                                                node.WithLeadingTrivia(
-                                                    node.GetLeadingTrivia()
-                                                        .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
-                                                        .AddRange(CookDocumentationTrivia(prototype.GetLeadingTrivia())));
-                                            replacements.Add(node, replacement);
-
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            else if (node.IsKind(SyntaxKind.PropertyDeclaration))
-                            {
-                                PropertyDeclarationSyntax implementation = (PropertyDeclarationSyntax)node;
-                                if (default(SyntaxToken) == implementation.Modifiers.FirstOrDefault(delegate (SyntaxToken candidate) { return candidate.IsKind(SyntaxKind.PublicKeyword); }))
-                                {
-                                    continue; // non-public can't be from an interface
-                                }
-                                foreach (MemberDeclarationSyntax prototype1 in interfaceItem.Value)
-                                {
-                                    if (prototype1.IsKind(SyntaxKind.PropertyDeclaration))
-                                    {
-                                        PropertyDeclarationSyntax prototype = (PropertyDeclarationSyntax)prototype1;
-                                        // HACK
-                                        if (SyntaxFactory.AreEquivalent(implementation.Identifier, prototype.Identifier))
-                                        {
-                                            // copy documentation
-                                            SyntaxNode replacement =
-                                                node.WithLeadingTrivia(
-                                                    node.GetLeadingTrivia()
-                                                        .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
-                                                        .AddRange(CookDocumentationTrivia(prototype.GetLeadingTrivia())));
-                                            replacements.Add(node, replacement);
-
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentException();
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
-            SyntaxNodeReplacementRewriter syntaxNodeReplacementRewriter = new SyntaxNodeReplacementRewriter(replacements);
-            root = syntaxNodeReplacementRewriter.Visit(root);
-
-            // This is probably really slow - but we can use AreEquivalent() since we've only changed trivia
-            targetTypeDeclaration = root.DescendantNodes().First(delegate (SyntaxNode candidate) { return SyntaxFactory.AreEquivalent(targetTypeDeclaration, candidate); });
-
-            replacements.Clear();
-            foreach (BaseTypeSyntax baseType in baseTypes)
-            {
-                // can we find an interface that matches this?
-                foreach (KeyValuePair<InterfaceDeclarationSyntax, List<MemberDeclarationSyntax>> interfaceItem in interfaces)
-                {
-                    InterfaceDeclarationSyntax interfaceDeclaration = interfaceItem.Key;
-                    // hack
-                    if (String.Equals(baseType.Type.ToString(), String.Concat(interfaceDeclaration.Identifier.Text, interfaceDeclaration.TypeParameterList != null ? interfaceDeclaration.TypeParameterList.ToString() : null)))
-                    {
-                        // propagate interface comment to class
-                        if (!replacements.ContainsKey(targetTypeDeclaration))
-                        {
-                            replacements.Add(
-                                targetTypeDeclaration,
-                                targetTypeDeclaration.WithLeadingTrivia(
-                                    targetTypeDeclaration.GetLeadingTrivia()
-                                        .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
-                                        .AddRange(CookDocumentationTrivia(interfaceDeclaration.GetLeadingTrivia()))));
-                        }
-
-                        break;
-                    }
-                }
-            }
-            syntaxNodeReplacementRewriter = new SyntaxNodeReplacementRewriter(replacements);
-            root = syntaxNodeReplacementRewriter.Visit(root);
-
-            return root;
-        }
-
         private static Random random = new Random();
         private static string MakeTempFileForErrors(SyntaxNode root)
         {
@@ -525,7 +345,7 @@ namespace BuildTool
                 diagnostic.ToString());
         }
 
-        private static void Generate(Config config, Compilation compilation, string sourceFilePath, string targetFilePath, Timing timing)
+        private static void Generate(Config config, Compilation compilation, string sourceFilePath, string targetFilePath, Compilation interfacesCompilation, Timing timing)
         {
             timing.Mark("Generate: misc. init");
 
@@ -611,7 +431,7 @@ namespace BuildTool
                     // widen rank information
                     if ((config.flags & CFlags.WidenInt) != 0)
                     {
-                        root = new WidenIntWidthRewriter().Visit(root);
+                        root = new WidenIntRewriter().Visit(root);
                     }
                     RebuildSemanticModel(ref oldTree, ref tree, ref root, ref compilation, out semanticModel);
 
@@ -742,16 +562,6 @@ namespace BuildTool
 
                         root = new EliminateArrayIndirectionRewriter(semanticModel, substitutions.Replace).Visit(root);
                     }
-                    else
-                    {
-                        // add unsafe array references for array versions
-
-                        // TODO: disabled - this actually degrades performance
-                        // IF ENABLING, UNCOMMENT "Node2" struct, "nodes2" array, and references in "EnsureFree"
-                        //root = new RemoveFieldsPreparingForStructHoistRewriter(config.className, semanticModel).Visit(root);
-                        //root = new EnableArrayFixationRewriter().Visit(root);
-                        //root = new HoistNodeStructRewriter(config.className).Visit(root);
-                    }
 
                     timing.Mark("Generate: meld enum entry");
 
@@ -809,7 +619,7 @@ namespace BuildTool
                                 return (candidate.IsKind(SyntaxKind.ClassDeclaration) || candidate.IsKind(SyntaxKind.StructDeclaration))
                                     && String.Equals(((TypeDeclarationSyntax)candidate).Identifier.Text, config.targetClassName);
                             });
-                        root = PropagateDocumentation(compilation, root, targetTypeDeclaration);
+                        root = PropagateDocumentation.Do(compilation, interfacesCompilation, root, targetTypeDeclaration);
                     }
 
                     timing.Mark("Generate: save");
@@ -817,53 +627,6 @@ namespace BuildTool
                     File.WriteAllText(targetFilePath, root.ToFullString());
                 }
             }
-        }
-
-        private static bool NeedsUpdate(
-            Config config,
-            Project interfacesProject,
-            Project targetProject,
-            string templateSourceFilePath,
-            string targetPath)
-        {
-            DateTime sourceMostRecentStamp = DateTime.MinValue;
-            DateTime targetStamp = DateTime.MinValue;
-
-            {
-                DateTime templateStamp = File.GetLastWriteTime(templateSourceFilePath);
-                if (sourceMostRecentStamp < templateStamp)
-                {
-                    sourceMostRecentStamp = templateStamp;
-                }
-            }
-
-            foreach (Project project in new Project[] { interfacesProject, targetProject })
-            {
-                foreach (Document document in project.Documents)
-                {
-                    string filePath = document.FilePath;
-
-                    DateTime fileStamp = File.GetLastWriteTime(filePath);
-                    if (sourceMostRecentStamp < fileStamp)
-                    {
-                        sourceMostRecentStamp = fileStamp;
-                    }
-                }
-            }
-
-            string thisPath = Assembly.GetAssembly(typeof(Program)).Location;
-            DateTime thisStamp = File.GetLastWriteTime(thisPath);
-            if (sourceMostRecentStamp < thisStamp)
-            {
-                sourceMostRecentStamp = thisStamp;
-            }
-
-            if (File.Exists(targetPath))
-            {
-                targetStamp = File.GetLastWriteTime(targetPath);
-            }
-
-            return targetStamp <= sourceMostRecentStamp;
         }
 
         private static string FindFirstFile(string path, string extension)
@@ -922,6 +685,7 @@ namespace BuildTool
                     // load target project
                     targetSolution = workspace.OpenSolutionAsync(targetSolutionFilePath).Result;
                     targetProject = targetSolution.Projects.First(delegate (Project p) { return String.Equals(p.Name, targetProjectName); });
+
                     // remove all preexisting specializations since we'll be regenerating them and don't want multiply-defined errors
                     foreach (DocumentId documentId in targetProject.DocumentIds)
                     {
@@ -930,23 +694,11 @@ namespace BuildTool
                             targetProject = targetProject.RemoveDocument(documentId);
                         }
                     }
-
-                    // import local interfaces/types
-                    foreach (string import in imports)
-                    {
-                        foreach (DocumentId documentId in targetProject.DocumentIds)
-                        {
-                            Document document = targetProject.GetDocument(documentId);
-                            if (String.Equals(document.Name, import))
-                            {
-                                interfacesProject = interfacesProject.AddDocument("local-" + import, document.GetTextAsync().Result, null, document.FilePath).Project;
-                            }
-                        }
-                    }
                 }
 
 
 
+                Compilation targetCompilation = null;
                 Compilation interfacesCompilation = null;
 
                 foreach (Config config in configs)
@@ -954,28 +706,22 @@ namespace BuildTool
                     string templateSourceFilePath = Path.Combine(templateProjectBasePath, Path.ChangeExtension(config.templateClassName, ".cs"));
                     string targetFilePath = Path.Combine(solutionBasePath, targetProjectName, "Generated", Path.ChangeExtension(config.targetClassName, ".cs"));
 
-                    bool needsUpdate = NeedsUpdate(config, interfacesProject, targetProject, templateSourceFilePath, targetFilePath);
-
                     ConsoleColor oldColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write(config.targetClassName);
+                    Console.WriteLine(config.targetClassName);
                     Console.ForegroundColor = oldColor;
-                    if (!needsUpdate)
-                    {
-                        Console.Write(" - skipped (up to date)");
-                    }
-                    Console.WriteLine();
 
-                    if (needsUpdate)
+                    // lazy init
+                    if (targetCompilation == null)
                     {
-                        // lazy init
-                        if (interfacesCompilation == null)
-                        {
-                            interfacesCompilation = interfacesProject.GetCompilationAsync().Result;
-                        }
-
-                        Generate(config, interfacesCompilation, templateSourceFilePath, targetFilePath, timing);
+                        Task<Compilation> targetCompiling = targetProject.GetCompilationAsync();
+                        Task<Compilation> interfacesCompiling = interfacesProject.GetCompilationAsync();
+                        Task.WaitAll(targetCompiling, interfacesCompiling);
+                        targetCompilation = targetCompiling.Result;
+                        interfacesCompilation = interfacesCompiling.Result;
                     }
+
+                    Generate(config, targetCompilation, templateSourceFilePath, targetFilePath, interfacesCompilation, timing);
                 }
 
                 if (Debugger.IsAttached) // report after each command line argument group

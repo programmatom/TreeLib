@@ -23,6 +23,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using TreeLib.Internal;
+
 namespace TreeLib
 {
     //
@@ -55,6 +57,7 @@ namespace TreeLib
     /// or List&lt;T&gt;
     /// </summary>
     /// <typeparam name="T">Type of item contained in the collection</typeparam>
+    [DocumentationSource]
     public interface IHugeList<T> : IList<T>, ICollection<T>, IEnumerable<T>
     {
         /// <summary>
@@ -472,6 +475,7 @@ namespace TreeLib
     /// or List&lt;T&gt;
     /// </summary>
     /// <typeparam name="T">Type of item contained in the collection</typeparam>
+    [DocumentationSource]
     public interface IHugeListLong<T> : IListLong<T>, ICollectionLong<T>, IEnumerable<T>
     {
         /// <summary>
@@ -872,45 +876,129 @@ namespace TreeLib
         T[] ToArray();
     }
 
+
     //
     // Long list replacements for BCL list interfaces
     //
 
+    /// <summary>
+    /// Represents a collection of objects that can be individually accessed by index.
+    /// </summary>
+    /// <typeparam name="T">Type of item in the collection</typeparam>
+    [DocumentationSource]
     public interface IListLong<T> : ICollectionLong<T>, IEnumerable<T>, IEnumerable
     {
+        /// <summary>
+        /// Get or set the item at the specified index
+        /// </summary>
+        /// <param name="index">The index of the item to get or set</param>
+        /// <returns>The item at the specified index</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The index is less than zero or beyond the last item in the list</exception>
         T this[long index] { get; set; }
 
+        /// <summary>
+        /// Find the index of the first occurrence of item in the list
+        /// </summary>
+        /// <param name="item">The item to find</param>
+        /// <returns>The index of the first occurrence of item in the list, or -1 if no item was found</returns>
         long IndexOf(T item);
 
+        /// <summary>
+        /// Insert the specified item into the list at the specified index
+        /// </summary>
+        /// <param name="index">The index to insert before</param>
+        /// <param name="item">The item value to insert</param>
+        /// <exception cref="ArgumentOutOfRangeException">The index is less than zero or greater than the number of items</exception>
         void Insert(long index, T item);
 
+        /// <summary>
+        /// Remove the item at the specified index
+        /// </summary>
+        /// <param name="index">The index of the item to remove</param>
+        /// <exception cref="ArgumentOutOfRangeException">The index is less than zero or beyond the last item in the list</exception>
         void RemoveAt(long index);
     }
 
+    /// <summary>
+    /// Defines methods to manipulate generic collections.
+    /// </summary>
+    /// <typeparam name="T">Type of item in the collection</typeparam>
+    [DocumentationSource]
     public interface ICollectionLong<T> : IEnumerable<T>, IEnumerable
     {
+        /// <summary>
+        /// Returns the number of items in the collection
+        /// </summary>
         long Count { get; }
 
+        /// <summary>
+        /// Returns true if the collection is read-only or false if the collection can be modified
+        /// </summary>
         bool IsReadOnly { get; }
 
+        /// <summary>
+        /// Add the specified item at the end of the collection
+        /// </summary>
+        /// <param name="item">The item to add</param>
         void Add(T item);
 
+        /// <summary>
+        /// Remove all items from the collection
+        /// </summary>
         void Clear();
 
+        /// <summary>
+        /// Determine if an item is in the collection
+        /// </summary>
+        /// <param name="item">The item to search for</param>
+        /// <returns>Returns true if the item is in the collection or false if it is not</returns>
         bool Contains(T item);
 
+        /// <summary>
+        /// Copy the collection to an array
+        /// </summary>
+        /// <param name="array">The array to copy items into</param>
+        /// <param name="arrayIndex">An offset into the array at which the first item will be copied</param>
+        /// <exception cref="ArgumentNullException">array is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">arrayIndex is less than zero</exception>
+        /// <exception cref="ArgumentException">The number of items in the collection is too large to fit into the
+        /// array starting at arrayIndex</exception>
         void CopyTo(T[] array, long arrayIndex);
 
+        /// <summary>
+        /// Try to remove the first occurrence of an item from the collection
+        /// </summary>
+        /// <param name="item">The item to remove</param>
+        /// <returns>Returns true if the item was removed; false if the item was not found</returns>
         bool Remove(T item);
     }
 
+    /// <summary>
+    /// Represents a read-only collection of items that can be accessed by index.
+    /// </summary>
+    /// <typeparam name="T">The type of item in the list</typeparam>
+    [DocumentationSource]
     public interface IReadOnlyListLong<out T> : IReadOnlyCollectionLong<T>, IEnumerable<T>, IEnumerable
     {
+        /// <summary>
+        /// Get the item at the specified index.
+        /// </summary>
+        /// <param name="index">The index of the item to get</param>
+        /// <returns>The value of the item at the specified index</returns>
+        /// <exception cref="ArgumentOutOfRangeException">The index is less than zero or beyond the last item in the list</exception>
         T this[long index] { get; }
     }
 
+    /// <summary>
+    /// Represents a read-only collection of items.
+    /// </summary>
+    /// <typeparam name="T">The type of item in the list</typeparam>
+    [DocumentationSource]
     public interface IReadOnlyCollectionLong<out T> : IEnumerable<T>, IEnumerable
     {
+        /// <summary>
+        /// Get the number of items in the collection
+        /// </summary>
         long Count { get; }
     }
 }

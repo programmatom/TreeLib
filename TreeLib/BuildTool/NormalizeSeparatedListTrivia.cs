@@ -33,7 +33,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace BuildTool
 {
-    public class NormalizeArgumentListUtil
+    public class NormalizeSeparatedListTrivia
     {
         // All this rigamarole is because Roslyn associates trivia in an actual argument list with the delimiters
         // rather than the arguments. It would make more sense to associate it with arguments, since a comment leading

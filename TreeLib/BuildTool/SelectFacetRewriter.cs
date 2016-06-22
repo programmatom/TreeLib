@@ -218,7 +218,7 @@ namespace BuildTool
 
         public override SyntaxNode VisitParameterList(ParameterListSyntax node)
         {
-            node = NormalizeArgumentListUtil.NormalizeParameterList(node);
+            node = NormalizeSeparatedListTrivia.NormalizeParameterList(node);
 
             ParameterListSyntax originalNode = node;
             //node = (ParameterListSyntax)base.VisitParameterList(node); can't - see below
@@ -253,7 +253,7 @@ namespace BuildTool
             node = (ArgumentListSyntax)base.VisitArgumentList(node);
             ArgumentListSyntax original = node;
 
-            node = NormalizeArgumentListUtil.NormalizeArgumentList(node);
+            node = NormalizeSeparatedListTrivia.NormalizeArgumentList(node);
 
             bool didSomething = false;
             SeparatedSyntaxList<ArgumentSyntax> arguments = node.Arguments;
@@ -464,7 +464,7 @@ namespace BuildTool
             node = (TypeArgumentListSyntax)base.VisitTypeArgumentList(node);
             TypeArgumentListSyntax original = node;
 
-            node = NormalizeArgumentListUtil.NormalizeTypeArgumentList(node);
+            node = NormalizeSeparatedListTrivia.NormalizeTypeArgumentList(node);
 
             bool didSomething = false;
             SeparatedSyntaxList<TypeSyntax> arguments = node.Arguments;
@@ -510,6 +510,6 @@ namespace BuildTool
         }
 
 
-        // TODO: incomplete - add others as needed
+        // INCOMPLETE - add others as needed
     }
 }

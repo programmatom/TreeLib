@@ -93,11 +93,6 @@ namespace TreeLib
             public ValueType value;
 
             public bool isRed;
-
-            //public override string ToString()
-            //{
-            //    return String.Format("({0})*{2}={3}*({1})", left == Null ? "null" : left.ToString(), right == Null ? "null" : right.ToString(), key, value);
-            //}
         }
 
         [Storage(Storage.Array)]
@@ -134,11 +129,6 @@ namespace TreeLib
             public override int GetHashCode()
             {
                 return node.GetHashCode();
-            }
-
-            public override string ToString()
-            {
-                return node != _Null ? node.ToString() : "null";
             }
         }
 
