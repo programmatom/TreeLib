@@ -105,6 +105,7 @@
   <ItemGroup>
     <Compile Include="AttributeMatchUtil.cs" />
     <Compile Include="ConstParameterSubstitutionRewriter.cs" />
+    <Compile Include="ReassociateDirectiveTriviaRewriter.cs" />
     <Compile Include="SyntaxNodeReplacementRewriter.cs" />
     <Compile Include="MeldEntryRewriter.cs" />
     <Compile Include="NarrowCountWidthRewriter.cs" />
