@@ -67,19 +67,19 @@ namespace TreeLib
             return true;
         }
 
-		public override int GetHashCode()
-		{
-			// need a reasonable initial value
-			int hashCode = 0L.GetHashCode(); 
-			// implementation derived from Roslyn compiler implementation for anonymous types:
-			// Microsoft.CodeAnalysis.CSharp.Symbols.AnonymousTypeManager.AnonymousTypeGetHashCodeMethodSymbol 
-			const int HASH_FACTOR = -1521134295; 
-			unchecked
-			{
-				hashCode = hashCode * HASH_FACTOR + EqualityComparer<KeyType>.Default.GetHashCode(this.key);
-			}
-			return hashCode;
-		}
+        public override int GetHashCode()
+        {
+            // need a reasonable initial value
+            int hashCode = 0L.GetHashCode();
+            // implementation derived from Roslyn compiler implementation for anonymous types:
+            // Microsoft.CodeAnalysis.CSharp.Symbols.AnonymousTypeManager.AnonymousTypeGetHashCodeMethodSymbol 
+            const int HASH_FACTOR = -1521134295;
+            unchecked
+            {
+                hashCode = hashCode * HASH_FACTOR + EqualityComparer<KeyType>.Default.GetHashCode(this.key);
+            }
+            return hashCode;
+        }
 
 
         public override string ToString()

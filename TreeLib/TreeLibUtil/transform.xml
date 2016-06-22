@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configs>
+    <doNotUnloads>
+        <doNotUnload>Interfaces.cs</doNotUnload>
+        <doNotUnload>Internal.cs</doNotUnload>
+    </doNotUnloads>
+    <imports>
+        <import>Interfaces.cs</import>
+        <import>Internal.cs</import>
+    </imports>
+    <config templateClassName="HugeListBase" targetBaseName="HugeList" storageClass="" specialization="">
+        <keepIEnumerable>true</keepIEnumerable>
+    </config>
+    <config templateClassName="HugeListBase" targetBaseName="HugeList" storageClass="" specialization="Long">
+        <keepIEnumerable>true</keepIEnumerable>
+        <flags>
+            <flag>WidenInt</flag>
+        </flags>
+    </config>
+</configs>

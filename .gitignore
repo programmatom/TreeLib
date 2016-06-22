@@ -1,8 +1,5 @@
 # application compilation intermediate files
 
-# not publishing Util library until it is completed
-/TreeLib/TreeLibUtil
-
 /code-coverage/report
 /code-coverage/results
 
@@ -40,3 +37,5 @@ Sync.cmd
 Diff.cmd
 
 link.URL
+
+EditNuspecs.cmd

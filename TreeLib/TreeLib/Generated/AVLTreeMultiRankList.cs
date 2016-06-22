@@ -229,7 +229,7 @@ namespace TreeLib
                 }
             }
 #if DEBUG
-            this.allocateHelper.allocateCount = original.allocateHelper.allocateCount;
+            this.allocateCount = original.allocateCount;
 #endif
 
             this.root = this.Null;
@@ -425,7 +425,7 @@ namespace TreeLib
                 /*[Storage(Storage.Object)]*/
                 {
 #if DEBUG
-                    allocateHelper.allocateCount = 0;
+                    allocateCount = 0;
 #endif
                 }
 
@@ -1433,16 +1433,11 @@ out xPosition,
 
         // Object allocation
 
-        [Storage(Storage.Object)]
-        private struct AllocateHelper // hack for Roslyn since member removal corrupts following conditional directives
-        {
 #if DEBUG
-            [Count]
-            public ulong allocateCount;
-#endif
-        }
         [Storage(Storage.Object)]
-        private AllocateHelper allocateHelper;
+        [Count]
+        private ulong allocateCount;
+#endif
 
         [Storage(Storage.Object)]
         private Node g_tree_node_new([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key)
@@ -1464,7 +1459,7 @@ out xPosition,
 
             {
 #if DEBUG
-                allocateHelper.allocateCount = checked(allocateHelper.allocateCount + 1);
+                allocateCount = checked(allocateCount + 1);
 #endif
             }
 
@@ -1483,8 +1478,8 @@ out xPosition,
         private void g_node_free(Node node)
         {
 #if DEBUG
-            allocateHelper.allocateCount = checked(allocateHelper.allocateCount - 1);
-            Debug.Assert(allocateHelper.allocateCount == this.count);
+            allocateCount = checked(allocateCount - 1);
+            Debug.Assert(allocateCount == this.count);
 
             node.left = Null;
             node.left_child = true;

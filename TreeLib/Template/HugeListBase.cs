@@ -1114,13 +1114,19 @@ namespace TreeLib
         [Widen]
         public int LastIndexOf(T value, [Widen]int index)
         {
-            return LastIndexOf(value, index, index + 1);
+            unchecked
+            {
+                return LastIndexOf(value, index, index + 1);
+            }
         }
 
         [Widen]
         public int LastIndexOf(T value)
         {
-            return LastIndexOf(value, tree.GetExtent() - 1, tree.GetExtent());
+            unchecked
+            {
+                return LastIndexOf(value, tree.GetExtent() - 1, tree.GetExtent());
+            }
         }
 
         [Widen]

@@ -66,7 +66,9 @@
   <ItemGroup>
     <Content Include="transform.xml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="TreeLibInterface.nuspec" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)\BuildTool\bin\$(ConfigurationName)\BuildTool.exe $(SolutionDir) $(SolutionDir)\TreeLibInterface TreeLibInterface</PreBuildEvent>

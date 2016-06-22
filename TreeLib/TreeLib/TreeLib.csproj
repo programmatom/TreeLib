@@ -77,7 +77,9 @@
       <Name>TreeLibInterface</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="TreeLib.nuspec" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="transform.xml" />
   </ItemGroup>
