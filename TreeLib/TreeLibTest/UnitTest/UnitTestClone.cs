@@ -294,7 +294,7 @@ namespace TreeLibTest
                 }
                 else if ((nonInvasive = tree as INonInvasiveTreeInspection) != null)
                 {
-                    items = TreeInspection.Flatten<KeyType, ValueType>(nonInvasive, propagateValue);
+                    items = Flatten<KeyType, ValueType>(nonInvasive, propagateValue);
                 }
                 else
                 {
@@ -1149,44 +1149,59 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MapTestHarness<int, float>(new AVLTreeArrayMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IOrderedMap<int, float> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayMap<int, float>((AVLTreeArrayMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new MapTestHarness<int, float>(new ReferenceMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value);
+                                    return new MapTestHarness<int, float>(
+                                        useMode
+                                            ? new AVLTreeArrayMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IOrderedMap<int, float> tree)
+                                        {
+                                            return new AVLTreeArrayMap<int, float>((AVLTreeArrayMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new MapTestHarness<int, float>(new ReferenceMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MapTestHarness<int, float>(new RedBlackTreeArrayMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IOrderedMap<int, float> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayMap<int, float>((RedBlackTreeArrayMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new MapTestHarness<int, float>(new ReferenceMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value);
+                                    return new MapTestHarness<int, float>(
+                                        useMode
+                                            ? new RedBlackTreeArrayMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IOrderedMap<int, float> tree)
+                                        {
+                                            return new RedBlackTreeArrayMap<int, float>((RedBlackTreeArrayMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new MapTestHarness<int, float>(new ReferenceMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MapTestHarness<int, float>(new SplayTreeArrayMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IOrderedMap<int, float> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayMap<int, float>((SplayTreeArrayMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new MapTestHarness<int, float>(new ReferenceMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value);
+                                    return new MapTestHarness<int, float>(
+                                        useMode
+                                            ? new SplayTreeArrayMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IOrderedMap<int, float> tree)
+                                        {
+                                            return new SplayTreeArrayMap<int, float>((SplayTreeArrayMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new MapTestHarness<int, float>(new ReferenceMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value);
+                        }
                     }
 
 
@@ -1240,44 +1255,59 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new ListTestHarness<int>(new AVLTreeArrayList<int>(MaximumTestCaseSize, allocationMode), delegate (IOrderedList<int> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayList<int>((AVLTreeArrayList<int>)tree);
-                                });
-                            },
-                            delegate () { return new MapTestHarness<int, int>(new ReferenceMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.None);
+                                    return new ListTestHarness<int>(
+                                        useMode
+                                            ? new AVLTreeArrayList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayList<int>(MaximumTestCaseSize),
+                                        delegate (IOrderedList<int> tree)
+                                        {
+                                            return new AVLTreeArrayList<int>((AVLTreeArrayList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new MapTestHarness<int, int>(new ReferenceMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.None);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new ListTestHarness<int>(new RedBlackTreeArrayList<int>(MaximumTestCaseSize, allocationMode), delegate (IOrderedList<int> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayList<int>((RedBlackTreeArrayList<int>)tree);
-                                });
-                            },
-                            delegate () { return new MapTestHarness<int, int>(new ReferenceMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.None);
+                                    return new ListTestHarness<int>(
+                                        useMode
+                                            ? new RedBlackTreeArrayList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayList<int>(MaximumTestCaseSize),
+                                        delegate (IOrderedList<int> tree)
+                                        {
+                                            return new RedBlackTreeArrayList<int>((RedBlackTreeArrayList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new MapTestHarness<int, int>(new ReferenceMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.None);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new ListTestHarness<int>(new SplayTreeArrayList<int>(MaximumTestCaseSize, allocationMode), delegate (IOrderedList<int> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayList<int>((SplayTreeArrayList<int>)tree);
-                                });
-                            },
-                            delegate () { return new MapTestHarness<int, int>(new ReferenceMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.None);
+                                    return new ListTestHarness<int>(
+                                        useMode
+                                            ? new SplayTreeArrayList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayList<int>(MaximumTestCaseSize),
+                                        delegate (IOrderedList<int> tree)
+                                        {
+                                            return new SplayTreeArrayList<int>((SplayTreeArrayList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new MapTestHarness<int, int>(new ReferenceMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.None);
+                        }
                     }
 
 
@@ -1372,44 +1402,59 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new RankMapTestHarness<int, float>(new AVLTreeArrayRankMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IRankMap<int, float> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayRankMap<int, float>((AVLTreeArrayRankMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new RankMapTestHarness<int, float>(new ReferenceRankMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value | KeyAxis.Rank);
+                                    return new RankMapTestHarness<int, float>(
+                                        useMode
+                                            ? new AVLTreeArrayRankMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayRankMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IRankMap<int, float> tree)
+                                        {
+                                            return new AVLTreeArrayRankMap<int, float>((AVLTreeArrayRankMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new RankMapTestHarness<int, float>(new ReferenceRankMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value | KeyAxis.Rank);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new RankMapTestHarness<int, float>(new RedBlackTreeArrayRankMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IRankMap<int, float> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayRankMap<int, float>((RedBlackTreeArrayRankMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new RankMapTestHarness<int, float>(new ReferenceRankMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value | KeyAxis.Rank);
+                                    return new RankMapTestHarness<int, float>(
+                                        useMode
+                                            ? new RedBlackTreeArrayRankMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayRankMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IRankMap<int, float> tree)
+                                        {
+                                            return new RedBlackTreeArrayRankMap<int, float>((RedBlackTreeArrayRankMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new RankMapTestHarness<int, float>(new ReferenceRankMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value | KeyAxis.Rank);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new RankMapTestHarness<int, float>(new SplayTreeArrayRankMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IRankMap<int, float> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayRankMap<int, float>((SplayTreeArrayRankMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new RankMapTestHarness<int, float>(new ReferenceRankMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value | KeyAxis.Rank);
+                                    return new RankMapTestHarness<int, float>(
+                                        useMode
+                                            ? new SplayTreeArrayRankMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayRankMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IRankMap<int, float> tree)
+                                        {
+                                            return new SplayTreeArrayRankMap<int, float>((SplayTreeArrayRankMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new RankMapTestHarness<int, float>(new ReferenceRankMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value | KeyAxis.Rank);
+                        }
                     }
 
 
@@ -1504,44 +1549,59 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new RankListTestHarness<int>(new AVLTreeArrayRankList<int>(MaximumTestCaseSize, allocationMode), delegate (IRankList<int> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayRankList<int>((AVLTreeArrayRankList<int>)tree);
-                                });
-                            },
-                            delegate () { return new RankMapTestHarness<int, int>(new ReferenceRankMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.Rank);
+                                    return new RankListTestHarness<int>(
+                                        useMode
+                                            ? new AVLTreeArrayRankList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayRankList<int>(MaximumTestCaseSize),
+                                        delegate (IRankList<int> tree)
+                                        {
+                                            return new AVLTreeArrayRankList<int>((AVLTreeArrayRankList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new RankMapTestHarness<int, int>(new ReferenceRankMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.Rank);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new RankListTestHarness<int>(new RedBlackTreeArrayRankList<int>(MaximumTestCaseSize, allocationMode), delegate (IRankList<int> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayRankList<int>((RedBlackTreeArrayRankList<int>)tree);
-                                });
-                            },
-                            delegate () { return new RankMapTestHarness<int, int>(new ReferenceRankMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.Rank);
+                                    return new RankListTestHarness<int>(
+                                        useMode
+                                            ? new RedBlackTreeArrayRankList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayRankList<int>(MaximumTestCaseSize),
+                                        delegate (IRankList<int> tree)
+                                        {
+                                            return new RedBlackTreeArrayRankList<int>((RedBlackTreeArrayRankList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new RankMapTestHarness<int, int>(new ReferenceRankMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.Rank);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new RankListTestHarness<int>(new SplayTreeArrayRankList<int>(MaximumTestCaseSize, allocationMode), delegate (IRankList<int> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayRankList<int>((SplayTreeArrayRankList<int>)tree);
-                                });
-                            },
-                            delegate () { return new RankMapTestHarness<int, int>(new ReferenceRankMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.Rank);
+                                    return new RankListTestHarness<int>(
+                                        useMode
+                                            ? new SplayTreeArrayRankList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayRankList<int>(MaximumTestCaseSize),
+                                        delegate (IRankList<int> tree)
+                                        {
+                                            return new SplayTreeArrayRankList<int>((SplayTreeArrayRankList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new RankMapTestHarness<int, int>(new ReferenceRankMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.Rank);
+                        }
                     }
 
 
@@ -1636,44 +1696,59 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MultiRankMapTestHarness<int, float>(new AVLTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IMultiRankMap<int, float> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayMultiRankMap<int, float>((AVLTreeArrayMultiRankMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new MultiRankMapTestHarness<int, float>(new ReferenceMultiRankMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value | KeyAxis.Rank | KeyAxis.Count);
+                                    return new MultiRankMapTestHarness<int, float>(
+                                        useMode
+                                            ? new AVLTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IMultiRankMap<int, float> tree)
+                                        {
+                                            return new AVLTreeArrayMultiRankMap<int, float>((AVLTreeArrayMultiRankMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new MultiRankMapTestHarness<int, float>(new ReferenceMultiRankMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value | KeyAxis.Rank | KeyAxis.Count);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MultiRankMapTestHarness<int, float>(new RedBlackTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IMultiRankMap<int, float> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayMultiRankMap<int, float>((RedBlackTreeArrayMultiRankMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new MultiRankMapTestHarness<int, float>(new ReferenceMultiRankMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value | KeyAxis.Rank | KeyAxis.Count);
+                                    return new MultiRankMapTestHarness<int, float>(
+                                        useMode
+                                            ? new RedBlackTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IMultiRankMap<int, float> tree)
+                                        {
+                                            return new RedBlackTreeArrayMultiRankMap<int, float>((RedBlackTreeArrayMultiRankMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new MultiRankMapTestHarness<int, float>(new ReferenceMultiRankMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value | KeyAxis.Rank | KeyAxis.Count);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MultiRankMapTestHarness<int, float>(new SplayTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize, allocationMode), delegate (IMultiRankMap<int, float> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayMultiRankMap<int, float>((SplayTreeArrayMultiRankMap<int, float>)tree);
-                                });
-                            },
-                            delegate () { return new MultiRankMapTestHarness<int, float>(new ReferenceMultiRankMap<int, float>(), null); },
-                            MakeIntKey,
-                            MakeFloatValue,
-                            KeyAxis.Value | KeyAxis.Rank | KeyAxis.Count);
+                                    return new MultiRankMapTestHarness<int, float>(
+                                        useMode
+                                            ? new SplayTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayMultiRankMap<int, float>(MaximumTestCaseSize),
+                                        delegate (IMultiRankMap<int, float> tree)
+                                        {
+                                            return new SplayTreeArrayMultiRankMap<int, float>((SplayTreeArrayMultiRankMap<int, float>)tree);
+                                        });
+                                },
+                                delegate () { return new MultiRankMapTestHarness<int, float>(new ReferenceMultiRankMap<int, float>(), null); },
+                                MakeIntKey,
+                                MakeFloatValue,
+                                KeyAxis.Value | KeyAxis.Rank | KeyAxis.Count);
+                        }
                     }
 
 
@@ -1768,44 +1843,59 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MultiRankListTestHarness<int>(new AVLTreeArrayMultiRankList<int>(MaximumTestCaseSize, allocationMode), delegate (IMultiRankList<int> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayMultiRankList<int>((AVLTreeArrayMultiRankList<int>)tree);
-                                });
-                            },
-                            delegate () { return new MultiRankMapTestHarness<int, int>(new ReferenceMultiRankMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.Rank | KeyAxis.Count);
+                                    return new MultiRankListTestHarness<int>(
+                                        useMode
+                                            ? new AVLTreeArrayMultiRankList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayMultiRankList<int>(MaximumTestCaseSize),
+                                        delegate (IMultiRankList<int> tree)
+                                        {
+                                            return new AVLTreeArrayMultiRankList<int>((AVLTreeArrayMultiRankList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new MultiRankMapTestHarness<int, int>(new ReferenceMultiRankMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.Rank | KeyAxis.Count);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MultiRankListTestHarness<int>(new RedBlackTreeArrayMultiRankList<int>(MaximumTestCaseSize, allocationMode), delegate (IMultiRankList<int> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayMultiRankList<int>((RedBlackTreeArrayMultiRankList<int>)tree);
-                                });
-                            },
-                            delegate () { return new MultiRankMapTestHarness<int, int>(new ReferenceMultiRankMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.Rank | KeyAxis.Count);
+                                    return new MultiRankListTestHarness<int>(
+                                        useMode
+                                            ? new RedBlackTreeArrayMultiRankList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayMultiRankList<int>(MaximumTestCaseSize),
+                                        delegate (IMultiRankList<int> tree)
+                                        {
+                                            return new RedBlackTreeArrayMultiRankList<int>((RedBlackTreeArrayMultiRankList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new MultiRankMapTestHarness<int, int>(new ReferenceMultiRankMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.Rank | KeyAxis.Count);
 
-                        KeyedTest(
-                            delegate ()
-                            {
-                                return new MultiRankListTestHarness<int>(new SplayTreeArrayMultiRankList<int>(MaximumTestCaseSize, allocationMode), delegate (IMultiRankList<int> tree)
+                            KeyedTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayMultiRankList<int>((SplayTreeArrayMultiRankList<int>)tree);
-                                });
-                            },
-                            delegate () { return new MultiRankMapTestHarness<int, int>(new ReferenceMultiRankMap<int, int>(), null); },
-                            MakeIntKey,
-                            null,
-                            KeyAxis.Rank | KeyAxis.Count);
+                                    return new MultiRankListTestHarness<int>(
+                                        useMode
+                                            ? new SplayTreeArrayMultiRankList<int>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayMultiRankList<int>(MaximumTestCaseSize),
+                                        delegate (IMultiRankList<int> tree)
+                                        {
+                                            return new SplayTreeArrayMultiRankList<int>((SplayTreeArrayMultiRankList<int>)tree);
+                                        });
+                                },
+                                delegate () { return new MultiRankMapTestHarness<int, int>(new ReferenceMultiRankMap<int, int>(), null); },
+                                MakeIntKey,
+                                null,
+                                KeyAxis.Rank | KeyAxis.Count);
+                        }
                     }
 
 
@@ -1894,41 +1984,56 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new RangeMapTestHarness<float>(new AVLTreeArrayRangeMap<float>(MaximumTestCaseSize, allocationMode), delegate (IRangeMap<float> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayRangeMap<float>((AVLTreeArrayRangeMap<float>)tree);
-                                });
-                            },
-                            delegate () { return new RangeMapTestHarness<float>(new ReferenceRangeMap<float>(), null); },
-                            MakeFloatValue,
-                            RangeAxis.Value);
+                                    return new RangeMapTestHarness<float>(
+                                        useMode
+                                            ? new AVLTreeArrayRangeMap<float>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayRangeMap<float>(MaximumTestCaseSize),
+                                        delegate (IRangeMap<float> tree)
+                                        {
+                                            return new AVLTreeArrayRangeMap<float>((AVLTreeArrayRangeMap<float>)tree);
+                                        });
+                                },
+                                delegate () { return new RangeMapTestHarness<float>(new ReferenceRangeMap<float>(), null); },
+                                MakeFloatValue,
+                                RangeAxis.Value);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new RangeMapTestHarness<float>(new RedBlackTreeArrayRangeMap<float>(MaximumTestCaseSize, allocationMode), delegate (IRangeMap<float> tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayRangeMap<float>((RedBlackTreeArrayRangeMap<float>)tree);
-                                });
-                            },
-                            delegate () { return new RangeMapTestHarness<float>(new ReferenceRangeMap<float>(), null); },
-                            MakeFloatValue,
-                            RangeAxis.Value);
+                                    return new RangeMapTestHarness<float>(
+                                        useMode
+                                            ? new RedBlackTreeArrayRangeMap<float>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayRangeMap<float>(MaximumTestCaseSize),
+                                        delegate (IRangeMap<float> tree)
+                                        {
+                                            return new RedBlackTreeArrayRangeMap<float>((RedBlackTreeArrayRangeMap<float>)tree);
+                                        });
+                                },
+                                delegate () { return new RangeMapTestHarness<float>(new ReferenceRangeMap<float>(), null); },
+                                MakeFloatValue,
+                                RangeAxis.Value);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new RangeMapTestHarness<float>(new SplayTreeArrayRangeMap<float>(MaximumTestCaseSize, allocationMode), delegate (IRangeMap<float> tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayRangeMap<float>((SplayTreeArrayRangeMap<float>)tree);
-                                });
-                            },
-                            delegate () { return new RangeMapTestHarness<float>(new ReferenceRangeMap<float>(), null); },
-                            MakeFloatValue,
-                            RangeAxis.Value);
+                                    return new RangeMapTestHarness<float>(
+                                        useMode
+                                            ? new SplayTreeArrayRangeMap<float>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayRangeMap<float>(MaximumTestCaseSize),
+                                        delegate (IRangeMap<float> tree)
+                                        {
+                                            return new SplayTreeArrayRangeMap<float>((SplayTreeArrayRangeMap<float>)tree);
+                                        });
+                                },
+                                delegate () { return new RangeMapTestHarness<float>(new ReferenceRangeMap<float>(), null); },
+                                MakeFloatValue,
+                                RangeAxis.Value);
+                        }
                     }
 
 
@@ -2017,41 +2122,56 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new RangeListTestHarness(new AVLTreeArrayRangeList(MaximumTestCaseSize, allocationMode), delegate (IRangeList tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayRangeList((AVLTreeArrayRangeList)tree);
-                                });
-                            },
-                            delegate () { return new RangeMapTestHarness<object>(new ReferenceRangeMap<object>(), null); },
-                            null,
-                            RangeAxis.None);
+                                    return new RangeListTestHarness(
+                                        useMode
+                                            ? new AVLTreeArrayRangeList(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayRangeList(MaximumTestCaseSize),
+                                        delegate (IRangeList tree)
+                                        {
+                                            return new AVLTreeArrayRangeList((AVLTreeArrayRangeList)tree);
+                                        });
+                                },
+                                delegate () { return new RangeMapTestHarness<object>(new ReferenceRangeMap<object>(), null); },
+                                null,
+                                RangeAxis.None);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new RangeListTestHarness(new RedBlackTreeArrayRangeList(MaximumTestCaseSize, allocationMode), delegate (IRangeList tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayRangeList((RedBlackTreeArrayRangeList)tree);
-                                });
-                            },
-                            delegate () { return new RangeMapTestHarness<object>(new ReferenceRangeMap<object>(), null); },
-                            null,
-                            RangeAxis.None);
+                                    return new RangeListTestHarness(
+                                        useMode
+                                            ? new RedBlackTreeArrayRangeList(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayRangeList(MaximumTestCaseSize),
+                                        delegate (IRangeList tree)
+                                        {
+                                            return new RedBlackTreeArrayRangeList((RedBlackTreeArrayRangeList)tree);
+                                        });
+                                },
+                                delegate () { return new RangeMapTestHarness<object>(new ReferenceRangeMap<object>(), null); },
+                                null,
+                                RangeAxis.None);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new RangeListTestHarness(new SplayTreeArrayRangeList(MaximumTestCaseSize, allocationMode), delegate (IRangeList tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayRangeList((SplayTreeArrayRangeList)tree);
-                                });
-                            },
-                            delegate () { return new RangeMapTestHarness<object>(new ReferenceRangeMap<object>(), null); },
-                            null,
-                            RangeAxis.None);
+                                    return new RangeListTestHarness(
+                                        useMode
+                                            ? new SplayTreeArrayRangeList(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayRangeList(MaximumTestCaseSize),
+                                        delegate (IRangeList tree)
+                                        {
+                                            return new SplayTreeArrayRangeList((SplayTreeArrayRangeList)tree);
+                                        });
+                                },
+                                delegate () { return new RangeMapTestHarness<object>(new ReferenceRangeMap<object>(), null); },
+                                null,
+                                RangeAxis.None);
+                        }
                     }
 
 
@@ -2140,41 +2260,56 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new Range2MapTestHarness<float>(new AVLTreeArrayRange2Map<float>(MaximumTestCaseSize, allocationMode), delegate (IRange2Map<float> tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayRange2Map<float>((AVLTreeArrayRange2Map<float>)tree);
-                                });
-                            },
-                            delegate () { return new Range2MapTestHarness<float>(new ReferenceRange2Map<float>(), null); },
-                            MakeFloatValue,
-                            RangeAxis.Value | RangeAxis.Range2);
+                                    return new Range2MapTestHarness<float>(
+                                        useMode
+                                            ? new AVLTreeArrayRange2Map<float>(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayRange2Map<float>(MaximumTestCaseSize),
+                                        delegate (IRange2Map<float> tree)
+                                        {
+                                            return new AVLTreeArrayRange2Map<float>((AVLTreeArrayRange2Map<float>)tree);
+                                        });
+                                },
+                                delegate () { return new Range2MapTestHarness<float>(new ReferenceRange2Map<float>(), null); },
+                                MakeFloatValue,
+                                RangeAxis.Value | RangeAxis.Range2);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new Range2MapTestHarness<float>(new RedBlackTreeArrayRange2Map<float>(MaximumTestCaseSize, allocationMode), delegate (IRange2Map<float> tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayRange2Map<float>((RedBlackTreeArrayRange2Map<float>)tree);
-                                });
-                            },
-                            delegate () { return new Range2MapTestHarness<float>(new ReferenceRange2Map<float>(), null); },
-                            MakeFloatValue,
-                            RangeAxis.Value | RangeAxis.Range2);
+                                    return new Range2MapTestHarness<float>(
+                                        useMode
+                                            ? new RedBlackTreeArrayRange2Map<float>(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayRange2Map<float>(MaximumTestCaseSize),
+                                        delegate (IRange2Map<float> tree)
+                                        {
+                                            return new RedBlackTreeArrayRange2Map<float>((RedBlackTreeArrayRange2Map<float>)tree);
+                                        });
+                                },
+                                delegate () { return new Range2MapTestHarness<float>(new ReferenceRange2Map<float>(), null); },
+                                MakeFloatValue,
+                                RangeAxis.Value | RangeAxis.Range2);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new Range2MapTestHarness<float>(new SplayTreeArrayRange2Map<float>(MaximumTestCaseSize, allocationMode), delegate (IRange2Map<float> tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayRange2Map<float>((SplayTreeArrayRange2Map<float>)tree);
-                                });
-                            },
-                            delegate () { return new Range2MapTestHarness<float>(new ReferenceRange2Map<float>(), null); },
-                            MakeFloatValue,
-                            RangeAxis.Value | RangeAxis.Range2);
+                                    return new Range2MapTestHarness<float>(
+                                        useMode
+                                            ? new SplayTreeArrayRange2Map<float>(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayRange2Map<float>(MaximumTestCaseSize),
+                                        delegate (IRange2Map<float> tree)
+                                        {
+                                            return new SplayTreeArrayRange2Map<float>((SplayTreeArrayRange2Map<float>)tree);
+                                        });
+                                },
+                                delegate () { return new Range2MapTestHarness<float>(new ReferenceRange2Map<float>(), null); },
+                                MakeFloatValue,
+                                RangeAxis.Value | RangeAxis.Range2);
+                        }
                     }
 
 
@@ -2263,41 +2398,56 @@ namespace TreeLibTest
 
                     if (allocationMode != AllocationMode.DynamicDiscard)
                     {
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new Range2ListTestHarness(new AVLTreeArrayRange2List(MaximumTestCaseSize, allocationMode), delegate (IRange2List tree)
+                        foreach (bool useMode in new bool[] { true, false })
+                        {
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new AVLTreeArrayRange2List((AVLTreeArrayRange2List)tree);
-                                });
-                            },
-                            delegate () { return new Range2MapTestHarness<object>(new ReferenceRange2Map<object>(), null); },
-                            null,
-                            RangeAxis.Range2);
+                                    return new Range2ListTestHarness(
+                                        useMode
+                                            ? new AVLTreeArrayRange2List(MaximumTestCaseSize, allocationMode)
+                                            : new AVLTreeArrayRange2List(MaximumTestCaseSize),
+                                        delegate (IRange2List tree)
+                                        {
+                                            return new AVLTreeArrayRange2List((AVLTreeArrayRange2List)tree);
+                                        });
+                                },
+                                delegate () { return new Range2MapTestHarness<object>(new ReferenceRange2Map<object>(), null); },
+                                null,
+                                RangeAxis.Range2);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new Range2ListTestHarness(new RedBlackTreeArrayRange2List(MaximumTestCaseSize, allocationMode), delegate (IRange2List tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new RedBlackTreeArrayRange2List((RedBlackTreeArrayRange2List)tree);
-                                });
-                            },
-                            delegate () { return new Range2MapTestHarness<object>(new ReferenceRange2Map<object>(), null); },
-                            null,
-                            RangeAxis.Range2);
+                                    return new Range2ListTestHarness(
+                                        useMode
+                                            ? new RedBlackTreeArrayRange2List(MaximumTestCaseSize, allocationMode)
+                                            : new RedBlackTreeArrayRange2List(MaximumTestCaseSize),
+                                        delegate (IRange2List tree)
+                                        {
+                                            return new RedBlackTreeArrayRange2List((RedBlackTreeArrayRange2List)tree);
+                                        });
+                                },
+                                delegate () { return new Range2MapTestHarness<object>(new ReferenceRange2Map<object>(), null); },
+                                null,
+                                RangeAxis.Range2);
 
-                        RangeTest(
-                            delegate ()
-                            {
-                                return new Range2ListTestHarness(new SplayTreeArrayRange2List(MaximumTestCaseSize, allocationMode), delegate (IRange2List tree)
+                            RangeTest(
+                                delegate ()
                                 {
-                                    return new SplayTreeArrayRange2List((SplayTreeArrayRange2List)tree);
-                                });
-                            },
-                            delegate () { return new Range2MapTestHarness<object>(new ReferenceRange2Map<object>(), null); },
-                            null,
-                            RangeAxis.Range2);
+                                    return new Range2ListTestHarness(
+                                        useMode
+                                            ? new SplayTreeArrayRange2List(MaximumTestCaseSize, allocationMode)
+                                            : new SplayTreeArrayRange2List(MaximumTestCaseSize),
+                                        delegate (IRange2List tree)
+                                        {
+                                            return new SplayTreeArrayRange2List((SplayTreeArrayRange2List)tree);
+                                        });
+                                },
+                                delegate () { return new Range2MapTestHarness<object>(new ReferenceRange2Map<object>(), null); },
+                                null,
+                                RangeAxis.Range2);
+                        }
                     }
                 }
 

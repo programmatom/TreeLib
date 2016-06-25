@@ -91,42 +91,6 @@ namespace TreeLibTest
         }
 
 
-        protected void ValidateRanks<KeyType, ValueType>(MultiRankMapEntry[] ranks) where KeyType : IComparable<KeyType>
-        {
-            IncrementIteration();
-            int offset = 0;
-            for (int i = 0; i < ranks.Length; i++)
-            {
-                TestTrue("start", delegate () { return offset == ranks[i].rank.start; });
-                TestTrue("count > 0", delegate () { return ranks[i].rank.length == 1; });
-                offset += ranks[i].rank.length;
-            }
-        }
-
-        protected void ValidateRanksEqual<KeyType, ValueType>(MultiRankMapEntry[] ranks1, MultiRankMapEntry[] ranks2) where KeyType : IComparable<KeyType>
-        {
-            IncrementIteration();
-            TestTrue("equal count", delegate () { return ranks1.Length == ranks2.Length; });
-            for (int i = 0; i < ranks1.Length; i++)
-            {
-                TestTrue("key", delegate () { return Comparer<KeyType>.Default.Compare((KeyType)ranks1[i].key, (KeyType)ranks2[i].key) == 0; });
-                TestTrue("value", delegate () { return Comparer<ValueType>.Default.Compare((ValueType)ranks1[i].value, (ValueType)ranks2[i].value) == 0; });
-                TestTrue("start", delegate () { return ranks1[i].rank.start == ranks2[i].rank.start; });
-                TestTrue("length", delegate () { return ranks1[i].rank.length == ranks2[i].rank.length; });
-            }
-        }
-
-        protected void ValidateRanksEqual<KeyType, ValueType>(IRankMap<KeyType, ValueType> tree1, IRankMap<KeyType, ValueType> tree2) where KeyType : IComparable<KeyType>
-        {
-            IncrementIteration();
-            MultiRankMapEntry[] ranks1 = ((INonInvasiveMultiRankMapInspection)tree1).GetRanks();
-            ValidateRanks<KeyType, ValueType>(ranks1);
-            MultiRankMapEntry[] ranks2 = ((INonInvasiveMultiRankMapInspection)tree2).GetRanks();
-            ValidateRanks<KeyType, ValueType>(ranks2);
-            ValidateRanksEqual<KeyType, ValueType>(ranks1, ranks2);
-        }
-
-
         private void BuildTree<KeyType, ValueType>(
             IRankMap<KeyType, ValueType> tree,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
@@ -137,7 +101,7 @@ namespace TreeLibTest
                 IncrementIteration();
                 op.Do(tree);
                 ValidateTree(tree);
-                ValidateRanks<KeyType, ValueType>(((INonInvasiveMultiRankMapInspection)tree).GetRanks());
+                ValidateRanks<KeyType, ValueType>(((INonInvasiveMultiRankMapInspection)tree).GetRanks(), false/*multi*/);
             }
         }
 
@@ -182,7 +146,7 @@ namespace TreeLibTest
                 throw new UnitTestFailureException(label, exception);
             }
 
-            ValidateRanks<KeyType, ValueType>(((INonInvasiveMultiRankMapInspection)tree).GetRanks());
+            ValidateRanks<KeyType, ValueType>(((INonInvasiveMultiRankMapInspection)tree).GetRanks(), false/*multi*/);
         }
 
         private delegate IRankMap<KeyType, ValueType> MakeTree<KeyType, ValueType>() where KeyType : IComparable<KeyType>;
@@ -503,6 +467,7 @@ namespace TreeLibTest
                 IRankMap<int, float> tree;
                 ReferenceRankMap<int, float> reference2;
                 int p;
+                bool f;
 
                 tree = makeTree();
                 BuildTree(tree, sequence);
@@ -824,6 +789,145 @@ namespace TreeLibTest
                 BuildTree(tree, sequence);
                 TestThrow(label + " AdjustCount.8", typeof(ArgumentOutOfRangeException), delegate () { tree.AdjustCount(p, -1); });
                 ValidateRanksEqual(reference2, tree);
+
+                // ConditionalSetOrAdd
+                long lastIter1 = IncrementIteration(true/*setLast*/);
+
+                p = (i > 0) ? (((int)ranks[i - 1].key + (int)ranks[i].key) / 2) : ((int)ranks[i].key - 1);
+                // test no-op with nothing in tree
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrAdd.1", delegate () { tree.ConditionalSetOrAdd(p, delegate (int _key, ref float _value, bool resident) { return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test no-op with valid item in tree
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrAdd.2", delegate () { tree.ConditionalSetOrAdd((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test no-op changing value of non-existent item
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.SetValue((int)ranks[i].key, reference2.GetValue((int)ranks[i].key) + (float)Math.PI); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrAdd.3", delegate () { tree.ConditionalSetOrAdd((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test changing value of existing item
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.SetValue((int)ranks[i].key, reference2.GetValue((int)ranks[i].key) + (float)Math.PI); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrAdd.4", delegate () { tree.ConditionalSetOrAdd((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test adding value of non-existent item
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.Add(p, (float)Math.PI); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrAdd.5", delegate () { tree.ConditionalSetOrAdd(p, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return true; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test no-op adding existing item, but updating value
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.SetValue((int)ranks[i].key, reference2.GetValue((int)ranks[i].key) + (float)Math.PI); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrAdd.6", delegate () { tree.ConditionalSetOrAdd((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return true; }); });
+                ValidateRanksEqual(reference2, tree);
+                // reject changes to key
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                if (tree is AdaptRankListToRankMap<int, float>)
+                {
+                    IRankList<KeyValue<int, float>> inner = ((AdaptRankListToRankMap<int, float>)tree).Inner;
+                    TestThrow(label + " ConditionalSetOrAdd.9", typeof(ArgumentException), delegate () { inner.ConditionalSetOrAdd(new KeyValue<int, float>((int)ranks[i].key), delegate (ref KeyValue<int, float> _key, bool resident) { _key.key++; return false; }); });
+                    ValidateRanksEqual(reference2, tree);
+                }
+
+                // argument validity
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestThrow(label + " ConditionalSetOrAdd.7", typeof(ArgumentNullException), delegate () { tree.ConditionalSetOrAdd((int)ranks[i].key, null); });
+                ValidateRanksEqual(reference2, tree);
+                // modify tree in callback
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                f = false;
+                TestThrow(label + " ConditionalSetOrAdd.8a", typeof(InvalidOperationException), delegate () { tree.ConditionalSetOrAdd((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { tree.Add(p, Value); f = true; return false; }); });
+                TestTrue(label + " ConditionalSetOrAdd.8b", delegate () { return f; });
+                ValidateRanksEqual(reference2, tree);
+
+                // ConditionalSetOrRemove
+                lastIter1 = IncrementIteration(true/*setLast*/);
+
+                p = (i > 0) ? (((int)ranks[i - 1].key + (int)ranks[i].key) / 2) : ((int)ranks[i].key - 1);
+                // test no-op with nothing in tree
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrRemove.1", delegate () { tree.ConditionalSetOrRemove(p, delegate (int _key, ref float _value, bool resident) { return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test no-op with valid item in tree
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrRemove.2", delegate () { tree.ConditionalSetOrRemove((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test no-op changing value of non-existent item
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.SetValue((int)ranks[i].key, reference2.GetValue((int)ranks[i].key) + (float)Math.PI); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrRemove.3", delegate () { tree.ConditionalSetOrRemove((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test changing value of existing item
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.SetValue((int)ranks[i].key, reference2.GetValue((int)ranks[i].key) + (float)Math.PI); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrRemove.4", delegate () { tree.ConditionalSetOrRemove((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return false; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test no-op removing non-existent item
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrRemove.5", delegate () { tree.ConditionalSetOrRemove(p, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return true; }); });
+                ValidateRanksEqual(reference2, tree);
+                // test removing existing item
+                reference2 = reference.Clone();
+                TestNoThrow("prereq", delegate () { reference2.Remove((int)ranks[i].key); });
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestNoThrow(label + " ConditionalSetOrRemove.6", delegate () { tree.ConditionalSetOrRemove((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { _value = _value + (float)Math.PI; return true; }); });
+                ValidateRanksEqual(reference2, tree);
+
+                // argument validity
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                TestThrow(label + " ConditionalSetOrRemove.7", typeof(ArgumentNullException), delegate () { tree.ConditionalSetOrRemove((int)ranks[i].key, null); });
+                ValidateRanksEqual(reference2, tree);
+                // modify tree in callback
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                f = false;
+                TestThrow(label + " ConditionalSetOrRemove.8a", typeof(InvalidOperationException), delegate () { tree.ConditionalSetOrRemove((int)ranks[i].key, delegate (int _key, ref float _value, bool resident) { tree.Add(p, Value); f = true; return false; }); });
+                TestTrue(label + " ConditionalSetOrRemove.8b", delegate () { return f; });
+                ValidateRanksEqual(reference2, tree);
+                // reject changes to key
+                reference2 = reference.Clone();
+                tree = makeTree();
+                BuildTree(tree, sequence);
+                if (tree is AdaptRankListToRankMap<int, float>)
+                {
+                    IRankList<KeyValue<int, float>> inner = ((AdaptRankListToRankMap<int, float>)tree).Inner;
+                    TestThrow(label + " ConditionalSetOrRemove.9", typeof(ArgumentException), delegate () { inner.ConditionalSetOrRemove(new KeyValue<int, float>((int)ranks[i].key), delegate (ref KeyValue<int, float> _key, bool resident) { _key.key++; return false; }); });
+                    ValidateRanksEqual(reference2, tree);
+                }
             }
 
             TestOrderedAccessors(

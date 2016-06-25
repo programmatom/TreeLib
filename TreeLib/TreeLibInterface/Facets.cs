@@ -94,6 +94,16 @@ namespace TreeLib.Internal
 
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     [ExcludeFromCodeCoverage]
+    public class ExcludeAttribute : Attribute
+    {
+        public ExcludeAttribute(Feature feature, Payload payload)
+        {
+        }
+    }
+
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    [ExcludeFromCodeCoverage]
     public class ConstAttribute : Attribute
     {
         public ConstAttribute(object value, params Feature[] facets)
@@ -123,13 +133,6 @@ namespace TreeLib.Internal
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     [ExcludeFromCodeCoverage]
     public class CountAttribute : Attribute
-    {
-    }
-
-
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    [ExcludeFromCodeCoverage]
-    public class EnableFixedAttribute : Attribute
     {
     }
 

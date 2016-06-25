@@ -49,6 +49,8 @@ namespace TreeLibTest
             this.inner = inner;
         }
 
+        public IRankList<KeyValue<KeyType, ValueType>> Inner { get { return inner; } }
+
 
         //
         // IRankMap
@@ -152,9 +154,51 @@ namespace TreeLibTest
             return inner.GetKeyByRank(rank).key;
         }
 
-        public void AdjustCount(KeyType key, int countAdjust)
+        public int AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(new KeyValue<KeyType, ValueType>(key), countAdjust);
+            return inner.AdjustCount(new KeyValue<KeyType, ValueType>(key), countAdjust);
+        }
+
+        public void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            inner.TryGetKey(new KeyValue<KeyType, ValueType>(key), out kv);
+            if (predicate != null)
+            {
+                inner.ConditionalSetOrAdd(
+                    new KeyValue<KeyType, ValueType>(key, kv.value),
+                    delegate (ref KeyValue<KeyType, ValueType> _key, bool resident)
+                    {
+                        return predicate(_key.key, ref _key.value, resident);
+                    });
+            }
+            else
+            {
+                inner.ConditionalSetOrAdd(
+                    new KeyValue<KeyType, ValueType>(key, kv.value),
+                    null);
+            }
+        }
+
+        public void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            KeyValue<KeyType, ValueType> kv;
+            inner.TryGetKey(new KeyValue<KeyType, ValueType>(key), out kv);
+            if (predicate != null)
+            {
+                inner.ConditionalSetOrRemove(
+                    new KeyValue<KeyType, ValueType>(key, kv.value),
+                    delegate (ref KeyValue<KeyType, ValueType> _key, bool resident)
+                    {
+                        return predicate(_key.key, ref _key.value, resident);
+                    });
+            }
+            else
+            {
+                inner.ConditionalSetOrRemove(
+                    new KeyValue<KeyType, ValueType>(key, kv.value),
+                    null);
+            }
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)

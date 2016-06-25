@@ -122,6 +122,7 @@ namespace BuildTool
             {
                 return null;
             }
+            node = RewriteStructDeclarationBaseTypes(node);
             return base.VisitStructDeclaration(node);
         }
 
@@ -453,6 +454,51 @@ namespace BuildTool
                         }
                     }
                     i++;
+                }
+
+                if (node.BaseList.Types.Count == 0)
+                {
+                    node = node.WithBaseList(null);
+                }
+            }
+
+            return node;
+        }
+
+        // ditto
+        private StructDeclarationSyntax RewriteStructDeclarationBaseTypes(StructDeclarationSyntax node)
+        {
+            if (node.BaseList != null)
+            {
+                // comments preceding base type declaration are attributed to the correct base type declaration AS LONG AS
+                // each type is listed on a separate source line.
+                int i = 0;
+                foreach (BaseTypeSyntax baseType1 in node.BaseList.Types)
+                {
+                    SimpleBaseTypeSyntax baseType;
+                    if ((baseType = baseType1 as SimpleBaseTypeSyntax) != null)
+                    {
+                        //foreach (var x in baseType.GetLeadingTrivia())
+                        //{
+                        //    Console.WriteLine(x.ToFullString());
+                        //}
+                        //Console.WriteLine(baseType.ToString());
+                        //Console.WriteLine();
+
+                        if (RemoveBaseType(baseType))
+                        {
+                            node = node.WithBaseList(
+                                node.BaseList.WithTypes(
+                                    node.BaseList.Types.RemoveAt(i)));
+                            continue;
+                        }
+                    }
+                    i++;
+                }
+
+                if (node.BaseList.Types.Count == 0)
+                {
+                    node = node.WithBaseList(null);
                 }
             }
 

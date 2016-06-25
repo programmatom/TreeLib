@@ -39,7 +39,7 @@ namespace TreeLibTest
         where KeyType : IComparable<KeyType>
     {
         private readonly List<Item> items = new List<Item>();
-        private ushort version;
+        public uint version;
 
         private struct Item
         {
@@ -118,7 +118,7 @@ namespace TreeLibTest
             {
                 int overflow = checked(RankCount + count);
                 items.Insert(~i, new Item(key, value, count));
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
                 return true;
             }
             return false;
@@ -130,7 +130,7 @@ namespace TreeLibTest
             if (i >= 0)
             {
                 items.RemoveAt(i);
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
                 return true;
             }
             return false;
@@ -272,7 +272,7 @@ namespace TreeLibTest
             return key;
         }
 
-        public void AdjustCount(KeyType key, int countAdjust)
+        public int AdjustCount(KeyType key, int countAdjust)
         {
             int i = BinarySearch(key);
             if (i >= 0)
@@ -283,10 +283,12 @@ namespace TreeLibTest
                 {
                     int overflow = checked(RankCount + countAdjust);
                     items[i] = new Item(items[i].key, items[i].value, items[i].count + countAdjust);
+                    return items[i].count;
                 }
                 else if (items[i].count + countAdjust == 0)
                 {
                     items.RemoveAt(i);
+                    return 0;
                 }
                 else
                 {
@@ -305,11 +307,13 @@ namespace TreeLibTest
                 {
                     int overflow = checked(RankCount + countAdjust);
                     items.Insert(~i, new Item(key, default(ValueType), countAdjust));
+                    return countAdjust;
                 }
                 else
                 {
                     // allow non-adding case
                     Debug.Assert(countAdjust == 0);
+                    return 0;
                 }
             }
         }
@@ -763,8 +767,8 @@ namespace TreeLibTest
 
             private int index;
             private EntryMultiRankMap<KeyType, ValueType> current;
-            private ushort mapVersion;
-            private ushort enumeratorVersion;
+            private uint mapVersion;
+            private uint enumeratorVersion;
 
             public Enumerator(ReferenceMultiRankMap<KeyType, ValueType> map, bool forward, bool robust, bool startKeyed, KeyType startKey)
             {
@@ -808,7 +812,7 @@ namespace TreeLibTest
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (((index >= 0) && (index < map.Count)) && (0 != Comparer<KeyType>.Default.Compare(current.Key, map.items[index].key)))
                 {
@@ -845,7 +849,7 @@ namespace TreeLibTest
             public void Reset()
             {
                 this.mapVersion = map.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 current = new EntryMultiRankMap<KeyType, ValueType>();
 
@@ -886,7 +890,7 @@ namespace TreeLibTest
                 }
             }
 
-            public void SetValue(ValueType value, ushort expectedEnumeratorVersion)
+            public void SetValue(ValueType value, uint expectedEnumeratorVersion)
             {
                 if ((!robust && (this.mapVersion != map.version)) || (this.enumeratorVersion != expectedEnumeratorVersion))
                 {

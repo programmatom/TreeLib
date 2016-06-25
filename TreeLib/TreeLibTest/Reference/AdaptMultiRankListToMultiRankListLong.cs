@@ -149,9 +149,9 @@ namespace TreeLibTest
             return inner.GetKeyByRank(IntLong.ToLong(rank));
         }
 
-        public void AdjustCount(KeyType key, int countAdjust)
+        public int AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(key, IntLong.ToLong(countAdjust));
+            return IntLong.ToInt(inner.AdjustCount(key, IntLong.ToLong(countAdjust)));
         }
 
         public bool Least(out KeyType leastOut)

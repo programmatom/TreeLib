@@ -35,8 +35,7 @@ namespace TreeLib
     /// for all relevant per-item data, including one or more of key, value, rank/count, and/or range start/length, as
     /// appropriate for the type of collection.
     /// </summary>
-    public struct EntryRankList<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType>
-    {
+    public struct EntryRankList<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType>     {
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private readonly KeyType key;
 

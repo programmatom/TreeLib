@@ -39,7 +39,7 @@ namespace TreeLibTest
         IEnumerable<EntryRankMap<KeyType, ValueType>>
         where KeyType : IComparable<KeyType>
     {
-        private readonly ReferenceMultiRankMap<KeyType, ValueType> inner = new ReferenceMultiRankMap<KeyType, ValueType>();
+        private ReferenceMultiRankMap<KeyType, ValueType> inner = new ReferenceMultiRankMap<KeyType, ValueType>();
 
         //
         // Construction
@@ -139,7 +139,7 @@ namespace TreeLibTest
             return inner.GetKeyByRank(rank);
         }
 
-        public void AdjustCount(KeyType key, int countAdjust)
+        public int AdjustCount(KeyType key, int countAdjust)
         {
             int count, rank;
             ValueType value;
@@ -149,7 +149,82 @@ namespace TreeLibTest
                 throw new ArgumentOutOfRangeException();
             }
 
-            inner.AdjustCount(key, countAdjust);
+            return inner.AdjustCount(key, countAdjust);
+        }
+
+        public void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            ValueType value;
+            bool resident = TryGetValue(key, out value);
+
+            uint version = inner.version;
+            ReferenceMultiRankMap<KeyType, ValueType> savedInner = inner;
+            inner = new ReferenceMultiRankMap<KeyType, ValueType>();
+            inner.version = savedInner.version;
+
+            bool add = predicate(key, ref value, resident);
+
+            savedInner.version = inner.version;
+            inner = savedInner;
+            if (version != inner.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (resident)
+            {
+                bool f = TrySetValue(key, value);
+                Debug.Assert(f);
+            }
+            else if (add)
+            {
+                bool f = TryAdd(key, value);
+                Debug.Assert(f);
+            }
+        }
+
+        public void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            ValueType value;
+            bool resident = TryGetValue(key, out value);
+
+            uint version = inner.version;
+            ReferenceMultiRankMap<KeyType, ValueType> savedInner = inner;
+            inner = new ReferenceMultiRankMap<KeyType, ValueType>();
+            inner.version = savedInner.version;
+
+            bool remove = predicate(key, ref value, resident);
+
+            savedInner.version = inner.version;
+            inner = savedInner;
+            if (version != inner.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (resident)
+            {
+                if (remove)
+                {
+                    bool f = TryRemove(key);
+                    Debug.Assert(f);
+                }
+                else
+                {
+                    bool f = TrySetValue(key, value);
+                    Debug.Assert(f);
+                }
+            }
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)
@@ -298,8 +373,8 @@ namespace TreeLibTest
             return new EntryRankMap<KeyType, ValueType>(
                 entry.Key,
                 entry.Value,
-                (ISetValue<ValueType>)entry.GetType().GetField("enumerator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
-                (ushort)entry.GetType().GetField("version", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                new SetValueWrapper<ValueType>(entry),
+                ((IGetEnumeratorSetValueInfo<ValueType>)entry).Version,
                 entry.Rank);
         }
 

@@ -93,7 +93,7 @@ namespace TreeLib
         [Payload(Payload.Value)]
         private readonly ISetValue<ValueType> enumerator;
         [Payload(Payload.Value)]
-        private readonly ushort version;
+        private readonly uint version;
 
         [Payload(Payload.Value)]
         public void SetValue(ValueType value)
@@ -105,7 +105,7 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
             [Payload(Payload.Value)] ValueType value,
             [Payload(Payload.Value)] ISetValue<ValueType> enumerator,
-            [Payload(Payload.Value)] ushort version,
+            [Payload(Payload.Value)] uint version,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
             [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
             [Feature(Feature.Range2)][Widen] int yStart,
@@ -225,6 +225,7 @@ namespace TreeLib
                 return left.node != right.node;
             }
 
+            [ExcludeFromCodeCoverage]
             public override bool Equals(object obj)
             {
                 return node.Equals((NodeRef)obj);
@@ -291,6 +292,7 @@ namespace TreeLib
                 return left.node != right.node;
             }
 
+            [ExcludeFromCodeCoverage]
             public override bool Equals(object obj)
             {
                 return node == (uint)obj;
@@ -319,7 +321,7 @@ namespace TreeLib
         private NodeRef root;
         [Count]
         private ulong count;
-        private ushort version;
+        private uint version;
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
@@ -687,7 +689,9 @@ namespace TreeLib
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/0,
                 true/*add*/,
-                true/*update*/);
+                true/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Feature(Feature.Dict)]
@@ -702,7 +706,9 @@ namespace TreeLib
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/0,
                 true/*add*/,
-                false/*update*/);
+                false/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
@@ -712,7 +718,9 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature()]*/CompareKeyMode.Key);
+                /*[Feature()]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Payload(Payload.None)]
@@ -742,7 +750,9 @@ namespace TreeLib
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/0,
                 false/*add*/,
-                true/*update*/);
+                true/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Payload(Payload.Value)]
@@ -772,7 +782,9 @@ namespace TreeLib
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/0,
                 false/*add*/,
-                true/*update*/);
+                true/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Feature(Feature.Dict)]
@@ -787,7 +799,9 @@ namespace TreeLib
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/0,
                 true/*add*/,
-                false/*update*/))
+                false/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/))
             {
                 throw new ArgumentException("item already in tree");
             }
@@ -800,7 +814,9 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature()]*/CompareKeyMode.Key))
+                /*[Feature()]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -848,6 +864,57 @@ namespace TreeLib
             {
                 throw new ArgumentException("item not in tree");
             }
+        }
+
+        [Feature(Feature.Dict, Feature.Rank)]
+        public void ConditionalSetOrAdd(KeyType key, [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap, [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        {
+            /*[Payload(Payload.Value)]*/
+            if (predicateMap == null)
+            {
+                throw new ArgumentNullException();
+            }
+            /*[Payload(Payload.None)]*/
+            if (predicateList == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            InsertUpdateInternal(
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Payload(Payload.Value)]*/default(ValueType),
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Range2)]*/(Side)0,
+                /*[Feature()]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/1,
+                /*[Feature(Feature.Range2)]*/0,
+                false/*add - overridden by predicate*/,
+                true/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/predicateMap,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/predicateList);
+        }
+
+        [Feature(Feature.Dict, Feature.Rank)]
+        public void ConditionalSetOrRemove(KeyType key, [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap, [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        {
+            /*[Payload(Payload.Value)]*/
+            if (predicateMap == null)
+            {
+                throw new ArgumentNullException();
+            }
+            /*[Payload(Payload.None)]*/
+            if (predicateList == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            DeleteInternal(
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                /*[Feature(Feature.Range2)]*/(Side)0,
+                /*[Feature()]*/CompareKeyMode.Key,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/predicateMap,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/predicateList);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
@@ -928,7 +995,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
@@ -947,7 +1014,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
@@ -967,7 +1034,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
@@ -994,7 +1061,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
@@ -1013,7 +1080,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
@@ -1033,7 +1100,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
@@ -1060,7 +1127,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
@@ -1079,7 +1146,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
@@ -1099,7 +1166,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 true/*orEqual*/);
@@ -1126,7 +1193,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
@@ -1145,7 +1212,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
@@ -1165,7 +1232,7 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                 /*[Feature(Feature.Range2)]*/(Side)0,
-                /*[Feature(Feature.Rank, Feature.RankMulti)]*/CompareKeyMode.Key,
+                /*[Feature(Feature.RankMulti)]*/CompareKeyMode.Key,
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
                 false/*orEqual*/);
@@ -1226,7 +1293,9 @@ namespace TreeLib
                 xLength,
                 /*[Feature(Feature.Range2)]*/yLength,
                 true/*add*/,
-                false/*update*/);
+                false/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Feature(Feature.Range, Feature.Range2)]
@@ -1236,7 +1305,9 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/default(KeyType),
                 start,
                 /*[Feature(Feature.Range2)]*/side,
-                /*[Feature()]*/CompareKeyMode.Position);
+                /*[Feature()]*/CompareKeyMode.Position,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         [Feature(Feature.Range, Feature.Range2)]
@@ -1363,6 +1434,7 @@ namespace TreeLib
             return false;
         }
 
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public bool TrySet([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int xLength, [Feature(Feature.Range2)][Widen] int yLength, [Payload(Payload.Value)] ValueType value)
         {
@@ -1477,6 +1549,7 @@ namespace TreeLib
             }
         }
 
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public void Set([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int xLength, [Feature(Feature.Range2)][Widen] int yLength, [Payload(Payload.Value)] ValueType value)
         {
@@ -1670,7 +1743,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] int startIndex, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int xAdjust, [Feature(Feature.Range2)] [Widen] int yAdjust)
+        [Widen]
+        public int AdjustLength([Widen] int startIndex, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int xAdjust, [Feature(Feature.Range2)] [Widen] int yAdjust)
         {
             unchecked
             {
@@ -1714,6 +1788,8 @@ namespace TreeLib
                     this.yExtent = newYExtent;
 
                     ShiftRightOfPath(unchecked(startIndex + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+
+                    return side == Side.X ? newXLength : newYLength;
                 }
                 else
                 {
@@ -1729,7 +1805,11 @@ namespace TreeLib
                         /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/default(KeyType),
                         startIndex,
                         /*[Feature(Feature.Range2)]*/side,
-                        /*[Feature()]*/CompareKeyMode.Position);
+                        /*[Feature()]*/CompareKeyMode.Position,
+                        /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                        /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
+
+                    return 0;
                 }
             }
         }
@@ -1764,7 +1844,9 @@ namespace TreeLib
                 rankCount,
                 /*[Feature(Feature.Range2)]*/0,
                 true/*add*/,
-                false/*update*/);
+                false/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
         }
 
         // TryRemove() - reuses Feature.Dict implementation
@@ -1905,7 +1987,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public void AdjustCount(KeyType key, [Widen] int countAdjust)
+        [Widen]
+        public int AdjustCount(KeyType key, [Widen] int countAdjust)
         {
             unchecked
             {
@@ -1933,6 +2016,8 @@ namespace TreeLib
                         this.xExtent = checked(this.xExtent + countAdjust);
 
                         ShiftRightOfPath(xPosition + 1, /*[Feature(Feature.Range2)]*/Side.X, countAdjust, /*[Feature(Feature.Range2)]*/0);
+
+                        return adjustedLength;
                     }
                     else if (xLength + countAdjust == 0)
                     {
@@ -1942,7 +2027,11 @@ namespace TreeLib
                             /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
                             /*[Feature(Feature.Range2)]*/(Side)0,
-                            /*[Feature()]*/CompareKeyMode.Key);
+                            /*[Feature()]*/CompareKeyMode.Key,
+                            /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/,
+                            /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.None)]*/null/*predicateList*/);
+
+                        return 0;
                     }
                     else
                     {
@@ -1966,11 +2055,14 @@ namespace TreeLib
                         }
 
                         Add(key, /*[Payload(Payload.Value)]*/default(ValueType), /*[Feature(Feature.RankMulti)]*/countAdjust);
+
+                        return countAdjust;
                     }
                     else
                     {
                         // allow non-adding case
                         Debug.Assert(countAdjust == 0);
+                        return 0;
                     }
                 }
             }
@@ -2145,7 +2237,7 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
             [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
-            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,
+            [Feature(Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict, Feature.Rank)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.RankMulti)] CompareKeyMode mode,
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
             bool orEqual)
@@ -2224,7 +2316,7 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
             [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
-            [Feature(Feature.Rank, Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.Rank, Feature.RankMulti)] CompareKeyMode mode,
+            [Feature(Feature.RankMulti)] [Const(CompareKeyMode.Key, Feature.Dict, Feature.Rank)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] [SuppressConst(Feature.RankMulti)] CompareKeyMode mode,
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
             bool orEqual)
@@ -2298,6 +2390,90 @@ namespace TreeLib
             return false;
         }
 
+        [Feature(Feature.Dict, Feature.Rank)]
+        private bool PredicateAddRemoveOverrideCore(
+            bool initial,
+            bool resident,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,
+            [Payload(Payload.Value)]ref ValueType value,
+            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap,
+            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        {
+            uint version = this.version;
+
+            // very crude protection against completely trashing the tree if the predicate tries to modify it
+            NodeRef savedRoot = this.root;
+            this.root = Null;
+            /*[Count]*/
+            ulong savedCount = this.count;
+            this.count = 0;
+            /*[Widen]*/
+            int savedXExtent = this.xExtent;
+            this.xExtent = 0;
+            /*[Widen]*/
+            int savedYExtent = this.yExtent;
+            this.yExtent = 0;
+            try
+            {
+                /*[Payload(Payload.Value)]*/
+                initial = predicateMap(key, ref value, resident);
+                // OR
+                /*[Payload(Payload.None)]*/
+                {
+                    KeyType localKey = key;
+                    initial = predicateList(ref localKey, resident);
+                    if (0 != comparer.Compare(key, localKey))
+                    {
+                        throw new ArgumentException();
+                    }
+                    key = localKey;
+                }
+            }
+            finally
+            {
+                this.root = savedRoot;
+                this.count = savedCount;
+                this.xExtent = savedXExtent;
+                this.yExtent = savedYExtent;
+            }
+
+            if (version != this.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return initial;
+        }
+
+        [Feature(Feature.Dict, Feature.Rank)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool PredicateAddRemoveOverride(
+            bool initial,
+            bool resident,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,
+            [Payload(Payload.Value)]ref ValueType value,
+            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap,
+            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        {
+            bool predicateExists = false;
+            /*[Payload(Payload.Value)]*/
+            predicateExists = predicateMap != null;
+            /*[Payload(Payload.None)]*/
+            predicateExists = predicateList != null;
+            if (predicateExists)
+            {
+                initial = PredicateAddRemoveOverrideCore(
+                    initial,
+                    resident,
+                    /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ref key,
+                    /*[Payload(Payload.Value)]*/ref value,
+                    /*[Payload(Payload.Value)]*/predicateMap,
+                    /*[Payload(Payload.None)]*/predicateList);
+            }
+
+            return initial;
+        }
+
         // Searches tree for key location.
         // If key is not present and add==true, node is inserted.
         // If key is preset and update==true, value is replaced.
@@ -2312,16 +2488,28 @@ namespace TreeLib
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
             [Feature(Feature.Range2)][Widen] int yLength,
             bool add,
-            bool update)
+            bool update,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             Debug.Assert((mode == CompareKeyMode.Key) || (add != update));
 
             if (root == Null)
             {
+                /*[Feature(Feature.Dict, Feature.Rank)]*/
+                add = PredicateAddRemoveOverride(
+                    add,
+                    false/*resident*/,
+                    ref key,
+                    /*[Payload(Payload.Value)]*/ref value,
+                    /*[Payload(Payload.Value)]*/predicateMap,
+                    /*[Payload(Payload.None)]*/predicateList);
+
                 if (!add)
                 {
                     return false;
                 }
+
                 if (mode == CompareKeyMode.Position)
                 {
                     if (position != 0)
@@ -2340,235 +2528,254 @@ namespace TreeLib
 
                 Debug.Assert(this.count == 0);
                 this.count = 1;
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 return true;
             }
 
-            // Search for a node at bottom to insert the new node. 
-            // If we can guarantee the node we found is not a 4-node, it would be easy to do insertion.
-            // We split 4-nodes along the search path.
-            NodeRef current = root;
-            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-            /*[Widen]*/
-            int xPositionCurrent = 0;
-            /*[Feature(Feature.Range2)]*/
-            /*[Widen]*/
-            int yPositionCurrent = 0;
-            NodeRef parent = Null;
-            NodeRef grandParent = Null;
-            NodeRef greatGrandParent = Null;
-
-            NodeRef successor = Null;
-            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-            /*[Widen]*/
-            int xPositionSuccessor = 0;
-            /*[Feature(Feature.Range2)]*/
-            /*[Widen]*/
-            int yPositionSuccessor = 0;
-
-            //even if we don't actually add to the set, we may be altering its structure (by doing rotations
-            //and such). so update version to disable any enumerators/subsets working on it
-            this.version = unchecked((ushort)(this.version + 1));
-
-            int order = 0;
-            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-            /*[Widen]*/
-            int xPositionParent = 0;
-            /*[Feature(Feature.Range2)]*/
-            /*[Widen]*/
-            int yPositionParent = 0;
-            while (current != Null)
+            try
             {
-                unchecked
-                {
-                    xPositionCurrent += nodes[current].xOffset;
-                    yPositionCurrent += nodes[current].yOffset;
-                }
-
-                if (mode == CompareKeyMode.Key)
-                {
-                    order = comparer.Compare(key, nodes[current].key);
-                }
-                else
-                {
-                    Debug.Assert(mode == CompareKeyMode.Position);
-                    order = position.CompareTo(side == Side.X ? xPositionCurrent : yPositionCurrent);
-                    if (add && (order == 0))
-                    {
-                        order = -1; // node never found for sparse range mode
-                    }
-                }
-
-                if (order == 0)
-                {
-                    // We could have changed root node to red during the search process.
-                    // We need to set it to black before we return.
-                    nodes[root].isRed = false;
-                    if (update)
-                    {
-                        nodes[current].key = key;
-                        nodes[current].value = value;
-                    }
-                    return !add;
-                }
-
-                // split a 4-node into two 2-nodes                
-                if (Is4Node(current))
-                {
-                    Split4Node(current);
-                    // We could have introduced two consecutive red nodes after split. Fix that by rotation.
-                    if (IsRed(parent))
-                    {
-                        InsertionBalance(current, ref parent, grandParent, greatGrandParent);
-                    }
-                }
-                greatGrandParent = grandParent;
-                grandParent = parent;
-                parent = current;
-                xPositionParent = xPositionCurrent;
-                yPositionParent = yPositionCurrent;
-                if (order < 0)
-                {
-                    successor = parent;
-                    xPositionSuccessor = xPositionParent;
-                    yPositionSuccessor = yPositionParent;
-
-                    current = nodes[current].left;
-                }
-                else
-                {
-                    current = nodes[current].right;
-                }
-            }
-            Debug.Assert(current == Null);
-
-            Debug.Assert(parent != Null, "Parent node cannot be null here!");
-            // ready to insert the new node
-            if (!add)
-            {
-                nodes[root].isRed = false;
-                return false;
-            }
-
-            NodeRef node;
-            if (order > 0)
-            {
-                // follows parent
-
-                Debug.Assert(nodes[parent].right == Null);
+                // Search for a node at bottom to insert the new node. 
+                // If we can guarantee the node we found is not a 4-node, it would be easy to do insertion.
+                // We split 4-nodes along the search path.
+                NodeRef current = root;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 /*[Widen]*/
-                int xLengthParent;
+                int xPositionCurrent = 0;
                 /*[Feature(Feature.Range2)]*/
                 /*[Widen]*/
-                int yLengthParent;
-                if (successor != Null)
-                {
-                    xLengthParent = xPositionSuccessor - xPositionParent;
-                    yLengthParent = yPositionSuccessor - yPositionParent;
-                }
-                else
-                {
-                    xLengthParent = this.xExtent - xPositionParent;
-                    yLengthParent = this.yExtent - yPositionParent;
-                }
+                int yPositionCurrent = 0;
+                NodeRef parent = Null;
+                NodeRef grandParent = Null;
+                NodeRef greatGrandParent = Null;
 
+                NodeRef successor = Null;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                if ((mode == CompareKeyMode.Position)
-                    && (position != unchecked(side == Side.X ? xPositionParent + xLengthParent : yPositionParent + yLengthParent)))
+                /*[Widen]*/
+                int xPositionSuccessor = 0;
+                /*[Feature(Feature.Range2)]*/
+                /*[Widen]*/
+                int yPositionSuccessor = 0;
+
+                //even if we don't actually add to the set, we may be altering its structure (by doing rotations
+                //and such). so update version to disable any enumerators/subsets working on it
+                this.version = unchecked(this.version + 1);
+
+                int order = 0;
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                /*[Widen]*/
+                int xPositionParent = 0;
+                /*[Feature(Feature.Range2)]*/
+                /*[Widen]*/
+                int yPositionParent = 0;
+                while (current != Null)
                 {
-                    nodes[root].isRed = false;
+                    unchecked
+                    {
+                        xPositionCurrent += nodes[current].xOffset;
+                        yPositionCurrent += nodes[current].yOffset;
+                    }
+
+                    if (mode == CompareKeyMode.Key)
+                    {
+                        order = comparer.Compare(key, nodes[current].key);
+                    }
+                    else
+                    {
+                        Debug.Assert(mode == CompareKeyMode.Position);
+                        order = position.CompareTo(side == Side.X ? xPositionCurrent : yPositionCurrent);
+                        if (add && (order == 0))
+                        {
+                            order = -1; // node never found for sparse range mode
+                        }
+                    }
+
+                    if (order == 0)
+                    {
+                        bool predicateExists = false;
+                        /*[Payload(Payload.Value)]*/
+                        predicateExists = predicateMap != null;
+                        /*[Payload(Payload.None)]*/
+                        predicateExists = predicateList != null;
+                        if (predicateExists)
+                        {
+                            value = nodes[current].value;
+                            /*[Feature(Feature.Dict, Feature.Rank)]*/
+                            PredicateAddRemoveOverride(
+                                false/*initial*/,
+                                true/*resident*/,
+                                ref key,
+                                /*[Payload(Payload.Value)]*/ref value,
+                                /*[Payload(Payload.Value)]*/predicateMap,
+                                /*[Payload(Payload.None)]*/predicateList);
+                        }
+
+                        if (update)
+                        {
+                            /*[Payload(Payload.None)]*/
+                            {
+                                Debug.Assert(0 == comparer.Compare(nodes[current].key, key));
+                                nodes[current].key = key;
+                            }
+                            nodes[current].value = value;
+                        }
+
+                        // We could have changed root node to red during the search process.
+                        // We need to set it to black before we return.
+                        // nodes[root].isRed = false; -- moved to finally block
+                        return !add;
+                    }
+
+                    // split a 4-node into two 2-nodes                
+                    if (Is4Node(current))
+                    {
+                        Split4Node(current);
+                        // We could have introduced two consecutive red nodes after split. Fix that by rotation.
+                        if (IsRed(parent))
+                        {
+                            InsertionBalance(current, ref parent, grandParent, greatGrandParent);
+                        }
+                    }
+                    greatGrandParent = grandParent;
+                    grandParent = parent;
+                    parent = current;
+                    xPositionParent = xPositionCurrent;
+                    yPositionParent = yPositionCurrent;
+                    if (order < 0)
+                    {
+                        successor = parent;
+                        xPositionSuccessor = xPositionParent;
+                        yPositionSuccessor = yPositionParent;
+
+                        current = nodes[current].left;
+                    }
+                    else
+                    {
+                        current = nodes[current].right;
+                    }
+                }
+                Debug.Assert(current == Null);
+
+                Debug.Assert(parent != Null, "Parent node cannot be null here!");
+
+                /*[Feature(Feature.Dict, Feature.Rank)]*/
+                add = PredicateAddRemoveOverride(
+                    add,
+                    false/*resident*/,
+                    ref key,
+                    /*[Payload(Payload.Value)]*/ref value,
+                    /*[Payload(Payload.Value)]*/predicateMap,
+                    /*[Payload(Payload.None)]*/predicateList);
+
+                // ready to insert the new node
+                if (!add)
+                {
                     return false;
                 }
 
-                // compute here to throw before modifying tree
-                /*[Widen]*/
-                int xExtentNew, yExtentNew;
-                /*[Count]*/
-                ulong countNew;
-                try
+                NodeRef node;
+                if (order > 0)
                 {
-                    xExtentNew = checked(this.xExtent + xLength);
-                    yExtentNew = checked(this.yExtent + yLength);
-                    countNew = checked(this.count + 1);
-                }
-                catch (OverflowException)
-                {
-                    nodes[root].isRed = false;
-                    throw;
-                }
+                    // follows parent
 
-                node = Allocate(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value);
-
-                ShiftRightOfPath(unchecked(xPositionParent + 1), /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
-
-                nodes[parent].right = node;
-
-                nodes[node].xOffset = xLengthParent;
-                nodes[node].yOffset = yLengthParent;
-
-                this.xExtent = xExtentNew;
-                this.yExtent = yExtentNew;
-                this.count = countNew;
-            }
-            else
-            {
-                // precedes parent
-
-                if (mode == CompareKeyMode.Position)
-                {
+                    Debug.Assert(nodes[parent].right == Null);
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     /*[Widen]*/
-                    int positionParent = side == Side.X ? xPositionParent : yPositionParent;
-                    if (position != positionParent)
+                    int xLengthParent;
+                    /*[Feature(Feature.Range2)]*/
+                    /*[Widen]*/
+                    int yLengthParent;
+                    if (successor != Null)
+                    {
+                        xLengthParent = xPositionSuccessor - xPositionParent;
+                        yLengthParent = yPositionSuccessor - yPositionParent;
+                    }
+                    else
+                    {
+                        xLengthParent = this.xExtent - xPositionParent;
+                        yLengthParent = this.yExtent - yPositionParent;
+                    }
+
+                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    if ((mode == CompareKeyMode.Position)
+                        && (position != unchecked(side == Side.X ? xPositionParent + xLengthParent : yPositionParent + yLengthParent)))
                     {
                         nodes[root].isRed = false;
                         return false;
                     }
-                }
 
-                // compute here to throw before modifying tree
-                /*[Widen]*/
-                int xExtentNew, yExtentNew;
-                /*[Count]*/
-                ulong countNew;
-                try
+                    // compute here to throw before modifying tree
+                    /*[Widen]*/
+                    int xExtentNew = checked(this.xExtent + xLength);
+                    /*[Widen]*/
+                    int yExtentNew = checked(this.yExtent + yLength);
+                    /*[Count]*/
+                    ulong countNew = checked(this.count + 1);
+
+                    node = Allocate(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value);
+
+                    ShiftRightOfPath(unchecked(xPositionParent + 1), /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
+
+                    nodes[parent].right = node;
+
+                    nodes[node].xOffset = xLengthParent;
+                    nodes[node].yOffset = yLengthParent;
+
+                    this.xExtent = xExtentNew;
+                    this.yExtent = yExtentNew;
+                    this.count = countNew;
+                }
+                else
                 {
-                    xExtentNew = checked(this.xExtent + xLength);
-                    yExtentNew = checked(this.yExtent + yLength);
-                    countNew = checked(this.count + 1);
+                    // precedes parent
+
+                    if (mode == CompareKeyMode.Position)
+                    {
+                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        /*[Widen]*/
+                        int positionParent = side == Side.X ? xPositionParent : yPositionParent;
+                        if (position != positionParent)
+                        {
+                            nodes[root].isRed = false;
+                            return false;
+                        }
+                    }
+
+                    // compute here to throw before modifying tree
+                    /*[Widen]*/
+                    int xExtentNew = checked(this.xExtent + xLength);
+                    /*[Widen]*/
+                    int yExtentNew = checked(this.yExtent + yLength);
+                    /*[Count]*/
+                    ulong countNew = checked(this.count + 1);
+
+                    Debug.Assert(parent == successor);
+
+                    node = Allocate(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value);
+
+                    ShiftRightOfPath(xPositionParent, /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
+
+                    nodes[parent].left = node;
+
+                    nodes[node].xOffset = unchecked(-xLength);
+                    nodes[node].yOffset = unchecked(-yLength);
+
+                    this.xExtent = xExtentNew;
+                    this.yExtent = yExtentNew;
+                    this.count = countNew;
                 }
-                catch (OverflowException)
+
+                // the new node will be red, so we will need to adjust the colors if parent node is also red
+                if (nodes[parent].isRed)
                 {
-                    nodes[root].isRed = false;
-                    throw;
+                    InsertionBalance(node, ref parent, grandParent, greatGrandParent);
                 }
-
-                Debug.Assert(parent == successor);
-
-                node = Allocate(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value);
-
-                ShiftRightOfPath(xPositionParent, /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
-
-                nodes[parent].left = node;
-
-                nodes[node].xOffset = -xLength;
-                nodes[node].yOffset = -yLength;
-
-                this.xExtent = xExtentNew;
-                this.yExtent = yExtentNew;
-                this.count = countNew;
             }
-
-            // the new node will be red, so we will need to adjust the colors if parent node is also red
-            if (nodes[parent].isRed)
+            finally
             {
-                InsertionBalance(node, ref parent, grandParent, greatGrandParent);
+                // root node is always black
+                nodes[root].isRed = false;
             }
-
-            // Root node is always black
-            nodes[root].isRed = false;
 
             return true;
         }
@@ -2625,8 +2832,10 @@ namespace TreeLib
         private bool DeleteInternal(
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
-            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
-            [Feature()] [Const(CompareKeyMode.Key, Feature.Dict, Feature.Rank, Feature.RankMulti)] [Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] CompareKeyMode mode)
+            [Feature(Feature.Range2)][Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)][SuppressConst(Feature.Range2)] Side side,
+            [Feature()][Const(CompareKeyMode.Key, Feature.Dict, Feature.Rank, Feature.RankMulti)][Const2(CompareKeyMode.Position, Feature.Range, Feature.Range2)] CompareKeyMode mode,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             unchecked
             {
@@ -2645,7 +2854,7 @@ namespace TreeLib
 
                 //even if we don't actually remove from the set, we may be altering its structure (by doing rotations
                 //and such). so update version to disable any enumerators/subsets working on it
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 NodeRef current = root;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
@@ -2834,6 +3043,39 @@ namespace TreeLib
 
                     if (order == 0)
                     {
+                        /*[Feature(Feature.Dict, Feature.Rank)] */
+                        {
+                            try
+                            {
+                                ValueType value = nodes[current].value;
+                                bool remove = PredicateAddRemoveOverride(
+                                    true/*initial*/,
+                                    true/*resident*/,
+                                    ref key,
+                                    /*[Payload(Payload.Value)]*/ref value,
+                                    /*[Payload(Payload.Value)]*/predicateMap,
+                                    /*[Payload(Payload.None)]*/predicateList);
+
+                                if (!remove)
+                                {
+                                    /*[Payload(Payload.None)]*/
+                                    {
+                                        Debug.Assert(0 == comparer.Compare(nodes[current].key, key));
+                                        nodes[current].key = key;
+                                    }
+                                    nodes[current].value = value;
+
+                                    nodes[root].isRed = false;
+                                    return false;
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                nodes[root].isRed = false;
+                                throw;
+                            }
+                        }
+
                         // save the matching node
                         foundMatch = true;
                         match = current;
@@ -4187,7 +4429,7 @@ namespace TreeLib
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
@@ -4199,7 +4441,7 @@ namespace TreeLib
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(RedBlackTree<KeyType, ValueType> tree, bool forward)
             {
@@ -4349,7 +4591,7 @@ namespace TreeLib
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -4446,11 +4688,11 @@ namespace TreeLib
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 this.treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value, ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -4494,8 +4736,8 @@ namespace TreeLib
             [Feature(Feature.Range2)]
             private readonly Side side;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private NodeRef currentNode;
             private NodeRef leadingNode;
@@ -4764,7 +5006,7 @@ namespace TreeLib
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     previousYStart = currentYStart;
@@ -4816,7 +5058,7 @@ namespace TreeLib
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value, ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

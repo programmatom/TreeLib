@@ -171,7 +171,7 @@ namespace TreeLibTest
             SplayTreeMap<int, int> tree = new SplayTreeMap<int, int>();
             tree.Add(1, 1);
             tree.Add(2, 2);
-            TreeInspection.Dump(tree);
+            TestBase.Dump(tree);
 
             Console.SetOut(savedOutput);
         }
@@ -347,7 +347,7 @@ namespace TreeLibTest
 
         private readonly static string[] StochasticTokens = new string[StochasticTestCount]
         {
-            "map", "range", "range2", "rangelist", "range2list", "rank", "multirank", "hugelist"
+            "map", "rangemap", "range2map", "rangelist", "range2list", "rankmap", "multirankmap", "hugelist"
         };
 
         private readonly static int[] ReportingIntervals = new int[] { 100, 250, 500, 1000, 1250, 2500, 5000, 10000, 12500, 25000 };
@@ -372,7 +372,7 @@ namespace TreeLibTest
                     new ConsoleBuffer("Map/List Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
                 new StochasticTestEntry(
-                    StochasticTokens[Array.IndexOf(StochasticTokens, "range")],
+                    StochasticTokens[Array.IndexOf(StochasticTokens, "rangemap")],
                     new StochasticTestRangeMap(options.breakIterations, 0),
                     new ConsoleBuffer("Range Map Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
@@ -382,7 +382,7 @@ namespace TreeLibTest
                     new ConsoleBuffer("Range List Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
                 new StochasticTestEntry(
-                    StochasticTokens[Array.IndexOf(StochasticTokens, "range2")],
+                    StochasticTokens[Array.IndexOf(StochasticTokens, "range2map")],
                     new StochasticTestRange2Map(options.breakIterations, 0),
                     new ConsoleBuffer("Range2 Map Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
@@ -392,12 +392,12 @@ namespace TreeLibTest
                     new ConsoleBuffer("Range2 List Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
                 new StochasticTestEntry(
-                    StochasticTokens[Array.IndexOf(StochasticTokens, "rank")],
+                    StochasticTokens[Array.IndexOf(StochasticTokens, "rankmap")],
                     new StochasticTestRankMap(options.breakIterations, 0),
                     new ConsoleBuffer("Rank Map Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
                 new StochasticTestEntry(
-                    StochasticTokens[Array.IndexOf(StochasticTokens, "multirank")],
+                    StochasticTokens[Array.IndexOf(StochasticTokens, "multirankmap")],
                     new StochasticTestMultiRankMap(options.breakIterations, 0),
                     new ConsoleBuffer("MultiRank Map Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),

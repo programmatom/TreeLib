@@ -98,7 +98,6 @@
     <Compile Include="Reference\ReferenceMultiRankMap.cs" />
     <Compile Include="Reference\ReferenceMap.cs" />
     <Compile Include="TestBase.cs" />
-    <Compile Include="TreeInspection.cs" />
     <Compile Include="StochasticTest\StochasticTestMap.cs" />
     <Compile Include="UnitTest\UnitTestRankMap.cs" />
     <Compile Include="UnitTest\UnitTestMap.cs" />

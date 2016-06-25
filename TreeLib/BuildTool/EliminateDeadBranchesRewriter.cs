@@ -362,6 +362,19 @@ namespace BuildTool
             return node;
         }
 
+        public override SyntaxNode VisitCheckedStatement(CheckedStatementSyntax node)
+        {
+            node = (CheckedStatementSyntax)base.VisitCheckedStatement(node);
+
+            if (node.Block.Statements.Count == 0)
+            {
+                Changed = true;
+                return SyntaxFactory.EmptyStatement();
+            }
+
+            return node;
+        }
+
 #if false // TODO: not working - eliminating too aggressively
         public override SyntaxNode VisitBlock(BlockSyntax node)
         {

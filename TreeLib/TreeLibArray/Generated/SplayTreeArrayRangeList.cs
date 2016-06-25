@@ -113,6 +113,7 @@ namespace TreeLib
                 return left.node != right.node;
             }
 
+            [ExcludeFromCodeCoverage]
             public override bool Equals(object obj)
             {
                 return node == (uint)obj;
@@ -152,7 +153,7 @@ namespace TreeLib
         private readonly AllocationMode allocationMode;
         private NodeRef freelist;
 
-        private ushort version;
+        private uint version;
 
         // Array
 
@@ -572,60 +573,6 @@ uint countNew = checked(this.count + 1);
             }
         }
 
-        [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySet([Widen] int start,[Widen] int xLength)
-        {
-            if (xLength < 0)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            if (root != Nil)
-            {
-                Splay2(ref root, start);
-                if (start == Start(root))
-                {
-                    /*[Widen]*/
-                    int xLengthOld;
-                    if (nodes[root].right != Nil)
-                    {
-                        Splay2(ref nodes[root].right, 0);
-                        Debug.Assert(nodes[nodes[root].right].left == Nil);
-                        xLengthOld = nodes[nodes[root].right].xOffset;
-                    }
-                    else
-                    {
-                        xLengthOld = unchecked(this.xExtent - nodes[root].xOffset);
-                    }
-
-                    /*[Widen]*/
-                    int xAdjust = xLength != 0 ? xLength - xLengthOld : 0;
-
-                    /*[Widen]*/
-                    int xExtentNew = checked(this.xExtent + xAdjust);
-                    // throw overflow before updating anything
-                    this.xExtent = xExtentNew;
-
-                    if (nodes[root].right != Nil)
-                    {
-                        unchecked
-                        {
-                            nodes[nodes[root].right].xOffset += xAdjust;
-                        }
-                    }
-                    if (nodes[root].right != Nil)
-                    {
-                        unchecked
-                        {
-                        }
-                    }
-
-                    return true;
-                }
-            }
-            return false;
-        }
-
         
         /// <summary>
         /// Inserts a range of a given length at the specified start index.
@@ -707,15 +654,6 @@ uint countNew = checked(this.count + 1);
         public void Get([Widen] int start,[Widen] out int xLength)
         {
             if (!TryGet(start, out xLength))
-            {
-                throw new ArgumentException("item not in tree");
-            }
-        }
-
-        [Feature(Feature.Range, Feature.Range2)]
-        public void Set([Widen] int start,[Widen] int xLength)
-        {
-            if (!TrySet(start, xLength))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -986,11 +924,13 @@ uint countNew = checked(this.count + 1);
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] int startIndex,[Widen] int xAdjust)
+        [Widen]
+        public int AdjustLength([Widen] int startIndex,[Widen] int xAdjust)
         {
             unchecked
             {
@@ -1027,6 +967,8 @@ uint countNew = checked(this.count + 1);
                     {
                         nodes[nodes[root].right].xOffset += xAdjust;
                     }
+
+                    return newXLength;
                 }
                 else
                 {
@@ -1064,6 +1006,8 @@ uint countNew = checked(this.count + 1);
                     this.count = unchecked(this.count - 1);
                     this.xExtent = unchecked(this.xExtent - oldXLength);
                     Free(dead);
+
+                    return 0;
                 }
             }
         }
@@ -1132,12 +1076,11 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [EnableFixed]
         private void Splay2(ref NodeRef root,[Widen] int position)
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root == Nil)
                 {
@@ -1739,7 +1682,7 @@ uint countNew = checked(this.count + 1);
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
             //
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
@@ -1748,7 +1691,7 @@ uint countNew = checked(this.count + 1);
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(SplayTreeArrayRangeList tree,bool forward)
             {
@@ -1826,7 +1769,7 @@ uint countNew = checked(this.count + 1);
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -1892,7 +1835,7 @@ uint countNew = checked(this.count + 1);
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
         }
 
@@ -1914,8 +1857,8 @@ uint countNew = checked(this.count + 1);
             [Widen]
             private readonly int startStart;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private NodeRef currentNode;
             private NodeRef leadingNode;
@@ -2136,7 +2079,7 @@ uint countNew = checked(this.count + 1);
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     currentNode = leadingNode;

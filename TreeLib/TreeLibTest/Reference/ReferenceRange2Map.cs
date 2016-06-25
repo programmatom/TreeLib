@@ -38,7 +38,7 @@ namespace TreeLibTest
         IEnumerable<EntryRange2Map<ValueType>>
     {
         private readonly List<Tuple<int, int, ValueType>> items = new List<Tuple<int, int, ValueType>>();
-        private ushort version;
+        private uint version;
 
         //
         // Construction
@@ -107,7 +107,7 @@ namespace TreeLibTest
                 int overflowX = checked(xLength + GetExtent(Side.X));
                 int overflowY = checked(yLength + GetExtent(Side.Y));
                 items.Insert(index, new Tuple<int, int, ValueType>(xLength, yLength, value));
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
                 return true;
             }
             return false;
@@ -119,7 +119,7 @@ namespace TreeLibTest
             if (Find(start, side, out index, out xStart, out yStart, false/*includeEnd*/))
             {
                 items.RemoveAt(index);
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
                 return true;
             }
             return false;
@@ -289,7 +289,7 @@ namespace TreeLibTest
             }
         }
 
-        public void AdjustLength(int start, Side side, int xAdjust, int yAdjust)
+        public int AdjustLength(int start, Side side, int xAdjust, int yAdjust)
         {
             int index, xStart, yStart;
             if (!Find(start, side, out index, out xStart, out yStart, false/*includeEnd*/))
@@ -321,10 +321,13 @@ namespace TreeLibTest
                     newXLength,
                     newYLength,
                     old.Item3);
+
+                return side == Side.X ? newXLength : newYLength;
             }
             else
             {
                 items.RemoveAt(index);
+                return 0;
             }
         }
 
@@ -573,8 +576,8 @@ namespace TreeLibTest
             private readonly Side side;
 
             private int index;
-            private ushort mapVersion;
-            private ushort enumeratorVersion;
+            private uint mapVersion;
+            private uint enumeratorVersion;
 
             public Enumerator(ReferenceRange2Map<ValueType> map, bool forward, bool robust, bool startIndexed, int startIndex, Side side)
             {
@@ -626,7 +629,7 @@ namespace TreeLibTest
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 index = index + (forward ? 1 : -1);
                 return (index >= 0) && (index < map.items.Count);
@@ -635,7 +638,7 @@ namespace TreeLibTest
             public void Reset()
             {
                 this.mapVersion = map.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (forward)
                 {
@@ -668,7 +671,7 @@ namespace TreeLibTest
                 }
             }
 
-            public void SetValue(ValueType value, ushort expectedEnumeratorVersion)
+            public void SetValue(ValueType value, uint expectedEnumeratorVersion)
             {
                 if ((/*!robust && */(this.mapVersion != map.version)) || (this.enumeratorVersion != expectedEnumeratorVersion))
                 {

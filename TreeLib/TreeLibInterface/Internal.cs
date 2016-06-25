@@ -119,6 +119,14 @@ namespace TreeLib.Internal
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public interface ISetValue<ValueType>
     {
-        void SetValue(ValueType value, ushort version);
+        void SetValue(ValueType value, uint version);
+    }
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public interface IGetEnumeratorSetValueInfo<ValueType>
+    {
+        uint Version { get; }
+        ISetValue<ValueType> SetValueCallack { get; }
+        void SetValue(ValueType value);
     }
 }

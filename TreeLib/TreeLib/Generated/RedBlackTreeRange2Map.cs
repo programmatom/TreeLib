@@ -115,7 +115,7 @@ namespace TreeLib
         private Node root;
         [Count]
         private ulong count;
-        private ushort version;
+        private uint version;
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
@@ -602,6 +602,7 @@ namespace TreeLib
         /// <param name="value">the value to replace the old value associated with the range</param>
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public bool TrySet([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength,[Payload(Payload.Value)] ValueType value)
         {
@@ -806,6 +807,7 @@ namespace TreeLib
         /// <param name="value">the value to replace the old value associated with the range</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         /// <exception cref="OverflowException">sum of lengths would have exceeded Int32.MaxValue</exception>
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public void Set([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength,[Payload(Payload.Value)] ValueType value)
         {
@@ -1103,12 +1105,14 @@ namespace TreeLib
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust,[Feature(Feature.Range2)] [Widen] int yAdjust)
+        [Widen]
+        public int AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust,[Feature(Feature.Range2)] [Widen] int yAdjust)
         {
             unchecked
             {
@@ -1152,6 +1156,8 @@ namespace TreeLib
                     this.yExtent = newYExtent;
 
                     ShiftRightOfPath(unchecked(startIndex + 1), /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+
+                    return side == Side.X ? newXLength : newYLength;
                 }
                 else
                 {
@@ -1166,6 +1172,8 @@ namespace TreeLib
                     DeleteInternal(
                         startIndex,
                         /*[Feature(Feature.Range2)]*/side);
+
+                    return 0;
                 }
             }
         }
@@ -1395,10 +1403,12 @@ namespace TreeLib
 
             if (root == Null)
             {
+
                 if (!add)
                 {
                     return false;
                 }
+
                 {
                     if (position != 0)
                     {
@@ -1416,226 +1426,215 @@ namespace TreeLib
 
                 Debug.Assert(this.count == 0);
                 this.count = 1;
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 return true;
             }
 
-            // Search for a node at bottom to insert the new node. 
-            // If we can guarantee the node we found is not a 4-node, it would be easy to do insertion.
-            // We split 4-nodes along the search path.
-            Node current = root;
-            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-            /*[Widen]*/
-            int xPositionCurrent = 0;
-            /*[Feature(Feature.Range2)]*/
-            /*[Widen]*/
-            int yPositionCurrent = 0;
-            Node parent = Null;
-            Node grandParent = Null;
-            Node greatGrandParent = Null;
-
-            Node successor = Null;
-            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-            /*[Widen]*/
-            int xPositionSuccessor = 0;
-            /*[Feature(Feature.Range2)]*/
-            /*[Widen]*/
-            int yPositionSuccessor = 0;
-
-            //even if we don't actually add to the set, we may be altering its structure (by doing rotations
-            //and such). so update version to disable any enumerators/subsets working on it
-            this.version = unchecked((ushort)(this.version + 1));
-
-            int order = 0;
-            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-            /*[Widen]*/
-            int xPositionParent = 0;
-            /*[Feature(Feature.Range2)]*/
-            /*[Widen]*/
-            int yPositionParent = 0;
-            while (current != Null)
+            try
             {
-                unchecked
-                {
-                    xPositionCurrent += current.xOffset;
-                    yPositionCurrent += current.yOffset;
-                }
-
-                {
-                    order = position.CompareTo(side == Side.X ? xPositionCurrent : yPositionCurrent);
-                    if (add && (order == 0))
-                    {
-                        order = -1; // node never found for sparse range mode
-                    }
-                }
-
-                if (order == 0)
-                {
-                    // We could have changed root node to red during the search process.
-                    // We need to set it to black before we return.
-                    root.isRed = false;
-                    if (update)
-                    {
-                        current.value = value;
-                    }
-                    return !add;
-                }
-
-                // split a 4-node into two 2-nodes                
-                if (Is4Node(current))
-                {
-                    Split4Node(current);
-                    // We could have introduced two consecutive red nodes after split. Fix that by rotation.
-                    if (IsRed(parent))
-                    {
-                        InsertionBalance(current, ref parent, grandParent, greatGrandParent);
-                    }
-                }
-                greatGrandParent = grandParent;
-                grandParent = parent;
-                parent = current;
-                xPositionParent = xPositionCurrent;
-                yPositionParent = yPositionCurrent;
-                if (order < 0)
-                {
-                    successor = parent;
-                    xPositionSuccessor = xPositionParent;
-                    yPositionSuccessor = yPositionParent;
-
-                    current = current.left;
-                }
-                else
-                {
-                    current = current.right;
-                }
-            }
-            Debug.Assert(current == Null);
-
-            Debug.Assert(parent != Null, "Parent node cannot be null here!");
-            // ready to insert the new node
-            if (!add)
-            {
-                root.isRed = false;
-                return false;
-            }
-
-            Node node;
-            if (order > 0)
-            {
-                // follows parent
-
-                Debug.Assert(parent.right == Null);
+                // Search for a node at bottom to insert the new node. 
+                // If we can guarantee the node we found is not a 4-node, it would be easy to do insertion.
+                // We split 4-nodes along the search path.
+                Node current = root;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 /*[Widen]*/
-                int xLengthParent;
+                int xPositionCurrent = 0;
                 /*[Feature(Feature.Range2)]*/
                 /*[Widen]*/
-                int yLengthParent;
-                if (successor != Null)
-                {
-                    xLengthParent = xPositionSuccessor - xPositionParent;
-                    yLengthParent = yPositionSuccessor - yPositionParent;
-                }
-                else
-                {
-                    xLengthParent = this.xExtent - xPositionParent;
-                    yLengthParent = this.yExtent - yPositionParent;
-                }
+                int yPositionCurrent = 0;
+                Node parent = Null;
+                Node grandParent = Null;
+                Node greatGrandParent = Null;
 
+                Node successor = Null;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                if (position != unchecked(side == Side.X ? xPositionParent + xLengthParent : yPositionParent + yLengthParent))
+                /*[Widen]*/
+                int xPositionSuccessor = 0;
+                /*[Feature(Feature.Range2)]*/
+                /*[Widen]*/
+                int yPositionSuccessor = 0;
+
+                //even if we don't actually add to the set, we may be altering its structure (by doing rotations
+                //and such). so update version to disable any enumerators/subsets working on it
+                this.version = unchecked(this.version + 1);
+
+                int order = 0;
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                /*[Widen]*/
+                int xPositionParent = 0;
+                /*[Feature(Feature.Range2)]*/
+                /*[Widen]*/
+                int yPositionParent = 0;
+                while (current != Null)
                 {
-                    root.isRed = false;
+                    unchecked
+                    {
+                        xPositionCurrent += current.xOffset;
+                        yPositionCurrent += current.yOffset;
+                    }
+
+                    {
+                        order = position.CompareTo(side == Side.X ? xPositionCurrent : yPositionCurrent);
+                        if (add && (order == 0))
+                        {
+                            order = -1; // node never found for sparse range mode
+                        }
+                    }
+
+                    if (order == 0)
+                    {
+
+                        if (update)
+                        {
+                            current.value = value;
+                        }
+
+                        // We could have changed root node to red during the search process.
+                        // We need to set it to black before we return.
+                        // nodes[root].isRed = false; -- moved to finally block
+                        return !add;
+                    }
+
+                    // split a 4-node into two 2-nodes                
+                    if (Is4Node(current))
+                    {
+                        Split4Node(current);
+                        // We could have introduced two consecutive red nodes after split. Fix that by rotation.
+                        if (IsRed(parent))
+                        {
+                            InsertionBalance(current, ref parent, grandParent, greatGrandParent);
+                        }
+                    }
+                    greatGrandParent = grandParent;
+                    grandParent = parent;
+                    parent = current;
+                    xPositionParent = xPositionCurrent;
+                    yPositionParent = yPositionCurrent;
+                    if (order < 0)
+                    {
+                        successor = parent;
+                        xPositionSuccessor = xPositionParent;
+                        yPositionSuccessor = yPositionParent;
+
+                        current = current.left;
+                    }
+                    else
+                    {
+                        current = current.right;
+                    }
+                }
+                Debug.Assert(current == Null);
+
+                Debug.Assert(parent != Null, "Parent node cannot be null here!");
+
+                // ready to insert the new node
+                if (!add)
+                {
                     return false;
                 }
 
-                // compute here to throw before modifying tree
-                /*[Widen]*/
-                int xExtentNew, yExtentNew;
-                /*[Count]*/
-                ulong countNew;
-                try
+                Node node;
+                if (order > 0)
                 {
-                    xExtentNew = checked(this.xExtent + xLength);
-                    yExtentNew = checked(this.yExtent + yLength);
-                    countNew = checked(this.count + 1);
-                }
-                catch (OverflowException)
-                {
-                    root.isRed = false;
-                    throw;
-                }
+                    // follows parent
 
-                node = Allocate(/*[Payload(Payload.Value)]*/value);
-
-                ShiftRightOfPath(unchecked(xPositionParent + 1), /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
-
-                parent.right = node;
-
-                node.xOffset = xLengthParent;
-                node.yOffset = yLengthParent;
-
-                this.xExtent = xExtentNew;
-                this.yExtent = yExtentNew;
-                this.count = countNew;
-            }
-            else
-            {
-                // precedes parent
-
-                {
+                    Debug.Assert(parent.right == Null);
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     /*[Widen]*/
-                    int positionParent = side == Side.X ? xPositionParent : yPositionParent;
-                    if (position != positionParent)
+                    int xLengthParent;
+                    /*[Feature(Feature.Range2)]*/
+                    /*[Widen]*/
+                    int yLengthParent;
+                    if (successor != Null)
+                    {
+                        xLengthParent = xPositionSuccessor - xPositionParent;
+                        yLengthParent = yPositionSuccessor - yPositionParent;
+                    }
+                    else
+                    {
+                        xLengthParent = this.xExtent - xPositionParent;
+                        yLengthParent = this.yExtent - yPositionParent;
+                    }
+
+                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    if (position != unchecked(side == Side.X ? xPositionParent + xLengthParent : yPositionParent + yLengthParent))
                     {
                         root.isRed = false;
                         return false;
                     }
-                }
 
-                // compute here to throw before modifying tree
-                /*[Widen]*/
-                int xExtentNew, yExtentNew;
-                /*[Count]*/
-                ulong countNew;
-                try
+                    // compute here to throw before modifying tree
+                    /*[Widen]*/
+                    int xExtentNew = checked(this.xExtent + xLength);
+                    /*[Widen]*/
+                    int yExtentNew = checked(this.yExtent + yLength);
+                    /*[Count]*/
+                    ulong countNew = checked(this.count + 1);
+
+                    node = Allocate(/*[Payload(Payload.Value)]*/value);
+
+                    ShiftRightOfPath(unchecked(xPositionParent + 1), /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
+
+                    parent.right = node;
+
+                    node.xOffset = xLengthParent;
+                    node.yOffset = yLengthParent;
+
+                    this.xExtent = xExtentNew;
+                    this.yExtent = yExtentNew;
+                    this.count = countNew;
+                }
+                else
                 {
-                    xExtentNew = checked(this.xExtent + xLength);
-                    yExtentNew = checked(this.yExtent + yLength);
-                    countNew = checked(this.count + 1);
+                    // precedes parent
+
+                    {
+                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                        /*[Widen]*/
+                        int positionParent = side == Side.X ? xPositionParent : yPositionParent;
+                        if (position != positionParent)
+                        {
+                            root.isRed = false;
+                            return false;
+                        }
+                    }
+
+                    // compute here to throw before modifying tree
+                    /*[Widen]*/
+                    int xExtentNew = checked(this.xExtent + xLength);
+                    /*[Widen]*/
+                    int yExtentNew = checked(this.yExtent + yLength);
+                    /*[Count]*/
+                    ulong countNew = checked(this.count + 1);
+
+                    Debug.Assert(parent == successor);
+
+                    node = Allocate(/*[Payload(Payload.Value)]*/value);
+
+                    ShiftRightOfPath(xPositionParent, /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
+
+                    parent.left = node;
+
+                    node.xOffset = unchecked(-xLength);
+                    node.yOffset = unchecked(-yLength);
+
+                    this.xExtent = xExtentNew;
+                    this.yExtent = yExtentNew;
+                    this.count = countNew;
                 }
-                catch (OverflowException)
+
+                // the new node will be red, so we will need to adjust the colors if parent node is also red
+                if (parent.isRed)
                 {
-                    root.isRed = false;
-                    throw;
+                    InsertionBalance(node, ref parent, grandParent, greatGrandParent);
                 }
-
-                Debug.Assert(parent == successor);
-
-                node = Allocate(/*[Payload(Payload.Value)]*/value);
-
-                ShiftRightOfPath(xPositionParent, /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
-
-                parent.left = node;
-
-                node.xOffset = -xLength;
-                node.yOffset = -yLength;
-
-                this.xExtent = xExtentNew;
-                this.yExtent = yExtentNew;
-                this.count = countNew;
             }
-
-            // the new node will be red, so we will need to adjust the colors if parent node is also red
-            if (parent.isRed)
+            finally
             {
-                InsertionBalance(node, ref parent, grandParent, greatGrandParent);
+                // root node is always black
+                root.isRed = false;
             }
-
-            // Root node is always black
-            root.isRed = false;
 
             return true;
         }
@@ -1685,7 +1684,7 @@ namespace TreeLib
             }
         }
 
-        private bool DeleteInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        private bool DeleteInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)][Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)][SuppressConst(Feature.Range2)] Side side)
         {
             unchecked
             {
@@ -1704,7 +1703,7 @@ namespace TreeLib
 
                 //even if we don't actually remove from the set, we may be altering its structure (by doing rotations
                 //and such). so update version to disable any enumerators/subsets working on it
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 Node current = root;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
@@ -1885,6 +1884,7 @@ namespace TreeLib
 
                     if (order == 0)
                     {
+
                         // save the matching node
                         foundMatch = true;
                         match = current;
@@ -2922,7 +2922,7 @@ namespace TreeLib
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
             //
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
@@ -2931,7 +2931,7 @@ namespace TreeLib
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(RedBlackTreeRange2Map<ValueType> tree,bool forward)
             {
@@ -3030,7 +3030,7 @@ namespace TreeLib
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -3093,11 +3093,11 @@ namespace TreeLib
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 this.treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -3132,8 +3132,8 @@ namespace TreeLib
             [Feature(Feature.Range2)]
             private readonly Side side;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -3377,7 +3377,7 @@ namespace TreeLib
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     previousYStart = currentYStart;
@@ -3429,7 +3429,7 @@ namespace TreeLib
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

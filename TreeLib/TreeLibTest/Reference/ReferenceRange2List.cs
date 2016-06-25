@@ -137,9 +137,9 @@ namespace TreeLibTest
             inner.Set(start, side, xLength, yLength, null);
         }
 
-        public void AdjustLength(int start, Side side, int xAdjust, int yAdjust)
+        public int AdjustLength(int start, Side side, int xAdjust, int yAdjust)
         {
-            inner.AdjustLength(start, side, xAdjust, yAdjust);
+            return inner.AdjustLength(start, side, xAdjust, yAdjust);
         }
 
         public int GetExtent(Side side)

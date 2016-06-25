@@ -1674,6 +1674,9 @@ namespace TreeLibTest
             TestThrow("constructor", typeof(ArgumentOutOfRangeException), delegate () { new HugeList<int>(typeof(AVLTreeRangeMap<>), 0); });
             TestThrow("constructor", typeof(ArgumentOutOfRangeException), delegate () { new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), 0)); });
             //
+            TestThrow("constructor", typeof(ArgumentOutOfRangeException), delegate () { new HugeList<int>(0); });
+            TestThrow("constructor", typeof(ArgumentOutOfRangeException), delegate () { new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(0)); });
+            //
             TestThrow("constructor", typeof(ArgumentException), delegate () { new HugeList<int>(typeof(List<>)); });
             TestThrow("constructor", typeof(ArgumentException), delegate () { new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(List<>))); });
             //
