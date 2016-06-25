@@ -125,7 +125,7 @@ namespace TreeLib
         private readonly AllocationMode allocationMode;
         private Node freelist;
 
-        private ushort version;
+        private uint version;
 
 
         //
@@ -668,6 +668,7 @@ namespace TreeLib
         /// to this side.</param>
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public bool TrySet([Widen] long start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xLength,[Feature(Feature.Range2)][Widen] long yLength)
         {
@@ -853,6 +854,7 @@ namespace TreeLib
         /// to this side.</param>
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public void Set([Widen] long start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xLength,[Feature(Feature.Range2)][Widen] long yLength)
         {
@@ -1154,12 +1156,14 @@ namespace TreeLib
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] long startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xAdjust,[Feature(Feature.Range2)] [Widen] long yAdjust)
+        [Widen]
+        public long AdjustLength([Widen] long startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xAdjust,[Feature(Feature.Range2)] [Widen] long yAdjust)
         {
             unchecked
             {
@@ -1210,6 +1214,8 @@ namespace TreeLib
                         root.right.xOffset += xAdjust;
                         root.right.yOffset += yAdjust;
                     }
+
+                    return side == Side.X ? newXLength : newYLength;
                 }
                 else
                 {
@@ -1254,6 +1260,8 @@ namespace TreeLib
                     this.xExtent = unchecked(this.xExtent - oldXLength);
                     this.yExtent = unchecked(this.yExtent - oldYLength);
                     Free(dead);
+
+                    return 0;
                 }
             }
         }
@@ -1343,12 +1351,11 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [EnableFixed]
         private void Splay2(ref Node root,[Widen] long position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root == Nil)
                 {
@@ -2002,7 +2009,7 @@ namespace TreeLib
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
             //
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
@@ -2011,7 +2018,7 @@ namespace TreeLib
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(SplayTreeRange2ListLong tree,bool forward)
             {
@@ -2108,7 +2115,7 @@ namespace TreeLib
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -2174,7 +2181,7 @@ namespace TreeLib
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
         }
 
@@ -2198,8 +2205,8 @@ namespace TreeLib
             [Feature(Feature.Range2)]
             private readonly Side side;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -2440,7 +2447,7 @@ namespace TreeLib
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     previousYStart = currentYStart;

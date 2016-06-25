@@ -125,7 +125,7 @@ namespace TreeLib
         private readonly AllocationMode allocationMode;
         private Node freelist;
 
-        private ushort version;
+        private uint version;
 
 
         //
@@ -352,6 +352,247 @@ namespace TreeLib
             return false;
         }
 
+        [Feature(Feature.Dict, Feature.Rank)]
+        private bool PredicateAddRemoveOverrideCore(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            uint version = this.version;
+
+            // very crude protection against completely trashing the tree if the predicate tries to modify it
+            Node savedRoot = this.root;
+            this.root = Nil;
+            /*[Count]*/
+            ulong savedCount = this.count;
+            this.count = 0;
+            /*[Widen]*/
+            int savedXExtent = this.xExtent;
+            this.xExtent = 0;
+            try
+            {
+                /*[Payload(Payload.Value)]*/
+                initial = predicateMap(key, ref value, resident);
+            }
+            finally
+            {
+                this.root = savedRoot;
+                this.count = savedCount;
+                this.xExtent = savedXExtent;
+            }
+
+            if (version != this.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return initial;
+        }
+
+        [Feature(Feature.Dict, Feature.Rank)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool PredicateAddRemoveOverride(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            bool predicateExists = false;
+            /*[Payload(Payload.Value)]*/
+            predicateExists = predicateMap != null;
+            if (predicateExists)
+            {
+                initial = PredicateAddRemoveOverrideCore(
+                    initial,
+                    resident,
+                    /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ref key,
+                    /*[Payload(Payload.Value)]*/ref value,
+                    /*[Payload(Payload.Value)]*/predicateMap);
+            }
+
+            return initial;
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private bool TrySetOrAddInternal(            KeyType key,            [Payload(Payload.Value)]ValueType value,            bool updateExisting,[Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            unchecked
+            {
+
+                Splay(ref root, key, comparer);
+                int c = comparer.Compare(key, root.key);
+
+                bool add = true;
+
+                /*[Feature(Feature.Dict, Feature.Rank)]*/
+                {
+                    bool predicateExists = false;
+                    /*[Payload(Payload.Value)]*/
+                    predicateExists = predicateMap != null;
+                    if (predicateExists)
+                    {
+                        if ((root != Nil) && (c == 0))
+                        {
+                            value = root.value;
+                        }
+
+                        add = PredicateAddRemoveOverride(
+                            add/*initial*/,
+                            (root != Nil) && (c == 0)/*resident*/,
+                            ref key,
+                            /*[Payload(Payload.Value)]*/ref value,
+                            /*[Payload(Payload.Value)]*/predicateMap);
+
+                        if (!add && (c != 0))
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                if (add && ((root == Nil) || (c < 0)))
+                {
+                    // insert item just in front of root
+
+                    /*[Count]*/
+                    ulong countNew = checked(this.count + 1);
+                    /*[Widen]*/
+                    int xExtentNew = checked(this.xExtent + 1);
+
+                    Node i = Allocate();
+                    i.key = key;
+                    i.value = value;
+                    i.xOffset = root.xOffset;
+
+                    i.left = root.left;
+                    i.right = root;
+                    if (root != Nil)
+                    {
+                        root.xOffset = 1;
+                        root.left = Nil;
+                    }
+
+                    root = i;
+
+                    this.count = countNew;
+                    this.xExtent = xExtentNew;
+
+                    return true;
+                }
+                else if (add && (c > 0))
+                {
+                    // insert item just after root
+
+                    Debug.Assert(root != Nil);
+
+                    /*[Count]*/
+                    ulong countNew = checked(this.count + 1);
+                    /*[Widen]*/
+                    int xExtentNew = checked(this.xExtent + 1);
+
+                    Node i = Allocate();
+                    i.key = key;
+                    i.value = value;
+
+                    i.xOffset = root.xOffset + 1;
+                    if (root.right != Nil)
+                    {
+                        root.right.xOffset += -1 + 1;
+                    }
+                    root.xOffset = -1;
+
+                    i.left = root;
+                    i.right = root.right;
+                    root.right = Nil;
+
+                    root = i;
+
+                    this.count = countNew;
+                    this.xExtent = xExtentNew;
+
+                    return true;
+                }
+                else
+                {
+                    Debug.Assert(c == 0);
+                    if (updateExisting)
+                    {
+                        root.value = value;
+                    }
+                    return false;
+                }
+            }
+        }
+
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private bool TrySetOrRemoveInternal(            KeyType key,            bool updateExisting,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            unchecked
+            {
+                if (root != Nil)
+                {
+                    Splay(ref root, key, comparer);
+                    int c = comparer.Compare(key, root.key);
+
+                    ValueType value = root.value;
+
+                    bool remove = true;
+                    /*[Feature(Feature.Dict, Feature.Rank)]*/
+                    {
+                        remove = PredicateAddRemoveOverride(
+                            remove/*initial*/,
+                            c == 0/*resident*/,
+                            ref key,
+                            /*[Payload(Payload.Value)]*/ref value,
+                            /*[Payload(Payload.Value)]*/predicateMap);
+                    }
+
+                    if (c == 0)
+                    {
+                        if (remove)
+                        {
+                            /*[Feature(Feature.Rank, Feature.RankMulti)]*/
+                            Splay(ref root.right, key, comparer);
+                            /*[Feature(Feature.Rank, Feature.RankMulti)]*/
+                            Debug.Assert((root.right == Nil) || (root.right.left == Nil));
+                            /*[Feature(Feature.Rank, Feature.RankMulti)]*/
+                            /*[Widen]*/
+                            int xLength = root.right != Nil ? root.right.xOffset : this.xExtent - root.xOffset;
+
+                            Node dead, x;
+
+                            dead = root;
+                            if (root.left == Nil)
+                            {
+                                x = root.right;
+                                if (x != Nil)
+                                {
+                                    x.xOffset += root.xOffset - xLength;
+                                }
+                            }
+                            else
+                            {
+                                x = root.left;
+                                x.xOffset += root.xOffset;
+                                Splay(ref x, key, comparer);
+                                Debug.Assert(x.right == Nil);
+                                if (root.right != Nil)
+                                {
+                                    root.right.xOffset += root.xOffset - x.xOffset - xLength;
+                                }
+                                x.right = root.right;
+                            }
+                            root = x;
+
+                            this.count = unchecked(this.count - 1);
+                            this.xExtent = unchecked(this.xExtent - xLength);
+                            Free(dead);
+
+                            return true;
+                        }
+                        else if (updateExisting)
+                        {
+                            root.value = value;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
+
         
         /// <summary>
         /// Attempts to remove a key-value pair from the collection. If the key is not present, no change is made to the collection.
@@ -361,56 +602,10 @@ namespace TreeLib
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public bool TryRemove(KeyType key)
         {
-            unchecked
-            {
-                if (root != Nil)
-                {
-                    Splay(ref root, key, comparer);
-                    int c = comparer.Compare(key, root.key);
-                    if (c == 0)
-                    {
-                        /*[Feature(Feature.Rank, Feature.RankMulti)]*/
-                        Splay(ref root.right, key, comparer);
-                        /*[Feature(Feature.Rank, Feature.RankMulti)]*/
-                        Debug.Assert((root.right == Nil) || (root.right.left == Nil));
-                        /*[Feature(Feature.Rank, Feature.RankMulti)]*/
-                        /*[Widen]*/
-                        int xLength = root.right != Nil ? root.right.xOffset : this.xExtent - root.xOffset;
-
-                        Node dead, x;
-
-                        dead = root;
-                        if (root.left == Nil)
-                        {
-                            x = root.right;
-                            if (x != Nil)
-                            {
-                                x.xOffset += root.xOffset - xLength;
-                            }
-                        }
-                        else
-                        {
-                            x = root.left;
-                            x.xOffset += root.xOffset;
-                            Splay(ref x, key, comparer);
-                            Debug.Assert(x.right == Nil);
-                            if (root.right != Nil)
-                            {
-                                root.right.xOffset += root.xOffset - x.xOffset - xLength;
-                            }
-                            x.right = root.right;
-                        }
-                        root = x;
-
-                        this.count = unchecked(this.count - 1);
-                        this.xExtent = unchecked(this.xExtent - xLength);
-                        Free(dead);
-
-                        return true;
-                    }
-                }
-                return false;
-            }
+            return TrySetOrRemoveInternal(
+                key,
+                false/*updateExisting*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/);
         }
 
         
@@ -509,6 +704,59 @@ namespace TreeLib
             {
                 throw new ArgumentException("item not in tree");
             }
+        }
+
+        
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the item is in the collection, the
+        /// ref value upon return will be used to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        [Feature(Feature.Dict, Feature.Rank)]
+        public void ConditionalSetOrAdd(KeyType key,[Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            /*[Payload(Payload.Value)]*/
+            if (predicateMap == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            TrySetOrAddInternal(
+                key,
+                /*[Payload(Payload.Value)]*/default(ValueType),
+                true/*updateExisting*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/predicateMap);
+        }
+
+        
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be removed from the
+        /// collection if it is in the collection. If the item remains in the collection, the ref value upon return will be used
+        /// to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        [Feature(Feature.Dict, Feature.Rank)]
+        public void ConditionalSetOrRemove(KeyType key,[Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            /*[Payload(Payload.Value)]*/
+            if (predicateMap == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            TrySetOrRemoveInternal(
+                key,
+                true/*updateExisting*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/predicateMap);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
@@ -888,79 +1136,11 @@ namespace TreeLib
         [Feature(Feature.Rank, Feature.RankMulti)]
         public bool TryAdd(KeyType key,[Payload(Payload.Value)] ValueType value)
         {
-            unchecked
-            {
-
-                Splay(ref root, key, comparer);
-                int c;
-                if ((root == Nil) || ((c = comparer.Compare(key, root.key)) < 0))
-                {
-                    // insert item just in front of root
-
-                    /*[Count]*/
-                    ulong countNew = checked(this.count + 1);
-                    /*[Widen]*/
-                    int xExtentNew = checked(this.xExtent + 1);
-
-                    Node i = Allocate();
-                    i.key = key;
-                    i.value = value;
-                    i.xOffset = root.xOffset;
-
-                    i.left = root.left;
-                    i.right = root;
-                    if (root != Nil)
-                    {
-                        root.xOffset = 1;
-                        root.left = Nil;
-                    }
-
-                    root = i;
-
-                    this.count = countNew;
-                    this.xExtent = xExtentNew;
-
-                    return true;
-                }
-                else if (c > 0)
-                {
-                    // insert item just after root
-
-                    Debug.Assert(root != Nil);
-
-                    /*[Count]*/
-                    ulong countNew = checked(this.count + 1);
-                    /*[Widen]*/
-                    int xExtentNew = checked(this.xExtent + 1);
-
-                    Node i = Allocate();
-                    i.key = key;
-                    i.value = value;
-
-                    i.xOffset = root.xOffset + 1;
-                    if (root.right != Nil)
-                    {
-                        root.right.xOffset += -1 + 1;
-                    }
-                    root.xOffset = -1;
-
-                    i.left = root;
-                    i.right = root.right;
-                    root.right = Nil;
-
-                    root = i;
-
-                    this.count = countNew;
-                    this.xExtent = xExtentNew;
-
-                    return true;
-                }
-                else
-                {
-                    Debug.Assert(c == 0);
-                    return false;
-                }
-            }
+            return TrySetOrAddInternal(
+                key,
+                /*[Payload(Payload.Value)]*/value,
+                false/*updateExisting*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/);
         }
 
         // TryRemove() - reuses Feature.Dict implementation
@@ -1109,9 +1289,12 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public void AdjustCount(KeyType key,[Widen] int countAdjust)
+        [Widen]
+        public int AdjustCount(KeyType key,[Widen] int countAdjust)
         {
             unchecked
             {
@@ -1145,6 +1328,8 @@ namespace TreeLib
                                 root.right.xOffset += countAdjust;
                             }
                         }
+
+                        return adjustedLength;
                     }
                     else if (oldLength + countAdjust == 0)
                     {
@@ -1179,6 +1364,8 @@ namespace TreeLib
                         this.count = unchecked(this.count - 1);
                         this.xExtent = unchecked(this.xExtent - oldLength);
                         Free(dead);
+
+                        return 0;
                     }
                     else
                     {
@@ -1204,11 +1391,14 @@ namespace TreeLib
                         // TODO: suboptimal - inline Add and remove duplicate Splay()
 
                         Add(key, /*[Payload(Payload.Value)]*/default(ValueType));
+
+                        return countAdjust;
                     }
                     else
                     {
                         // allow non-adding case
                         Debug.Assert(countAdjust == 0);
+                        return 0;
                     }
                 }
             }
@@ -1356,12 +1546,11 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        [EnableFixed]
         private void Splay(ref Node root,KeyType leftComparand,IComparer<KeyType> comparer)
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root == Nil)
                 {
@@ -1500,12 +1689,11 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [EnableFixed]
         private void Splay2(ref Node root,[Widen] int position)
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root == Nil)
                 {
@@ -2114,7 +2302,7 @@ namespace TreeLib
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
@@ -2184,7 +2372,7 @@ namespace TreeLib
             public bool MoveNext()
             {
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -2234,11 +2422,11 @@ namespace TreeLib
             {
                 started = false;
                 valid = false;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -2272,8 +2460,8 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private readonly KeyType startKey;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -2423,7 +2611,7 @@ namespace TreeLib
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
                     currentNode = leadingNode;
                     currentXStart = nextXStart;
 
@@ -2464,7 +2652,7 @@ namespace TreeLib
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

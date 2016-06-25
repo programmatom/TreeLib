@@ -116,7 +116,7 @@ namespace TreeLib
         private readonly AllocationMode allocationMode;
         private Node freelist;
 
-        private ushort version;
+        private uint version;
 
 
         //
@@ -581,60 +581,6 @@ namespace TreeLib
             }
         }
 
-        [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySet([Widen] int start,[Widen] int xLength)
-        {
-            if (xLength < 0)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            if (root != Nil)
-            {
-                Splay2(ref root, start);
-                if (start == Start(root))
-                {
-                    /*[Widen]*/
-                    int xLengthOld;
-                    if (root.right != Nil)
-                    {
-                        Splay2(ref root.right, 0);
-                        Debug.Assert(root.right.left == Nil);
-                        xLengthOld = root.right.xOffset;
-                    }
-                    else
-                    {
-                        xLengthOld = unchecked(this.xExtent - root.xOffset);
-                    }
-
-                    /*[Widen]*/
-                    int xAdjust = xLength != 0 ? xLength - xLengthOld : 0;
-
-                    /*[Widen]*/
-                    int xExtentNew = checked(this.xExtent + xAdjust);
-                    // throw overflow before updating anything
-                    this.xExtent = xExtentNew;
-
-                    if (root.right != Nil)
-                    {
-                        unchecked
-                        {
-                            root.right.xOffset += xAdjust;
-                        }
-                    }
-                    if (root.right != Nil)
-                    {
-                        unchecked
-                        {
-                        }
-                    }
-
-                    return true;
-                }
-            }
-            return false;
-        }
-
         
         /// <summary>
         /// Inserts a range of a given length at the specified start index.
@@ -716,15 +662,6 @@ namespace TreeLib
         public void Get([Widen] int start,[Widen] out int xLength)
         {
             if (!TryGet(start, out xLength))
-            {
-                throw new ArgumentException("item not in tree");
-            }
-        }
-
-        [Feature(Feature.Range, Feature.Range2)]
-        public void Set([Widen] int start,[Widen] int xLength)
-        {
-            if (!TrySet(start, xLength))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -995,11 +932,13 @@ namespace TreeLib
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] int startIndex,[Widen] int xAdjust)
+        [Widen]
+        public int AdjustLength([Widen] int startIndex,[Widen] int xAdjust)
         {
             unchecked
             {
@@ -1036,6 +975,8 @@ namespace TreeLib
                     {
                         root.right.xOffset += xAdjust;
                     }
+
+                    return newXLength;
                 }
                 else
                 {
@@ -1073,6 +1014,8 @@ namespace TreeLib
                     this.count = unchecked(this.count - 1);
                     this.xExtent = unchecked(this.xExtent - oldXLength);
                     Free(dead);
+
+                    return 0;
                 }
             }
         }
@@ -1161,12 +1104,11 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        [EnableFixed]
         private void Splay2(ref Node root,[Widen] int position)
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root == Nil)
                 {
@@ -1768,7 +1710,7 @@ namespace TreeLib
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
             //
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
@@ -1777,7 +1719,7 @@ namespace TreeLib
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(SplayTreeRangeList tree,bool forward)
             {
@@ -1855,7 +1797,7 @@ namespace TreeLib
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -1921,7 +1863,7 @@ namespace TreeLib
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
         }
 
@@ -1943,8 +1885,8 @@ namespace TreeLib
             [Widen]
             private readonly int startStart;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -2165,7 +2107,7 @@ namespace TreeLib
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     currentNode = leadingNode;

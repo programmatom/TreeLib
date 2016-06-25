@@ -35,7 +35,8 @@ namespace TreeLib
     /// for all relevant per-item data, including one or more of key, value, rank/count, and/or range start/length, as
     /// appropriate for the type of collection.
     /// </summary>
-    public struct EntryMap<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType, [Payload(Payload.Value)] ValueType>
+    public struct EntryMap<[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType, [Payload(Payload.Value)] ValueType> :
+        /*[Payload(Payload.Value)]*/IGetEnumeratorSetValueInfo<ValueType>
     {
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private readonly KeyType key;
@@ -60,7 +61,7 @@ namespace TreeLib
         [Payload(Payload.Value)]
         private readonly ISetValue<ValueType> enumerator;
         [Payload(Payload.Value)]
-        private readonly ushort version;
+        private readonly uint version;
 
         [Payload(Payload.Value)]
         public void SetValue(ValueType value)
@@ -73,14 +74,30 @@ namespace TreeLib
             enumerator.SetValue(value, version);
         }
 
+        [Payload(Payload.Value)]
+        uint IGetEnumeratorSetValueInfo<ValueType>.Version { get { return version; } }
 
-        public EntryMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] ushort version)
+        [Payload(Payload.Value)]
+        ISetValue<ValueType> IGetEnumeratorSetValueInfo<ValueType>.SetValueCallack { get { return enumerator; } }
+
+
+        public EntryMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version)
         {
             this.key = key;
             this.value = value;
 
             this.enumerator = enumerator;
             this.version = version;
+        }
+
+        [Payload(Payload.Value)]
+        public EntryMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value)
+        {
+            this.key = key;
+            this.value = value;
+
+            this.enumerator = null;
+            this.version = 0;
         }
 
         public override bool Equals(object obj)

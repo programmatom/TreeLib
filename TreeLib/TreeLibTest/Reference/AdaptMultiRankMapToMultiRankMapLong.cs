@@ -150,9 +150,9 @@ namespace TreeLibTest
             return inner.GetKeyByRank(IntLong.ToLong(rank));
         }
 
-        public void AdjustCount(KeyType key, int countAdjust)
+        public int AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(key, IntLong.ToLong(countAdjust));
+            return IntLong.ToInt(inner.AdjustCount(key, IntLong.ToLong(countAdjust)));
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)
@@ -403,8 +403,8 @@ namespace TreeLibTest
             return new EntryMultiRankMap<KeyType, ValueType>(
                 entry.Key,
                 entry.Value,
-                (ISetValue<ValueType>)entry.GetType().GetField("enumerator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
-                (ushort)entry.GetType().GetField("version", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                new SetValueWrapper<ValueType>(entry),
+                ((IGetEnumeratorSetValueInfo<ValueType>)entry).Version,
                 IntLong.ToInt(entry.Rank),
                 IntLong.ToInt(entry.Count));
         }

@@ -694,13 +694,15 @@ namespace TreeLibTest
 
             int start, xLength;
             bool valid;
+            bool remove = false;
+            int index = -1;
             if ((rnd.Next() % 2 == 0) && (extent != 0))
             {
                 // existing start
                 valid = true;
-                int index = rnd.Next() % items.Length;
+                index = rnd.Next() % items.Length;
                 start = items[index].x.start;
-                bool remove = rnd.Next() % 4 == 0;
+                remove = rnd.Next() % 4 == 0;
                 if (!remove)
                 {
                     xLength = rnd.Next(-items[index].x.length + 1, 100);
@@ -748,10 +750,15 @@ namespace TreeLibTest
             {
                 try
                 {
-                    collections[i].AdjustLength(start, xLength);
+                    int newLength = collections[i].AdjustLength(start, xLength);
                     if (!valid)
                     {
                         Fault(collections[i], description + " - invalid input but did not throw exception");
+                    }
+                    if ((remove && (newLength != 0))
+                        || (!remove && (newLength != items[index].x.length + xLength)))
+                    {
+                        Fault(collections[i], description + " - return value discrepancy");
                     }
                 }
                 catch (ArgumentException) when (!valid)

@@ -50,6 +50,28 @@ namespace TreeLib
         PreallocatedFixed,
     }
 
+    /// <summary>
+    /// Action for updating the key-value pair in a map.
+    /// </summary>
+    /// <typeparam name="KeyType">The type of the key</typeparam>
+    /// <typeparam name="ValueType">The type of the value</typeparam>
+    /// <param name="key">The key for the item to update</param>
+    /// <param name="value">The value to optionally update</param>
+    /// <param name="resident">True if the item is in the collection when the predicate is invoked</param>
+    /// <returns>True to add the item to the collection; otherwise false. If the item is already in the collection, it will remain
+    /// in the collection. In all cases, the value upon return will be applied to the item if it is in the collection.</returns>
+    public delegate bool UpdatePredicate<KeyType, ValueType>(KeyType key, ref ValueType value, bool resident);
+
+    /// <summary>
+    /// Action for updating the key in a list.
+    /// </summary>
+    /// <typeparam name="KeyType">The type of the key</typeparam>
+    /// <param name="key">The key to update</param>
+    /// <param name="resident">True if the item is in the collection when the predicate is invoked</param>
+    /// <returns>True to add the key to the collection; otherwise false. If the key is already in the collection, it will remain
+    /// in the collection. In all cases, the new key data upon return will be applied if it is in the collection.</returns>
+    public delegate bool UpdatePredicate<KeyType>(ref KeyType key, bool resident);
+
 
     //
     // IOrderedMap, IOrderedList
@@ -152,6 +174,28 @@ namespace TreeLib
         /// <param name="value">replacement value to associate with the key</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         void SetValue(KeyType key, ValueType value);
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the item is in the collection, the
+        /// ref value upon return will be used to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate);
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be removed from the
+        /// collection if it is in the collection. If the item remains in the collection, the ref value upon return will be used
+        /// to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -340,6 +384,30 @@ namespace TreeLib
         /// <param name="key">key to search for and possibly replace the existing key</param>
         /// <returns>true if the key was found and updated</returns>
         void SetKey(KeyType key);
+        /// <summary>
+        /// Conditionally update or add a key, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the key will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the key is in the collection, the
+        /// ref key upon return will be used to update the key data.</param>
+        /// <exception cref="ArgumentException">The sort order of the key was changed by the predicate</exception>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType> predicate);
+        /// <summary>
+        /// Conditionally update or add a key, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the key will be removed from the
+        /// collection if it is in the collection. If the key remains in the collection, the ref key upon return will be used
+        /// to update the key data.</param>
+        /// <exception cref="ArgumentException">The sort order of the key was changed by the predicate</exception>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType> predicate);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -511,6 +579,28 @@ namespace TreeLib
         /// <returns>the key located at that index</returns>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         KeyType GetKeyByRank(int rank);
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the item is in the collection, the
+        /// ref value upon return will be used to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate);
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be removed from the
+        /// collection if it is in the collection. If the item remains in the collection, the ref value upon return will be used
+        /// to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate);
 
         /// <summary>
         /// Adjusts the rank count associated with the key-value pair. The countAdjust added to the existing count.
@@ -518,8 +608,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
-        void AdjustCount(KeyType key, int countAdjust);
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
+        int AdjustCount(KeyType key, int countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -783,6 +875,30 @@ namespace TreeLib
         /// <returns>the key located at that index</returns>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         KeyType GetKeyByRank(int rank);
+        /// <summary>
+        /// Conditionally update or add a key, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the key will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the key is in the collection, the
+        /// ref key upon return will be used to update the key data.</param>
+        /// <exception cref="ArgumentException">The sort order of the key was changed by the predicate</exception>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType> predicate);
+        /// <summary>
+        /// Conditionally update or add a key, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the key will be removed from the
+        /// collection if it is in the collection. If the key remains in the collection, the ref key upon return will be used
+        /// to update the key data.</param>
+        /// <exception cref="ArgumentException">The sort order of the key was changed by the predicate</exception>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType> predicate);
 
         /// <summary>
         /// Adjusts the rank count associated with the key-value pair. The countAdjust added to the existing count.
@@ -790,8 +906,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
-        void AdjustCount(KeyType key, int countAdjust);
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
+        int AdjustCount(KeyType key, int countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -991,6 +1109,28 @@ namespace TreeLib
         /// <returns>the key located at that index</returns>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         KeyType GetKeyByRank(long rank);
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the item is in the collection, the
+        /// ref value upon return will be used to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate);
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be removed from the
+        /// collection if it is in the collection. If the item remains in the collection, the ref value upon return will be used
+        /// to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate);
 
         /// <summary>
         /// Adjusts the rank count associated with the key-value pair. The countAdjust added to the existing count.
@@ -998,8 +1138,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
-        void AdjustCount(KeyType key, long countAdjust);
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
+        long AdjustCount(KeyType key, long countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -1263,6 +1405,30 @@ namespace TreeLib
         /// <returns>the key located at that index</returns>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         KeyType GetKeyByRank(long rank);
+        /// <summary>
+        /// Conditionally update or add a key, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the key will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the key is in the collection, the
+        /// ref key upon return will be used to update the key data.</param>
+        /// <exception cref="ArgumentException">The sort order of the key was changed by the predicate</exception>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType> predicate);
+        /// <summary>
+        /// Conditionally update or add a key, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the key will be removed from the
+        /// collection if it is in the collection. If the key remains in the collection, the ref key upon return will be used
+        /// to update the key data.</param>
+        /// <exception cref="ArgumentException">The sort order of the key was changed by the predicate</exception>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType> predicate);
 
         /// <summary>
         /// Adjusts the rank count associated with the key-value pair. The countAdjust added to the existing count.
@@ -1270,8 +1436,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
-        void AdjustCount(KeyType key, long countAdjust);
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
+        long AdjustCount(KeyType key, long countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -1526,9 +1694,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
         /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
-        void AdjustCount(KeyType key, int countAdjust);
+        int AdjustCount(KeyType key, int countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -1951,9 +2120,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
         /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
-        void AdjustCount(KeyType key, int countAdjust);
+        int AdjustCount(KeyType key, int countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -2312,8 +2482,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key-value pair to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
-        void AdjustCount(KeyType key, long countAdjust);
+        /// <exception cref="OverflowException">the sum of counts would have exceeded Int64.MaxValue</exception>
+        long AdjustCount(KeyType key, long countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -2737,9 +2909,10 @@ namespace TreeLib
         /// </summary>
         /// <param name="key">key identifying the key to update</param>
         /// <param name="countAdjust">adjustment that is added to the count</param>
+        /// <returns>The adjusted count</returns>
         /// <exception cref="ArgumentException">if the count is an invalid value or the key does not exist in the collection</exception>
         /// <exception cref="OverflowException">the sum of counts would have exceeded Int64.MaxValue</exception>
-        void AdjustCount(KeyType key, long countAdjust);
+        long AdjustCount(KeyType key, long countAdjust);
 
         /// <summary>
         /// Retrieves the lowest key in the collection (in sort order)
@@ -3120,10 +3293,11 @@ namespace TreeLib
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
-        void AdjustLength(int start, int adjust);
+        int AdjustLength(int start, int adjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -3357,10 +3531,11 @@ namespace TreeLib
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int32.MaxValue</exception>
-        void AdjustLength(int start, int adjust);
+        int AdjustLength(int start, int adjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -3663,10 +3838,11 @@ namespace TreeLib
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int64.MaxValue</exception>
-        void AdjustLength(long start, long adjust);
+        long AdjustLength(long start, long adjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -3900,10 +4076,11 @@ namespace TreeLib
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int64.MaxValue</exception>
-        void AdjustLength(long start, long adjust);
+        long AdjustLength(long start, long adjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges. The extent is the sum of the lengths of all the ranges.
@@ -4266,11 +4443,12 @@ namespace TreeLib
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
-        void AdjustLength(int start, Side side, int xAdjust, int yAdjust);
+        int AdjustLength(int start, Side side, int xAdjust, int yAdjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -4591,11 +4769,12 @@ namespace TreeLib
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
-        void AdjustLength(int start, Side side, int xAdjust, int yAdjust);
+        int AdjustLength(int start, Side side, int xAdjust, int yAdjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -4955,11 +5134,12 @@ namespace TreeLib
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int64.MaxValue</exception>
-        void AdjustLength(long start, Side side, long xAdjust, long yAdjust);
+        long AdjustLength(long start, Side side, long xAdjust, long yAdjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.
@@ -5280,11 +5460,12 @@ namespace TreeLib
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
-        void AdjustLength(long start, Side side, long xAdjust, long yAdjust);
+        long AdjustLength(long start, Side side, long xAdjust, long yAdjust);
 
         /// <summary>
         /// Retrieves the extent of the sequence of ranges on the specified side. The extent is the sum of the lengths of all the ranges.

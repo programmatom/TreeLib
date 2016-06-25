@@ -100,7 +100,7 @@ namespace TreeLib
         private Node root;
         [Count]
         private ulong count;
-        private ushort version;
+        private uint version;
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private readonly IComparer<KeyType> comparer;
@@ -452,7 +452,8 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Payload(Payload.Value)]*/value,
                 true/*add*/,
-                true/*update*/);
+                true/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/);
         }
 
         
@@ -469,7 +470,8 @@ namespace TreeLib
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
                 /*[Payload(Payload.Value)]*/value,
                 true/*add*/,
-                false/*update*/);
+                false/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/);
         }
 
         
@@ -482,7 +484,8 @@ namespace TreeLib
         public bool TryRemove(KeyType key)
         {
             return g_tree_remove_internal(
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key);
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/null/*predicateMap*/);
         }
 
         
@@ -591,6 +594,59 @@ namespace TreeLib
             {
                 throw new ArgumentException("item not in tree");
             }
+        }
+
+        
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrAdd is more efficient when the decision to add or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or add</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be added to the
+        /// collection if it is not already in the collection. Whether true or false, if the item is in the collection, the
+        /// ref value upon return will be used to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        [Feature(Feature.Dict, Feature.Rank)]
+        public void ConditionalSetOrAdd(KeyType key,[Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            /*[Payload(Payload.Value)]*/
+            if (predicateMap == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            g_tree_insert_internal(
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Payload(Payload.Value)]*/default(ValueType),
+                false/*add - overridden by predicate*/,
+                true/*update*/,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/predicateMap);
+        }
+
+        
+        /// <summary>
+        /// Conditionally update or add an item, based on the return value from the predicate.
+        /// ConditionalSetOrRemove is more efficient when the decision to remove or update depends on the value of the item.
+        /// </summary>
+        /// <param name="key">The key of the item to update or remove</param>
+        /// <param name="predicate">The predicate to invoke. If the predicate returns true, the item will be removed from the
+        /// collection if it is in the collection. If the item remains in the collection, the ref value upon return will be used
+        /// to update the item.</param>
+        /// <exception cref="InvalidOperationException">The tree was modified while the predicate was invoked. If this happens,
+        /// the tree may be left in an unstable state.</exception>
+        [Feature(Feature.Dict, Feature.Rank)]
+        public void ConditionalSetOrRemove(KeyType key,[Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            /*[Payload(Payload.Value)]*/
+            if (predicateMap == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            g_tree_remove_internal(
+                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key,
+                /*[Feature(Feature.Dict, Feature.Rank)]*//*[Payload(Payload.Value)]*/predicateMap);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
@@ -976,48 +1032,46 @@ namespace TreeLib
                 if (root != Null)
                 {
                     Node node = root;
+                    /*[Widen]*/
+                    int xPosition = 0;
+                    /*[Widen]*/
+                    int yPosition = 0;
+                    while (true)
                     {
-                        /*[Widen]*/
-                        int xPosition = 0;
-                        /*[Widen]*/
-                        int yPosition = 0;
-                        while (true)
+
+                        int c;
                         {
-
-                            int c;
-                            {
-                                c = comparer.Compare(key, node.key);
-                            }
-                            if (orEqual && (c == 0))
-                            {
-                                nearestNode = node;
-                                nearestKey = node.key;
-                                return true;
-                            }
-                            Node next;
-                            if (c <= 0)
-                            {
-                                if (!node.left_child)
-                                {
-                                    break;
-                                }
-                                next = node.left;
-                            }
-                            else
-                            {
-                                lastLess = node;
-                                xPositionLastLess = xPosition;
-                                yPositionLastLess = yPosition;
-
-                                if (!node.right_child)
-                                {
-                                    break;
-                                }
-                                next = node.right;
-                            }
-                            Debug.Assert(next != Null);
-                            node = next;
+                            c = comparer.Compare(key, node.key);
                         }
+                        if (orEqual && (c == 0))
+                        {
+                            nearestNode = node;
+                            nearestKey = node.key;
+                            return true;
+                        }
+                        Node next;
+                        if (c <= 0)
+                        {
+                            if (!node.left_child)
+                            {
+                                break;
+                            }
+                            next = node.left;
+                        }
+                        else
+                        {
+                            lastLess = node;
+                            xPositionLastLess = xPosition;
+                            yPositionLastLess = yPosition;
+
+                            if (!node.right_child)
+                            {
+                                break;
+                            }
+                            next = node.right;
+                        }
+                        Debug.Assert(next != Null);
+                        node = next;
                     }
                 }
                 if (lastLess != Null)
@@ -1044,49 +1098,46 @@ namespace TreeLib
                 if (root != Null)
                 {
                     Node node = root;
-                    if (node != Null)
+                    /*[Widen]*/
+                    int xPosition = 0;
+                    /*[Widen]*/
+                    int yPosition = 0;
+                    while (true)
                     {
-                        /*[Widen]*/
-                        int xPosition = 0;
-                        /*[Widen]*/
-                        int yPosition = 0;
-                        while (true)
+
+                        int c;
                         {
-
-                            int c;
-                            {
-                                c = comparer.Compare(key, node.key);
-                            }
-                            if (orEqual && (c == 0))
-                            {
-                                nearestNode = node;
-                                nearestKey = node.key;
-                                return true;
-                            }
-                            Node next;
-                            if (c < 0)
-                            {
-                                lastGreater = node;
-                                xPositionLastGreater = xPosition;
-                                yPositionLastGreater = yPosition;
-
-                                if (!node.left_child)
-                                {
-                                    break;
-                                }
-                                next = node.left;
-                            }
-                            else
-                            {
-                                if (!node.right_child)
-                                {
-                                    break;
-                                }
-                                next = node.right;
-                            }
-                            Debug.Assert(next != Null);
-                            node = next;
+                            c = comparer.Compare(key, node.key);
                         }
+                        if (orEqual && (c == 0))
+                        {
+                            nearestNode = node;
+                            nearestKey = node.key;
+                            return true;
+                        }
+                        Node next;
+                        if (c < 0)
+                        {
+                            lastGreater = node;
+                            xPositionLastGreater = xPosition;
+                            yPositionLastGreater = yPosition;
+
+                            if (!node.left_child)
+                            {
+                                break;
+                            }
+                            next = node.left;
+                        }
+                        else
+                        {
+                            if (!node.right_child)
+                            {
+                                break;
+                            }
+                            next = node.right;
+                        }
+                        Debug.Assert(next != Null);
+                        node = next;
                     }
                 }
                 if (lastGreater != Null)
@@ -1143,13 +1194,71 @@ namespace TreeLib
             return path;
         }
 
+        [Feature(Feature.Dict, Feature.Rank)]
+        private bool PredicateAddRemoveOverrideCore(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            uint version = this.version;
+
+            // very crude protection against completely trashing the tree if the predicate tries to modify it
+            Node savedRoot = this.root;
+            this.root = Null;
+            /*[Count]*/
+            ulong savedCount = this.count;
+            this.count = 0;
+            try
+            {
+                /*[Payload(Payload.Value)]*/
+                initial = predicateMap(key, ref value, resident);
+            }
+            finally
+            {
+                this.root = savedRoot;
+                this.count = savedCount;
+            }
+
+            if (version != this.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return initial;
+        }
+
+        [Feature(Feature.Dict, Feature.Rank)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool PredicateAddRemoveOverride(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        {
+            bool predicateExists = false;
+            /*[Payload(Payload.Value)]*/
+            predicateExists = predicateMap != null;
+            if (predicateExists)
+            {
+                initial = PredicateAddRemoveOverrideCore(
+                    initial,
+                    resident,
+                    /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ref key,
+                    /*[Payload(Payload.Value)]*/ref value,
+                    /*[Payload(Payload.Value)]*/predicateMap);
+            }
+
+            return initial;
+        }
+
         // NOTE: replace mode does *not* adjust for xLength/yLength!
-        private bool g_tree_insert_internal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            bool add,            bool update)
+        private bool g_tree_insert_internal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             unchecked
             {
                 if (root == Null)
                 {
+                    /*[Feature(Feature.Dict, Feature.Rank)]*/
+                    add = PredicateAddRemoveOverride(
+                        add,
+                        false/*resident*/,
+                        ref key,
+                        /*[Payload(Payload.Value)]*/ref value,
+                        /*[Payload(Payload.Value)]*/predicateMap);
+
                     if (!add)
                     {
                         return false;
@@ -1159,7 +1268,7 @@ namespace TreeLib
 
                     Debug.Assert(this.count == 0);
                     this.count = 1;
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     return true;
                 }
@@ -1189,9 +1298,23 @@ namespace TreeLib
 
                     if (cmp == 0)
                     {
+                        bool predicateExists = false;
+                        /*[Payload(Payload.Value)]*/
+                        predicateExists = predicateMap != null;
+                        if (predicateExists)
+                        {
+                            value = node.value;
+                            /*[Feature(Feature.Dict, Feature.Rank)]*/
+                            PredicateAddRemoveOverride(
+                                false/*initial*/,
+                                true/*resident*/,
+                                ref key,
+                                /*[Payload(Payload.Value)]*/ref value,
+                                /*[Payload(Payload.Value)]*/predicateMap);
+                        }
+
                         if (update)
                         {
-                            node.key = key;
                             node.value = value;
                         }
                         return !add;
@@ -1211,6 +1334,14 @@ namespace TreeLib
                         else
                         {
                             // precedes node
+
+                            /*[Feature(Feature.Dict, Feature.Rank)]*/
+                            add = PredicateAddRemoveOverride(
+                                add,
+                                false/*resident*/,
+                                ref key,
+                                /*[Payload(Payload.Value)]*/ref value,
+                                /*[Payload(Payload.Value)]*/predicateMap);
 
                             if (!add)
                             {
@@ -1234,6 +1365,14 @@ namespace TreeLib
                         {
                             // follows node
 
+                            /*[Feature(Feature.Dict, Feature.Rank)]*/
+                            add = PredicateAddRemoveOverride(
+                                add,
+                                false/*resident*/,
+                                ref key,
+                                /*[Payload(Payload.Value)]*/ref value,
+                                /*[Payload(Payload.Value)]*/predicateMap);
+
                             if (!add)
                             {
                                 return false;
@@ -1251,7 +1390,7 @@ namespace TreeLib
 
                     Debug.Assert(node == successor);
 
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
                     /*[Count]*/
                     ulong countNew = checked(this.count + 1);
 
@@ -1280,7 +1419,7 @@ namespace TreeLib
                         yLengthNode = yPositionSuccessor - yPositionNode;
                     }
 
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
                     /*[Count]*/
                     ulong countNew = checked(this.count + 1);
 
@@ -1341,7 +1480,7 @@ namespace TreeLib
             }
         }
 
-        private bool g_tree_remove_internal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key)
+        private bool g_tree_remove_internal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             unchecked
             {
@@ -1366,6 +1505,24 @@ namespace TreeLib
 
                     if (cmp == 0)
                     {
+                        /*[Feature(Feature.Dict, Feature.Rank)] */
+                        {
+                            ValueType value = node.value;
+                            bool remove = PredicateAddRemoveOverride(
+                                true/*initial*/,
+                                true/*resident*/,
+                                ref key,
+                                /*[Payload(Payload.Value)]*/ref value,
+                                /*[Payload(Payload.Value)]*/predicateMap);
+
+                            if (!remove)
+                            {
+                                node.value = value;
+
+                                return false;
+                            }
+                        }
+
                         break;
                     }
 
@@ -1391,7 +1548,7 @@ namespace TreeLib
                     }
                 }
 
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 Node successor;
 
@@ -2203,7 +2360,7 @@ namespace TreeLib
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
@@ -2267,7 +2424,7 @@ namespace TreeLib
             public bool MoveNext()
             {
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -2317,11 +2474,11 @@ namespace TreeLib
             {
                 started = false;
                 valid = false;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -2352,8 +2509,8 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private readonly KeyType startKey;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -2491,7 +2648,7 @@ namespace TreeLib
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
                     currentNode = leadingNode;
 
                     leadingNode = tree.Null;
@@ -2522,7 +2679,7 @@ namespace TreeLib
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,ushort requiredEnumeratorVersion)
+            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

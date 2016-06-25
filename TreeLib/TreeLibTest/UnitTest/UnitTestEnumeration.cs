@@ -703,139 +703,134 @@ namespace TreeLibTest
 
                         // test enumerator's SetValue
 
-                        if (!testTree.GetType().Name.Equals("AdaptListToMap`2")
-                            && !testTree.GetType().Name.Equals("AdaptMultiRankListToMultiRankMap`2")
-                            && !testTree.GetType().Name.Equals("AdaptRankListToRankMap`2"))
+                        PropertyInfo getValueProperty = typeof(EntryType).GetProperty("Value");
+                        MethodInfo setValueMethod = typeof(EntryType).GetMethod("SetValue");
+                        if (setValueMethod != null)
                         {
-                            PropertyInfo getValueProperty = typeof(EntryType).GetProperty("Value");
-                            MethodInfo setValueMethod = typeof(EntryType).GetMethod("SetValue");
-                            if (setValueMethod != null)
+                            for (int e = 0; e < mode.Length; e++)
                             {
-                                for (int e = 0; e < mode.Length; e++)
+                                testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                foreach (int index in keySequence)
                                 {
-                                    testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
-                                    foreach (int index in keySequence)
+                                    addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                }
+
+                                long startIteration1 = IncrementIteration(true/*setLast*/);
+                                try
+                                {
+                                    int c = 0;
+                                    List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
+                                    foreach (EntryType entry in mode[e])
                                     {
-                                        addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                        TestTrue("enum overrun", delegate () { return c < master.Length; });
+
+                                        BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                        entries.Add(bigEntry);
+
+                                        setValueMethod.Invoke(entry, new object[] { bigEntry.value + .5f });
+
+                                        c++;
+                                    }
+                                    TestTrue("enum count", delegate () { return c == master.Length; });
+                                    if (!forward)
+                                    {
+                                        entries.Reverse();
+                                    }
+                                    Validate(master, entries.ToArray());
+
+                                    BigEntry<int, float>[] updatedMaster = (BigEntry<int, float>[])master.Clone();
+                                    for (int i = 0; i < updatedMaster.Length; i++)
+                                    {
+                                        updatedMaster[i] = new BigEntry<int, float>(
+                                            updatedMaster[i].key,
+                                            updatedMaster[i].value + .5f,
+                                            updatedMaster[i].xStart,
+                                            updatedMaster[i].xLength,
+                                            updatedMaster[i].yStart,
+                                            updatedMaster[i].yLength);
                                     }
 
-                                    long startIteration1 = IncrementIteration(true/*setLast*/);
-                                    try
+                                    c = 0;
+                                    entries.Clear();
+                                    foreach (EntryType entry in mode[e])
                                     {
-                                        int c = 0;
-                                        List<BigEntry<int, float>> entries = new List<BigEntry<int, float>>();
-                                        foreach (EntryType entry in mode[e])
-                                        {
-                                            TestTrue("enum overrun", delegate () { return c < master.Length; });
+                                        TestTrue("enum overrun", delegate () { return c < master.Length; });
 
-                                            BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
-                                            entries.Add(bigEntry);
+                                        BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
+                                        entries.Add(bigEntry);
 
-                                            setValueMethod.Invoke(entry, new object[] { bigEntry.value + .5f });
-
-                                            c++;
-                                        }
-                                        TestTrue("enum count", delegate () { return c == master.Length; });
-                                        if (!forward)
-                                        {
-                                            entries.Reverse();
-                                        }
-                                        Validate(master, entries.ToArray());
-
-                                        BigEntry<int, float>[] updatedMaster = (BigEntry<int, float>[])master.Clone();
-                                        for (int i = 0; i < updatedMaster.Length; i++)
-                                        {
-                                            updatedMaster[i] = new BigEntry<int, float>(
-                                                updatedMaster[i].key,
-                                                updatedMaster[i].value + .5f,
-                                                updatedMaster[i].xStart,
-                                                updatedMaster[i].xLength,
-                                                updatedMaster[i].yStart,
-                                                updatedMaster[i].yLength);
-                                        }
-
-                                        c = 0;
-                                        entries.Clear();
-                                        foreach (EntryType entry in mode[e])
-                                        {
-                                            TestTrue("enum overrun", delegate () { return c < master.Length; });
-
-                                            BigEntry<int, float> bigEntry = new BigEntry<int, float>(entry, treeKind);
-                                            entries.Add(bigEntry);
-
-                                            c++;
-                                        }
-                                        TestTrue("enum count", delegate () { return c == master.Length; });
-                                        if (!forward)
-                                        {
-                                            entries.Reverse();
-                                        }
-                                        Validate(updatedMaster, entries.ToArray());
+                                        c++;
                                     }
-                                    catch (UnitTestFailureException)
+                                    TestTrue("enum count", delegate () { return c == master.Length; });
+                                    if (!forward)
                                     {
-                                        throw;
+                                        entries.Reverse();
                                     }
-                                    catch (Exception exception)
+                                    Validate(updatedMaster, entries.ToArray());
+                                }
+                                catch (UnitTestFailureException)
+                                {
+                                    throw;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                }
+
+
+                                if (size >= 2)
+                                {
+                                    // try update on enumerator after enumerator has advanced
+
                                     {
-                                        Fault(testTree, "Enumerator threw unexpected exception", exception);
+                                        long startIteration2 = IncrementIteration(true/*setLast*/);
+
+                                        testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                        foreach (int index in keySequence)
+                                        {
+                                            addAction(testTree, master[index].key, master[index].value, master[index].xLength);
+                                        }
+
+                                        IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                        EntryType entry = default(EntryType);
+                                        TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
+                                        int masterIndex = forward ? 0 : master.Length - 1;
+                                        TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
+                                        TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 1f }); });
+                                        TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 2f }); });
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                        TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
                                     }
 
+                                    // try update on enumerator after tree was modified
 
-                                    if (size >= 2)
+                                    if (robust)
                                     {
-                                        // try update on enumerator after enumerator has advanced
+                                        long startIteration2 = IncrementIteration(true/*setLast*/);
 
+                                        testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
+                                        foreach (int index in keySequence)
                                         {
-                                            long startIteration2 = IncrementIteration(true/*setLast*/);
-
-                                            testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
-                                            foreach (int index in keySequence)
-                                            {
-                                                addAction(testTree, master[index].key, master[index].value, master[index].xLength);
-                                            }
-
-                                            IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
-                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
-                                            EntryType entry = default(EntryType);
-                                            TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
-                                            int masterIndex = forward ? 0 : master.Length - 1;
-                                            TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
-                                            TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 1f }); });
-                                            TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 2f }); });
-                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
-                                            TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                            addAction(testTree, master[index].key, master[index].value, master[index].xLength);
                                         }
 
-                                        // try update on enumerator after tree was modified
-
+                                        IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
+                                        EntryType entry = default(EntryType);
+                                        TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
+                                        int masterIndex = forward ? 0 : master.Length - 1;
+                                        TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
+                                        addAction(testTree, -100, 0f, 1);
                                         if (robust)
                                         {
-                                            long startIteration2 = IncrementIteration(true/*setLast*/);
-
-                                            testTree.GetType().InvokeMember("Clear", BindingFlags.Public | BindingFlags.Instance | BindingFlags.InvokeMethod, null, testTree, null);
-                                            foreach (int index in keySequence)
-                                            {
-                                                addAction(testTree, master[index].key, master[index].value, master[index].xLength);
-                                            }
-
-                                            IEnumerator<EntryType> enumerator = mode[e].GetEnumerator();
-                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); });
-                                            EntryType entry = default(EntryType);
-                                            TestNoThrow("enumerator", delegate () { entry = enumerator.Current; });
-                                            int masterIndex = forward ? 0 : master.Length - 1;
-                                            TestTrue("enumerator", delegate () { return master[masterIndex].value == (float)getValueProperty.GetValue(entry); });
-                                            addAction(testTree, -100, 0f, 1);
-                                            if (robust)
-                                            {
-                                                TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
-                                            }
-                                            else
-                                            {
-                                                TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
-                                            }
-                                            TestTrue("enumerator", delegate () { return enumerator.MoveNext(); }); // sanity check
+                                            TestNoThrow("enumerator", delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
                                         }
+                                        else
+                                        {
+                                            TestThrow("enumerator", typeof(InvalidOperationException), delegate () { setValueMethod.Invoke(entry, new object[] { 3f }); });
+                                        }
+                                        TestTrue("enumerator", delegate () { return enumerator.MoveNext(); }); // sanity check
                                     }
                                 }
                             }
@@ -1583,6 +1578,119 @@ namespace TreeLibTest
             TestRangeMap<EntryRangeList>(new ReferenceRangeList(), TreeKind.RangeList, RangeListInsert<float>, RangeListDelete<float>);
         }
 
+        private void TestEntryConstruction()
+        {
+            const int Key = 1;
+            const float Value = 2.5f;
+            const int XStart = 10;
+            const int XLength = 15;
+            const int YStart = 20;
+            const int YLength = 25;
+
+
+            {
+                EntryMap<int, float> one = new EntryMap<int, float>(Key, Value);
+                EntryMap<int, float> two = new EntryMap<int, float>(Key, Value, null/*enumerator*/, 0/*version*/);
+                TestTrue("EntryMap", delegate () { return one.Equals(two); });
+            }
+
+
+            {
+                EntryRankMap<int, float> one = new EntryRankMap<int, float>(Key, Value, XStart);
+                EntryRankMap<int, float> two = new EntryRankMap<int, float>(Key, Value, null/*enumerator*/, 0/*version*/, XStart);
+                TestTrue("EntryRankMap", delegate () { return one.Equals(two); });
+            }
+
+            {
+                EntryRankMapLong<int, float> one = new EntryRankMapLong<int, float>(Key, Value, XStart);
+                EntryRankMapLong<int, float> two = new EntryRankMapLong<int, float>(Key, Value, null/*enumerator*/, 0/*version*/, XStart);
+                TestTrue("EntryRankMapLong", delegate () { return one.Equals(two); });
+            }
+
+
+            {
+                EntryMultiRankMap<int, float> one = new EntryMultiRankMap<int, float>(Key, Value, XStart, XLength);
+                EntryMultiRankMap<int, float> two = new EntryMultiRankMap<int, float>(Key, Value, null/*enumerator*/, 0/*version*/, XStart, XLength);
+                TestTrue("EntryMultiRankMap", delegate () { return one.Equals(two); });
+            }
+
+            {
+                EntryMultiRankMapLong<int, float> one = new EntryMultiRankMapLong<int, float>(Key, Value, XStart, XLength);
+                EntryMultiRankMapLong<int, float> two = new EntryMultiRankMapLong<int, float>(Key, Value, null/*enumerator*/, 0/*version*/, XStart, XLength);
+                TestTrue("EntryMultiRankMapLong", delegate () { return one.Equals(two); });
+            }
+
+
+            {
+                EntryRangeMap<float> one = new EntryRangeMap<float>(Value, XStart, XLength);
+                EntryRangeMap<float> two = new EntryRangeMap<float>(Value, null/*enumerator*/, 0/*version*/, XStart, XLength);
+                TestTrue("EntryRangeMap", delegate () { return one.Equals(two); });
+            }
+
+            {
+                EntryRangeMapLong<float> one = new EntryRangeMapLong<float>(Value, XStart, XLength);
+                EntryRangeMapLong<float> two = new EntryRangeMapLong<float>(Value, null/*enumerator*/, 0/*version*/, XStart, XLength);
+                TestTrue("EntryRangeMapLong", delegate () { return one.Equals(two); });
+            }
+
+
+            {
+                EntryRange2Map<float> one = new EntryRange2Map<float>(Value, XStart, XLength, YStart, YLength);
+                EntryRange2Map<float> two = new EntryRange2Map<float>(Value, null/*enumerator*/, 0/*version*/, XStart, XLength, YStart, YLength);
+                TestTrue("EntryRange2Map", delegate () { return one.Equals(two); });
+            }
+
+            {
+                EntryRange2MapLong<float> one = new EntryRange2MapLong<float>(Value, XStart, XLength, YStart, YLength);
+                EntryRange2MapLong<float> two = new EntryRange2MapLong<float>(Value, null/*enumerator*/, 0/*version*/, XStart, XLength, YStart, YLength);
+                TestTrue("EntryRange2MapLong", delegate () { return one.Equals(two); });
+            }
+        }
+
+        private void TestSetValueValidation()
+        {
+            KeyValuePair<Type, bool>[] types = new KeyValuePair<Type, bool>[]
+            {
+                new KeyValuePair<Type, bool>(typeof(EntryList<int>), false),
+                new KeyValuePair<Type, bool>(typeof(EntryMap<int, float>), true),
+
+                new KeyValuePair<Type, bool>(typeof(EntryRankList<int>), false),
+                new KeyValuePair<Type, bool>(typeof(EntryRankListLong<int>), false),
+                new KeyValuePair<Type, bool>(typeof(EntryRankMap<int, float>), true),
+                new KeyValuePair<Type, bool>(typeof(EntryRankMapLong<int, float>), true),
+
+                new KeyValuePair<Type, bool>(typeof(EntryMultiRankList<int>), false),
+                new KeyValuePair<Type, bool>(typeof(EntryMultiRankListLong<int>), false),
+                new KeyValuePair<Type, bool>(typeof(EntryMultiRankMap<int, float>), true),
+                new KeyValuePair<Type, bool>(typeof(EntryMultiRankMapLong<int, float>), true),
+
+                new KeyValuePair<Type, bool>(typeof(EntryRangeList), false),
+                new KeyValuePair<Type, bool>(typeof(EntryRangeListLong), false),
+                new KeyValuePair<Type, bool>(typeof(EntryRangeMap<float>), true),
+                new KeyValuePair<Type, bool>(typeof(EntryRangeMapLong<float>), true),
+
+                new KeyValuePair<Type, bool>(typeof(EntryRange2List), false),
+                new KeyValuePair<Type, bool>(typeof(EntryRange2ListLong), false),
+                new KeyValuePair<Type, bool>(typeof(EntryRange2Map<float>), true),
+                new KeyValuePair<Type, bool>(typeof(EntryRange2MapLong<float>), true),
+            };
+
+            foreach (KeyValuePair<Type, bool> info in types)
+            {
+                object entry = Activator.CreateInstance(info.Key);
+                MethodInfo setValueInfo = entry.GetType().GetMethod("SetValue");
+                TestTrue("SetValue exists", delegate () { return info.Value == (setValueInfo != null); });
+                if (setValueInfo != null)
+                {
+                    TestThrow("SetValue", typeof(InvalidOperationException), delegate () { setValueInfo.Invoke(entry, new object[] { 1f }); });
+
+                    IGetEnumeratorSetValueInfo<float> accessor = (IGetEnumeratorSetValueInfo<float>)entry;
+                    TestTrue("Version", delegate () { return accessor.Version == 0; });
+                    TestTrue("SetValueCallack ", delegate () { return accessor.SetValueCallack == null; });
+                }
+            }
+        }
+
         private void TestSplayTree()
         {
             // Exercise all allocation modes to gain coverage of both code paths in the Clear() method.
@@ -2139,6 +2247,10 @@ namespace TreeLibTest
 
 
                 TestAllEntryComparisons();
+
+                TestEntryConstruction();
+
+                TestSetValueValidation();
 
 
                 return true;

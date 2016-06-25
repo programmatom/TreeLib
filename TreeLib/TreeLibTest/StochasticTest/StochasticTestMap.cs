@@ -60,7 +60,7 @@ namespace TreeLibTest
                 INonInvasiveTreeInspection treeInspector;
                 if ((items1 == null) && (treeInspector = collections[i] as INonInvasiveTreeInspection) != null)
                 {
-                    items1 = TreeInspection.Flatten<KeyType, ValueType>(treeInspector);
+                    items1 = Flatten<KeyType, ValueType>(treeInspector);
                     try
                     {
                         treeInspector.Validate();
@@ -899,6 +899,56 @@ namespace TreeLibTest
             KeyedEnumerateAction<EntryMap<int, float>>(collections, rnd, ref description, TreeKind.Map, keys);
         }
 
+        private void ConditionalAction(IOrderedMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            EntryMap<int, float>[] items = ((ISimpleTreeInspection<int, float>)collections[0]).ToArray();
+
+            bool add = rnd.Next() % 2 == 0;
+            bool returnValue = rnd.Next() % 2 == 0;
+            float adjustment = (float)rnd.NextDouble();
+
+            int key;
+            bool existingKey;
+            if ((rnd.Next() % 2 == 0) && (items.Length != 0))
+            {
+                existingKey = true;
+                key = items[rnd.Next(items.Length)].Key;
+            }
+            else
+            {
+                existingKey = false;
+                do
+                {
+                    key = rnd.Next(Int32.MinValue, Int32.MaxValue);
+                }
+                while (Array.BinarySearch(items, new EntryMap<int, float>(key, 0, null, 0), ReferenceMap<int, float>.Comparer) >= 0);
+            }
+
+            description = String.Format("ConditionalSetOr{0} ({1}) [{2}, +{3}]", add ? "Add" : "Remove", existingKey ? "existing" : "non-existing", key, adjustment);
+            for (int i = 0; i < collections.Length; i++)
+            {
+                try
+                {
+                    if (add)
+                    {
+                        collections[i].ConditionalSetOrAdd(key, delegate (int _key, ref float _value, bool resident) { _value += adjustment; return returnValue; });
+                    }
+                    else
+                    {
+                        collections[i].ConditionalSetOrRemove(key, delegate (int _key, ref float _value, bool resident) { _value += adjustment; return returnValue; });
+                    }
+                    if (i != 0)
+                    {
+                        ValidateMapsEqual(collections[0], collections[i]);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Fault(collections[i], description + " - threw exception", exception);
+                }
+            }
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -936,6 +986,8 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(300     , 300     ), RemoveAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), GetValueAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), SetValueAction),
+
+                new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(50      , 50      ), ConditionalAction),
 
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), LeastAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IOrderedMap<int, float>>>(new Tuple<int, int>(100     , 100     ), GreatestAction),

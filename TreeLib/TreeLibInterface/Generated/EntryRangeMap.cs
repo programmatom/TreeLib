@@ -35,7 +35,8 @@ namespace TreeLib
     /// for all relevant per-item data, including one or more of key, value, rank/count, and/or range start/length, as
     /// appropriate for the type of collection.
     /// </summary>
-    public struct EntryRangeMap<[Payload(Payload.Value)] ValueType>
+    public struct EntryRangeMap<[Payload(Payload.Value)] ValueType> :
+        /*[Payload(Payload.Value)]*/IGetEnumeratorSetValueInfo<ValueType>
     {
 
 
@@ -78,7 +79,7 @@ namespace TreeLib
         [Payload(Payload.Value)]
         private readonly ISetValue<ValueType> enumerator;
         [Payload(Payload.Value)]
-        private readonly ushort version;
+        private readonly uint version;
 
         [Payload(Payload.Value)]
         public void SetValue(ValueType value)
@@ -91,8 +92,14 @@ namespace TreeLib
             enumerator.SetValue(value, version);
         }
 
+        [Payload(Payload.Value)]
+        uint IGetEnumeratorSetValueInfo<ValueType>.Version { get { return version; } }
 
-        public EntryRangeMap(            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] ushort version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
+        [Payload(Payload.Value)]
+        ISetValue<ValueType> IGetEnumeratorSetValueInfo<ValueType>.SetValueCallack { get { return enumerator; } }
+
+
+        public EntryRangeMap(            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
         {
             this.value = value;
             this.xStart = xStart;
@@ -100,6 +107,17 @@ namespace TreeLib
 
             this.enumerator = enumerator;
             this.version = version;
+        }
+
+        [Payload(Payload.Value)]
+        public EntryRangeMap(            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
+        {
+            this.value = value;
+            this.xStart = xStart;
+            this.xLength = xLength;
+
+            this.enumerator = null;
+            this.version = 0;
         }
 
         public override bool Equals(object obj)

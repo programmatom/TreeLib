@@ -91,6 +91,47 @@ namespace BuildTool
 
         public static FindResult TestAttributes(SyntaxList<AttributeListSyntax> attributeLists, FacetList[] facetAxes)
         {
+            List<KeyValuePair<string, string>> exclusion = new List<KeyValuePair<string, string>>();
+            foreach (var attributeList in attributeLists)
+            {
+                foreach (var attribute in attributeList.Attributes)
+                {
+                    IdentifierNameSyntax identifierName;
+                    if ((identifierName = attribute.Name as IdentifierNameSyntax) != null)
+                    {
+                        if (String.Equals(identifierName.Identifier.Text, "Exclude"))
+                        {
+                            bool allMatch = true;
+                            foreach (var attributeArgument in attribute.ArgumentList.Arguments)
+                            {
+                                MemberAccessExpressionSyntax attributeArgumentEnumTag;
+                                if ((attributeArgumentEnumTag = attributeArgument.Expression as MemberAccessExpressionSyntax) != null)
+                                {
+                                    bool match = false;
+                                    string facetAxis = attributeArgumentEnumTag.Expression.ToString();
+                                    string facet = attributeArgumentEnumTag.Name.Identifier.Text;
+                                    int i = Array.FindIndex(facetAxes, delegate (FacetList candidate) { return String.Equals(candidate.axisTag, facetAxis); });
+                                    if (i >= 0)
+                                    {
+                                        int j = Array.IndexOf(facetAxes[i].facets, facet);
+                                        if (j >= 0)
+                                        {
+                                            match = true;
+                                        }
+                                    }
+                                    allMatch = allMatch && match;
+                                }
+                            }
+                            if (allMatch)
+                            {
+                                return FindResult.Exclude;
+                            }
+                        }
+                    }
+                }
+            }
+
+
             FindResult result = FindResult.NotFound; // do not remove if no attribute present
 
             foreach (FacetList facetAxis in facetAxes)

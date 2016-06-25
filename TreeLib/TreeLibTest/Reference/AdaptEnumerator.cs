@@ -24,6 +24,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using TreeLib.Internal;
+
 namespace TreeLibTest
 {
     public delegate OuterEntry ConvertEntry<OuterEntry, InnerEntry>(InnerEntry entry);
@@ -106,6 +108,21 @@ namespace TreeLibTest
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new AdaptEnumeratorOld<OuterEntry, InnerEntry>(((IEnumerable)inner).GetEnumerator(), convert);
+        }
+    }
+
+    public class SetValueWrapper<ValueType> : ISetValue<ValueType>
+    {
+        private readonly IGetEnumeratorSetValueInfo<ValueType> inner;
+
+        public SetValueWrapper(IGetEnumeratorSetValueInfo<ValueType> inner)
+        {
+            this.inner = inner;
+        }
+
+        public void SetValue(ValueType value, uint version)
+        {
+            inner.SetValue(value);
         }
     }
 }

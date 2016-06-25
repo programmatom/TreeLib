@@ -103,43 +103,6 @@ namespace TreeLibTest
         }
 
 
-        protected void ValidateRanks<KeyType, ValueType>(MultiRankMapEntry[] ranks) where KeyType : IComparable<KeyType>
-        {
-            IncrementIteration();
-            int offset = 0;
-            for (int i = 0; i < ranks.Length; i++)
-            {
-                TestTrue("start", delegate () { return offset == ranks[i].rank.start; });
-                TestTrue("count > 0", delegate () { return ranks[i].rank.length > 0; });
-                offset += ranks[i].rank.length;
-            }
-        }
-
-        protected void ValidateRanksEqual<KeyType, ValueType>(MultiRankMapEntry[] ranks1, MultiRankMapEntry[] ranks2) where KeyType : IComparable<KeyType>
-        {
-            IncrementIteration();
-            TestTrue("equal count", delegate () { return ranks1.Length == ranks2.Length; });
-            for (int i = 0; i < ranks1.Length; i++)
-            {
-                TestTrue("key", delegate () { return Comparer<KeyType>.Default.Compare((KeyType)ranks1[i].key, (KeyType)ranks2[i].key) == 0; });
-                TestTrue("value", delegate () { return Comparer<ValueType>.Default.Compare((ValueType)ranks1[i].value, (ValueType)ranks2[i].value) == 0; });
-                TestTrue("start", delegate () { return ranks1[i].rank.start == ranks2[i].rank.start; });
-                TestTrue("length", delegate () { return ranks1[i].rank.length == ranks2[i].rank.length; });
-            }
-        }
-
-        protected void ValidateRanksEqual<KeyType, ValueType>(IMultiRankMap<KeyType, ValueType> tree1, IMultiRankMap<KeyType, ValueType> tree2) where KeyType : IComparable<KeyType>
-        {
-            IncrementIteration();
-            MultiRankMapEntry[] ranks1 = ((INonInvasiveMultiRankMapInspection)tree1).GetRanks();
-            ValidateRanks<KeyType, ValueType>(ranks1);
-            MultiRankMapEntry[] ranks2 = ((INonInvasiveMultiRankMapInspection)tree2).GetRanks();
-            ValidateRanks<KeyType, ValueType>(ranks2);
-            ValidateRanksEqual<KeyType, ValueType>(ranks1, ranks2);
-            TestTrue("GetExtent", delegate () { return tree1.RankCount == tree2.RankCount; });
-        }
-
-
         private void BuildTree<KeyType, ValueType>(
             IMultiRankMap<KeyType, ValueType> tree,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
@@ -153,7 +116,7 @@ namespace TreeLibTest
                 ValidateTree(tree);
 
                 MultiRankMapEntry[] ranks = ((INonInvasiveMultiRankMapInspection)tree).GetRanks();
-                ValidateRanks<KeyType, ValueType>(ranks);
+                ValidateRanks<KeyType, ValueType>(ranks, true/*multi*/);
             }
         }
 
@@ -200,7 +163,7 @@ namespace TreeLibTest
                 throw new UnitTestFailureException(label, exception);
             }
 
-            ValidateRanks<KeyType, ValueType>(((INonInvasiveMultiRankMapInspection)tree).GetRanks());
+            ValidateRanks<KeyType, ValueType>(((INonInvasiveMultiRankMapInspection)tree).GetRanks(), true/*multi*/);
         }
 
         private delegate IMultiRankMap<KeyType, ValueType> MakeTree<KeyType, ValueType>() where KeyType : IComparable<KeyType>;
@@ -812,18 +775,18 @@ namespace TreeLibTest
                 TestNoThrow("prereq", delegate () { reference2.Set((int)ranks[i].key, Value, Count); });
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestNoThrow(label + "Set.1", delegate () {  tree.Set((int)ranks[i].key, Value, Count); });
+                TestNoThrow(label + "Set.1", delegate () { tree.Set((int)ranks[i].key, Value, Count); });
                 ValidateRanksEqual(reference2, tree);
                 //
                 p = (i > 0) ? (((int)ranks[i - 1].key + (int)ranks[i].key) / 2) : ((int)ranks[i].key - 1);
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestThrow(label + " Set.2",typeof(ArgumentException), delegate () { tree.Set(p, Value, Count); });
+                TestThrow(label + " Set.2", typeof(ArgumentException), delegate () { tree.Set(p, Value, Count); });
                 ValidateRanksEqual(reference, tree);
                 //
                 tree = makeTree();
                 BuildTree(tree, sequence);
-                TestThrow(label + " Set.3", typeof(ArgumentException), delegate () {  tree.Set((int)ranks[i].key, Value, 0); });
+                TestThrow(label + " Set.3", typeof(ArgumentException), delegate () { tree.Set((int)ranks[i].key, Value, 0); });
                 ValidateRanksEqual(reference, tree);
 
                 tree = makeTree();

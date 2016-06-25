@@ -65,7 +65,7 @@ namespace TreeLibTest
                 {
                     count = count1;
                     items = items1;
-                    ValidateRanks<KeyType, ValueType>(items);
+                    ValidateRanks<KeyType, ValueType>(items, false/*multi*/);
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace TreeLibTest
                     {
                         Fault(collections[i], "length");
                     }
-                    ValidateRanks<KeyType, ValueType>(items1);
+                    ValidateRanks<KeyType, ValueType>(items1, false/*multi*/);
                     ValidateRanksEqual<KeyType, ValueType>(items, items1);
                 }
             }
@@ -916,7 +916,7 @@ namespace TreeLibTest
             {
                 try
                 {
-                    collections[i].AdjustCount(key, countAdjust);
+                    int newCount = collections[i].AdjustCount(key, countAdjust);
                     if (shouldThrowOutOfRange)
                     {
                         Fault(collections[i], description + " - didn't throw");
@@ -932,6 +932,13 @@ namespace TreeLibTest
                     if (!shouldCreate && !shouldDelete && (collections[i].Count != items.Length))
                     {
                         Fault(collections[i], description + " - shouldn't change count");
+                    }
+                    if ((shouldDelete && (newCount != 0))
+                        || (shouldCreate && (newCount != countAdjust))
+                        || (!shouldDelete && !shouldCreate
+                            && (newCount != (keyExists ? countAdjust + items[index].rank.length : 0))))
+                    {
+                        Fault(collections[i], description + " - return value discrepancy");
                     }
                 }
                 catch (ArgumentOutOfRangeException) when (shouldThrowOutOfRange)
@@ -1200,6 +1207,56 @@ namespace TreeLibTest
             KeyedEnumerateAction<EntryRankMap<int, float>>(collections, rnd, ref description, TreeKind.RankMap, keys);
         }
 
+        private void ConditionalAction(IRankMap<int, float>[] collections, Random rnd, ref string description)
+        {
+            int[] keys = Array.ConvertAll(((INonInvasiveMultiRankMapInspection)collections[0]).GetRanks(), delegate (MultiRankMapEntry item) { return (int)item.key; });
+
+            bool add = rnd.Next() % 2 == 0;
+            bool returnValue = rnd.Next() % 2 == 0;
+            float adjustment = (float)rnd.NextDouble();
+
+            int key;
+            bool existingKey;
+            if ((rnd.Next() % 2 == 0) && (keys.Length != 0))
+            {
+                existingKey = true;
+                key = keys[rnd.Next(keys.Length)];
+            }
+            else
+            {
+                existingKey = false;
+                do
+                {
+                    key = rnd.Next(Int32.MinValue, Int32.MaxValue);
+                }
+                while (Array.BinarySearch(keys, key, Comparer<int>.Default) >= 0);
+            }
+
+            description = String.Format("ConditionalSetOr{0} ({1}) [{2}, +{3}]", add ? "Add" : "Remove", existingKey ? "existing" : "non-existing", key, adjustment);
+            for (int i = 0; i < collections.Length; i++)
+            {
+                try
+                {
+                    if (add)
+                    {
+                        collections[i].ConditionalSetOrAdd(key, delegate (int _key, ref float _value, bool resident) { _value += adjustment; return returnValue; });
+                    }
+                    else
+                    {
+                        collections[i].ConditionalSetOrRemove(key, delegate (int _key, ref float _value, bool resident) { _value += adjustment; return returnValue; });
+                    }
+                    if (i != 0)
+                    {
+                        ValidateRanksEqual(collections[0], collections[i]);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Fault(collections[i], description + " - threw exception", exception);
+                }
+            }
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -1247,6 +1304,7 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), GetAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), GetKeyByRankAction),
 
+                new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(100      , 100      ), ConditionalAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(280      , 280      ), AdjustCountAction),
 
                 new Tuple<Tuple<int, int>, InvokeAction<IRankMap<int, float>>>(new Tuple<int, int>(200      , 200      ), LeastAction),

@@ -23,7 +23,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
+using System.Text;
 
 using TreeLib;
 using TreeLib.Internal;
@@ -278,6 +280,104 @@ namespace TreeLibTest
             }
         }
 
+
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            INonInvasiveTreeInspection tree,
+            out int maxDepth,
+            bool propagateValue) where KeyType : IComparable<KeyType>
+        {
+            if (tree is ISimpleTreeInspection<KeyType, ValueType>)
+            {
+                maxDepth = 0;
+                return ((ISimpleTreeInspection<KeyType, ValueType>)tree).ToArray();
+            }
+
+            List<EntryMap<KeyType, ValueType>> items = new List<EntryMap<KeyType, ValueType>>();
+
+            maxDepth = 0;
+            Stack<object> stack = new Stack<object>();
+            object current = tree.Root;
+            while (current != null)
+            {
+                stack.Push(current);
+                current = tree.GetLeftChild(current);
+            }
+            maxDepth = stack.Count;
+            while (stack.Count != 0)
+            {
+                current = stack.Pop();
+                KeyType key = (KeyType)tree.GetKey(current);
+                ValueType value = propagateValue ? (ValueType)tree.GetValue(current) : default(ValueType);
+                items.Add(new EntryMap<KeyType, ValueType>(key, value, null, 0));
+
+                object node = tree.GetRightChild(current);
+                while (node != null)
+                {
+                    stack.Push(node);
+                    node = tree.GetLeftChild(node);
+                }
+                maxDepth = Math.Max(maxDepth, stack.Count);
+            }
+
+            return items.ToArray();
+        }
+
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            INonInvasiveTreeInspection tree,
+            out int maxDepth) where KeyType : IComparable<KeyType>
+        {
+            return Flatten<KeyType, ValueType>(tree, out maxDepth, true/*propagateValue*/);
+        }
+
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            INonInvasiveTreeInspection tree,
+            bool propagateValue) where KeyType : IComparable<KeyType>
+        {
+            int maxDepth;
+            return Flatten<KeyType, ValueType>(tree, out maxDepth, propagateValue);
+        }
+
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            INonInvasiveTreeInspection tree) where KeyType : IComparable<KeyType>
+        {
+            int maxDepth;
+            return Flatten<KeyType, ValueType>(tree, out maxDepth, true/*propagateValue*/);
+        }
+
+        public static EntryMap<KeyType, ValueType>[] Flatten<KeyType, ValueType>(
+            ISimpleTreeInspection<KeyType, ValueType> list) where KeyType : IComparable<KeyType>
+        {
+            return list.ToArray();
+        }
+
+
+        private static void Dump(INonInvasiveTreeInspection tree, object root, int level, TextWriter writer)
+        {
+            if (root == null)
+            {
+                writer.WriteLine("{0}<NULL>", new string(' ', 4 * level));
+            }
+            else
+            {
+                Dump(tree, tree.GetLeftChild(root), level + 1, writer);
+                object key = tree.GetKey(root);
+                object value = tree.GetValue(root);
+                writer.WriteLine("{0}<{1},{2}>:{3}", new string(' ', 4 * level), key, value, tree.GetMetadata(root));
+                Dump(tree, tree.GetRightChild(root), level + 1, writer);
+            }
+        }
+
+        public static StringBuilder Dump(INonInvasiveTreeInspection tree)
+        {
+            StringBuilder sb = new StringBuilder();
+            using (TextWriter writer = new StringWriter(sb))
+            {
+                Dump(tree, tree.Root, 0, writer);
+            }
+            return sb;
+        }
+
+
         protected struct MultiRankInfo<KeyType, ValueType> : IComparable<MultiRankInfo<KeyType, ValueType>> where KeyType : IComparable<KeyType>
         {
             public readonly KeyType Key;
@@ -337,6 +437,90 @@ namespace TreeLibTest
                 return result;
             }
             throw new ArgumentException();
+        }
+
+
+        protected void ValidateMap<KeyType, ValueType>(EntryMap<KeyType, ValueType>[] items) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            for (int i = 1; i < items.Length; i++)
+            {
+                TestTrue("order", delegate () { return Comparer<KeyType>.Default.Compare(items[i - 1].Key, items[i].Key) < 0; });
+            }
+        }
+
+        protected void ValidateMapsEqual<KeyType, ValueType>(EntryMap<KeyType, ValueType>[] items1, EntryMap<KeyType, ValueType>[] items2) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            TestTrue("equal count", delegate () { return items1.Length == items2.Length; });
+            for (int i = 0; i < items1.Length; i++)
+            {
+                TestTrue("key", delegate () { return Comparer<KeyType>.Default.Compare(items1[i].Key, items2[i].Key) == 0; });
+                TestTrue("value", delegate () { return Comparer<ValueType>.Default.Compare(items1[i].Value, items2[i].Value) == 0; });
+            }
+        }
+
+        protected void ValidateMapsEqual<KeyType, ValueType>(IOrderedMap<KeyType, ValueType> tree1, IOrderedMap<KeyType, ValueType> tree2) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            ValidateTree(tree1);
+            EntryMap<KeyType, ValueType>[] items1 = Flatten<KeyType, ValueType>((INonInvasiveTreeInspection)tree1);
+            ValidateMap<KeyType, ValueType>(items1);
+            ValidateTree(tree2);
+            EntryMap<KeyType, ValueType>[] items2 = Flatten<KeyType, ValueType>((INonInvasiveTreeInspection)tree2);
+            ValidateMap<KeyType, ValueType>(items2);
+            ValidateMapsEqual<KeyType, ValueType>(items1, items2);
+        }
+
+
+        protected void ValidateRanks<KeyType, ValueType>(MultiRankMapEntry[] ranks, bool multi) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            int offset = 0;
+            for (int i = 0; i < ranks.Length; i++)
+            {
+                TestTrue("start", delegate () { return offset == ranks[i].rank.start; });
+                TestTrue("count > 0", delegate () { return multi ? (ranks[i].rank.length >= 1) : (ranks[i].rank.length == 1); });
+                offset += ranks[i].rank.length;
+            }
+        }
+
+        protected void ValidateRanksEqual<KeyType, ValueType>(MultiRankMapEntry[] ranks1, MultiRankMapEntry[] ranks2) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            TestTrue("equal count", delegate () { return ranks1.Length == ranks2.Length; });
+            for (int i = 0; i < ranks1.Length; i++)
+            {
+                TestTrue("key", delegate () { return Comparer<KeyType>.Default.Compare((KeyType)ranks1[i].key, (KeyType)ranks2[i].key) == 0; });
+                TestTrue("value", delegate () { return Comparer<ValueType>.Default.Compare((ValueType)ranks1[i].value, (ValueType)ranks2[i].value) == 0; });
+                TestTrue("start", delegate () { return ranks1[i].rank.start == ranks2[i].rank.start; });
+                TestTrue("length", delegate () { return ranks1[i].rank.length == ranks2[i].rank.length; });
+            }
+        }
+
+        protected void ValidateRanksEqual<KeyType, ValueType>(IRankMap<KeyType, ValueType> tree1, IRankMap<KeyType, ValueType> tree2) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            ValidateTree(tree1);
+            MultiRankMapEntry[] ranks1 = ((INonInvasiveMultiRankMapInspection)tree1).GetRanks();
+            ValidateRanks<KeyType, ValueType>(ranks1, false/*multi*/);
+            ValidateTree(tree2);
+            MultiRankMapEntry[] ranks2 = ((INonInvasiveMultiRankMapInspection)tree2).GetRanks();
+            ValidateRanks<KeyType, ValueType>(ranks2, false/*multi*/);
+            ValidateRanksEqual<KeyType, ValueType>(ranks1, ranks2);
+        }
+
+        protected void ValidateRanksEqual<KeyType, ValueType>(IMultiRankMap<KeyType, ValueType> tree1, IMultiRankMap<KeyType, ValueType> tree2) where KeyType : IComparable<KeyType>
+        {
+            IncrementIteration();
+            ValidateTree(tree1);
+            MultiRankMapEntry[] ranks1 = ((INonInvasiveMultiRankMapInspection)tree1).GetRanks();
+            ValidateRanks<KeyType, ValueType>(ranks1, true/*multi*/);
+            ValidateTree(tree2);
+            MultiRankMapEntry[] ranks2 = ((INonInvasiveMultiRankMapInspection)tree2).GetRanks();
+            ValidateRanks<KeyType, ValueType>(ranks2, true/*multi*/);
+            ValidateRanksEqual<KeyType, ValueType>(ranks1, ranks2);
+            TestTrue("GetExtent", delegate () { return tree1.RankCount == tree2.RankCount; });
         }
 
 
@@ -637,12 +821,30 @@ namespace TreeLibTest
                 {
                     key = (KeyType)keyAccessor.GetValue(entry);
                 }
+                PropertyInfo keyProperty = type.GetProperty("Key", BindingFlags.Instance | BindingFlags.Public);
+                if (keyProperty != null)
+                {
+                    object v = keyProperty.GetValue(entry);
+                    if (!v.Equals(key))
+                    {
+                        throw new InvalidOperationException("Key");
+                    }
+                }
 
                 FieldInfo valueAccessor = type.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic);
                 Debug.Assert(((treeKind & TreeKind.AllValued) != 0) == (valueAccessor != null));
                 if (valueAccessor != null)
                 {
                     value = (ValueType)valueAccessor.GetValue(entry);
+                }
+                PropertyInfo valueProperty = type.GetProperty("Value", BindingFlags.Instance | BindingFlags.Public);
+                if (valueProperty != null)
+                {
+                    object v = valueProperty.GetValue(entry);
+                    if (!v.Equals(value))
+                    {
+                        throw new InvalidOperationException("Value");
+                    }
                 }
 
 
@@ -652,6 +854,33 @@ namespace TreeLibTest
                 {
                     object r = xStartAccessor.GetValue(entry);
                     xStart = r is int ? (int)r : (int)(long)r;
+                }
+                PropertyInfo xStartProperty = type.GetProperty("XStart", BindingFlags.Instance | BindingFlags.Public);
+                if (xStartProperty != null)
+                {
+                    object v = xStartProperty.GetValue(entry);
+                    if (!v.Equals(xStart))
+                    {
+                        throw new InvalidOperationException("XStart");
+                    }
+                }
+                PropertyInfo rankProperty = type.GetProperty("Rank", BindingFlags.Instance | BindingFlags.Public);
+                if (rankProperty != null)
+                {
+                    object v = rankProperty.GetValue(entry);
+                    if (!v.Equals(xStart))
+                    {
+                        throw new InvalidOperationException("Rank");
+                    }
+                }
+                PropertyInfo startProperty = type.GetProperty("Start", BindingFlags.Instance | BindingFlags.Public);
+                if (startProperty != null)
+                {
+                    object v = startProperty.GetValue(entry);
+                    if (!v.Equals(xStart))
+                    {
+                        throw new InvalidOperationException("Start");
+                    }
                 }
 
                 FieldInfo xLengthAccessor = type.GetField("xLength", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -665,6 +894,33 @@ namespace TreeLibTest
                 {
                     xLength = 1;
                 }
+                PropertyInfo xLengthProperty = type.GetProperty("XLength", BindingFlags.Instance | BindingFlags.Public);
+                if (xLengthProperty != null)
+                {
+                    object v = xLengthProperty.GetValue(entry);
+                    if (!v.Equals(xLength))
+                    {
+                        throw new InvalidOperationException("XLength");
+                    }
+                }
+                PropertyInfo countProperty = type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public);
+                if (countProperty != null)
+                {
+                    object v = countProperty.GetValue(entry);
+                    if (!v.Equals(xLength))
+                    {
+                        throw new InvalidOperationException("Count");
+                    }
+                }
+                PropertyInfo lengthProperty = type.GetProperty("Length", BindingFlags.Instance | BindingFlags.Public);
+                if (lengthProperty != null)
+                {
+                    object v = lengthProperty.GetValue(entry);
+                    if (!v.Equals(xLength))
+                    {
+                        throw new InvalidOperationException("Length");
+                    }
+                }
 
 
                 FieldInfo yStartAccessor = type.GetField("yStart", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -674,6 +930,15 @@ namespace TreeLibTest
                     object r = yStartAccessor.GetValue(entry);
                     yStart = r is int ? (int)r : (int)(long)r;
                 }
+                PropertyInfo yStartProperty = type.GetProperty("YStart", BindingFlags.Instance | BindingFlags.Public);
+                if (yStartProperty != null)
+                {
+                    object v = yStartProperty.GetValue(entry);
+                    if (!v.Equals(yStart))
+                    {
+                        throw new InvalidOperationException("YStart");
+                    }
+                }
 
                 FieldInfo yLengthAccessor = type.GetField("yLength", BindingFlags.Instance | BindingFlags.NonPublic);
                 Debug.Assert(((treeKind & TreeKind.AllIndexed2) != 0) == (yLengthAccessor != null));
@@ -681,6 +946,15 @@ namespace TreeLibTest
                 {
                     object r = yLengthAccessor.GetValue(entry);
                     yLength = r is int ? (int)r : (int)(long)r;
+                }
+                PropertyInfo yLengthProperty = type.GetProperty("YLength", BindingFlags.Instance | BindingFlags.Public);
+                if (yLengthProperty != null)
+                {
+                    object v = yLengthProperty.GetValue(entry);
+                    if (!v.Equals(yLength))
+                    {
+                        throw new InvalidOperationException("YLength");
+                    }
                 }
             }
 

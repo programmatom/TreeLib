@@ -106,7 +106,7 @@ namespace TreeLib
         private Node root;
         [Count]
         private ulong count;
-        private ushort version;
+        private uint version;
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
@@ -628,6 +628,7 @@ out xLength,
         /// to this side.</param>
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public bool TrySet([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength)
         {
@@ -790,6 +791,7 @@ out length))
         /// to this side.</param>
         /// <returns>true if a range was found starting at the specified index and updated; false if the
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
+        [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
         public void Set([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength)
         {
@@ -1079,12 +1081,14 @@ out length))
         /// <param name="side">which side (X or Y) the start parameter applies</param>
         /// <param name="xAdjust">the amount to adjust the X length by. Value may be negative to shrink the length</param>
         /// <param name="yAdjust">the amount to adjust the Y length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start', or the length on
         /// one side would become 0 while the length on the other side would not be 0.</exception>
         /// <exception cref="ArgumentOutOfRangeException">one or both of the lengths would become negative</exception>
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust,[Feature(Feature.Range2)] [Widen] int yAdjust)
+        [Widen]
+        public int AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust,[Feature(Feature.Range2)] [Widen] int yAdjust)
         {
             unchecked
             {
@@ -1128,6 +1132,8 @@ out length))
                     this.yExtent = newYExtent;
 
                     ShiftRightOfPath(startIndex + 1, /*[Feature(Feature.Range2)]*/side, xAdjust, /*[Feature(Feature.Range2)]*/yAdjust);
+
+                    return side == Side.X ? newXLength : newYLength;
                 }
                 else
                 {
@@ -1142,6 +1148,8 @@ out length))
                     g_tree_remove_internal(
                         startIndex,
                         /*[Feature(Feature.Range2)]*/side);
+
+                    return 0;
                 }
             }
         }
@@ -1262,50 +1270,48 @@ out length))
                 if (root != Null)
                 {
                     Node node = root;
+                    /*[Widen]*/
+                    int xPosition = 0;
+                    /*[Widen]*/
+                    int yPosition = 0;
+                    while (true)
                     {
-                        /*[Widen]*/
-                        int xPosition = 0;
-                        /*[Widen]*/
-                        int yPosition = 0;
-                        while (true)
+                        xPosition += node.xOffset;
+                        yPosition += node.yOffset;
+
+                        int c;
                         {
-                            xPosition += node.xOffset;
-                            yPosition += node.yOffset;
-
-                            int c;
-                            {
-                                c = position.CompareTo(side == Side.X ? xPosition : yPosition);
-                            }
-                            if (orEqual && (c == 0))
-                            {
-                                nearestNode = node;
-                                nearestStart = side == Side.X ? xPosition : yPosition;
-                                return true;
-                            }
-                            Node next;
-                            if (c <= 0)
-                            {
-                                if (!node.left_child)
-                                {
-                                    break;
-                                }
-                                next = node.left;
-                            }
-                            else
-                            {
-                                lastLess = node;
-                                xPositionLastLess = xPosition;
-                                yPositionLastLess = yPosition;
-
-                                if (!node.right_child)
-                                {
-                                    break;
-                                }
-                                next = node.right;
-                            }
-                            Debug.Assert(next != Null);
-                            node = next;
+                            c = position.CompareTo(side == Side.X ? xPosition : yPosition);
                         }
+                        if (orEqual && (c == 0))
+                        {
+                            nearestNode = node;
+                            nearestStart = side == Side.X ? xPosition : yPosition;
+                            return true;
+                        }
+                        Node next;
+                        if (c <= 0)
+                        {
+                            if (!node.left_child)
+                            {
+                                break;
+                            }
+                            next = node.left;
+                        }
+                        else
+                        {
+                            lastLess = node;
+                            xPositionLastLess = xPosition;
+                            yPositionLastLess = yPosition;
+
+                            if (!node.right_child)
+                            {
+                                break;
+                            }
+                            next = node.right;
+                        }
+                        Debug.Assert(next != Null);
+                        node = next;
                     }
                 }
                 if (lastLess != Null)
@@ -1332,51 +1338,48 @@ out length))
                 if (root != Null)
                 {
                     Node node = root;
-                    if (node != Null)
+                    /*[Widen]*/
+                    int xPosition = 0;
+                    /*[Widen]*/
+                    int yPosition = 0;
+                    while (true)
                     {
-                        /*[Widen]*/
-                        int xPosition = 0;
-                        /*[Widen]*/
-                        int yPosition = 0;
-                        while (true)
+                        xPosition += node.xOffset;
+                        yPosition += node.yOffset;
+
+                        int c;
                         {
-                            xPosition += node.xOffset;
-                            yPosition += node.yOffset;
-
-                            int c;
-                            {
-                                c = position.CompareTo(side == Side.X ? xPosition : yPosition);
-                            }
-                            if (orEqual && (c == 0))
-                            {
-                                nearestNode = node;
-                                nearestStart = side == Side.X ? xPosition : yPosition;
-                                return true;
-                            }
-                            Node next;
-                            if (c < 0)
-                            {
-                                lastGreater = node;
-                                xPositionLastGreater = xPosition;
-                                yPositionLastGreater = yPosition;
-
-                                if (!node.left_child)
-                                {
-                                    break;
-                                }
-                                next = node.left;
-                            }
-                            else
-                            {
-                                if (!node.right_child)
-                                {
-                                    break;
-                                }
-                                next = node.right;
-                            }
-                            Debug.Assert(next != Null);
-                            node = next;
+                            c = position.CompareTo(side == Side.X ? xPosition : yPosition);
                         }
+                        if (orEqual && (c == 0))
+                        {
+                            nearestNode = node;
+                            nearestStart = side == Side.X ? xPosition : yPosition;
+                            return true;
+                        }
+                        Node next;
+                        if (c < 0)
+                        {
+                            lastGreater = node;
+                            xPositionLastGreater = xPosition;
+                            yPositionLastGreater = yPosition;
+
+                            if (!node.left_child)
+                            {
+                                break;
+                            }
+                            next = node.left;
+                        }
+                        else
+                        {
+                            if (!node.right_child)
+                            {
+                                break;
+                            }
+                            next = node.right;
+                        }
+                        Debug.Assert(next != Null);
+                        node = next;
                     }
                 }
                 if (lastGreater != Null)
@@ -1440,6 +1443,7 @@ out length))
             {
                 if (root == Null)
                 {
+
                     if (!add)
                     {
                         return false;
@@ -1462,7 +1466,7 @@ out length))
 
                     Debug.Assert(this.count == 0);
                     this.count = 1;
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     return true;
                 }
@@ -1514,7 +1518,6 @@ out length))
                         }
                         else
                         {
-                            // precedes node
 
                             if (!add)
                             {
@@ -1536,7 +1539,6 @@ out length))
                         }
                         else
                         {
-                            // follows node
 
                             if (!add)
                             {
@@ -1565,7 +1567,7 @@ out length))
                         }
                     }
 
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     // throw here before modifying tree
                     /*[Widen]*/
@@ -1619,7 +1621,7 @@ out length))
                         return false;
                     }
 
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     // throw here before modifying tree
                     /*[Widen]*/
@@ -1742,6 +1744,7 @@ out length))
 
                     if (cmp == 0)
                     {
+
                         break;
                     }
 
@@ -1774,7 +1777,7 @@ out length))
                     }
                 }
 
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 Node successor;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
@@ -2097,7 +2100,7 @@ out length))
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root != Null)
                 {
@@ -2965,7 +2968,7 @@ out length))
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
             //
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
@@ -2974,7 +2977,7 @@ out length))
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(AVLTreeRange2List tree,bool forward)
             {
@@ -3068,7 +3071,7 @@ out length))
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -3131,7 +3134,7 @@ out length))
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
         }
 
@@ -3152,8 +3155,8 @@ out length))
             [Feature(Feature.Range2)]
             private readonly Side side;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -3394,7 +3397,7 @@ out length))
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     previousYStart = currentYStart;

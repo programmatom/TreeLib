@@ -65,7 +65,7 @@ namespace TreeLibTest
                 {
                     count = count1;
                     items = items1;
-                    ValidateRanks<KeyType, ValueType>(items);
+                    ValidateRanks<KeyType, ValueType>(items, true/*multi*/);
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace TreeLibTest
                     {
                         Fault(collections[i], "length");
                     }
-                    ValidateRanks<KeyType, ValueType>(items1);
+                    ValidateRanks<KeyType, ValueType>(items1, true/*multi*/);
                     ValidateRanksEqual<KeyType, ValueType>(items, items1);
                 }
             }
@@ -999,7 +999,7 @@ namespace TreeLibTest
             {
                 try
                 {
-                    collections[i].AdjustCount(key, countAdjust);
+                    int newCount = collections[i].AdjustCount(key, countAdjust);
                     if (shouldThrowOutOfRange)
                     {
                         Fault(collections[i], description + " - didn't throw");
@@ -1019,6 +1019,13 @@ namespace TreeLibTest
                     if (collections[i].RankCount != GetExtent(items) + countAdjust)
                     {
                         Fault(collections[i], description + " - RankCount discrepancy");
+                    }
+                    if ((shouldDelete && (newCount != 0))
+                        || (shouldCreate && (newCount != countAdjust))
+                        || (!shouldDelete && !shouldCreate
+                            && (newCount != (keyExists ? countAdjust + items[index].rank.length : 0))))
+                    {
+                        Fault(collections[i], description + " - return value discrepancy");
                     }
                 }
                 catch (ArgumentOutOfRangeException) when (shouldThrowOutOfRange)

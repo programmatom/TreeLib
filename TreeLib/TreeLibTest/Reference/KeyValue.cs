@@ -45,5 +45,10 @@ namespace TreeLibTest
         {
             return Comparer<KeyType>.Default.Compare(this.key, other.key);
         }
+
+        public override string ToString()
+        {
+            return String.Format("<{0}, {1}>", key, value);
+        }
     }
 }

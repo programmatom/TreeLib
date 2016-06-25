@@ -136,9 +136,19 @@ namespace TreeLibTest
             return inner.GetKeyByRank(rank);
         }
 
-        public void AdjustCount(KeyType key, int countAdjust)
+        public int AdjustCount(KeyType key, int countAdjust)
         {
-            inner.AdjustCount(key, IntLong.ToLong(countAdjust));
+            return IntLong.ToInt(inner.AdjustCount(key, IntLong.ToLong(countAdjust)));
+        }
+
+        public void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            inner.ConditionalSetOrAdd(key, predicate);
+        }
+
+        public void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            inner.ConditionalSetOrRemove(key, predicate);
         }
 
         public bool Least(out KeyType leastOut, out ValueType valueOut)
@@ -320,8 +330,8 @@ namespace TreeLibTest
             return new EntryRankMap<KeyType, ValueType>(
                 entry.Key,
                 entry.Value,
-                (ISetValue<ValueType>)entry.GetType().GetField("enumerator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
-                (ushort)entry.GetType().GetField("version", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                new SetValueWrapper<ValueType>(entry),
+                ((IGetEnumeratorSetValueInfo<ValueType>)entry).Version,
                 IntLong.ToInt(entry.Rank));
         }
 

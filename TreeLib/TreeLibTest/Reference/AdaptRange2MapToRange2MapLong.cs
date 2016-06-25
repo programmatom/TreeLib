@@ -164,9 +164,9 @@ namespace TreeLibTest
             inner.Set(IntLong.ToLong(start), side, IntLong.ToLong(xLength), IntLong.ToLong(yLength), value);
         }
 
-        public void AdjustLength(int start, Side side, int xAdjust, int yAdjust)
+        public int AdjustLength(int start, Side side, int xAdjust, int yAdjust)
         {
-            inner.AdjustLength(IntLong.ToLong(start), side, IntLong.ToLong(xAdjust), IntLong.ToLong(yAdjust));
+            return IntLong.ToInt(inner.AdjustLength(IntLong.ToLong(start), side, IntLong.ToLong(xAdjust), IntLong.ToLong(yAdjust)));
         }
 
         public int GetExtent(Side side)
@@ -334,8 +334,8 @@ namespace TreeLibTest
         {
             return new EntryRange2Map<ValueType>(
                 entry.Value,
-                (ISetValue<ValueType>)entry.GetType().GetField("enumerator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
-                (ushort)entry.GetType().GetField("version", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(entry),
+                new SetValueWrapper<ValueType>(entry),
+                ((IGetEnumeratorSetValueInfo<ValueType>)entry).Version,
                 IntLong.ToInt(entry.XStart),
                 IntLong.ToInt(entry.XLength),
                 IntLong.ToInt(entry.YStart),

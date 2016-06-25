@@ -100,7 +100,7 @@ namespace TreeLib
         private Node root;
         [Count]
         private ulong count;
-        private ushort version;
+        private uint version;
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Widen]
@@ -548,35 +548,6 @@ out xLength)
             return false;
         }
 
-        [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySet([Widen] long start,[Widen] long xLength)
-        {
-            if (xLength < 0)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-
-            Node node;
-            /*[Widen]*/
-            long xPosition, xLengthOld ;
-            if (FindPosition(start, out node, out xPosition, out xLengthOld)
-                && (start == (xPosition)))
-            {
-                /*[Widen]*/
-                long xAdjust = xLength != 0 ? xLength - xLengthOld : 0 ;
-
-                // throw OverflowException before modifying anything
-                /*[Widen]*/
-                long newXExtent = checked(this.xExtent + xAdjust) ;
-                this.xExtent = newXExtent;
-
-                ShiftRightOfPath(unchecked(start + 1), xAdjust);
-
-                return true;
-            }
-            return false;
-        }
-
         
         /// <summary>
         /// Inserts a range of a given length at the specified start index.
@@ -660,15 +631,6 @@ out length))
         public void Get([Widen] long start,[Widen] out long xLength)
         {
             if (!TryGet(start, out xLength))
-            {
-                throw new ArgumentException("item not in tree");
-            }
-        }
-
-        [Feature(Feature.Range, Feature.Range2)]
-        public void Set([Widen] long start,[Widen] long xLength)
-        {
-            if (!TrySet(start, xLength))
             {
                 throw new ArgumentException("item not in tree");
             }
@@ -919,11 +881,13 @@ out length))
         /// </summary>
         /// <param name="start">the start index of the range to adjust</param>
         /// <param name="adjust">the amount to adjust the length by. Value may be negative to shrink the length</param>
+        /// <returns>The adjusted length</returns>
         /// <exception cref="ArgumentException">There is no range starting at the index specified by 'start'.</exception>
         /// <exception cref="ArgumentOutOfRangeException">the length would become negative</exception>
         /// <exception cref="OverflowException">the extent would become larger than Int64.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void AdjustLength([Widen] long startIndex,[Widen] long xAdjust)
+        [Widen]
+        public long AdjustLength([Widen] long startIndex,[Widen] long xAdjust)
         {
             unchecked
             {
@@ -956,6 +920,8 @@ out length))
                     this.xExtent = newXExtent;
 
                     ShiftRightOfPath(startIndex + 1, xAdjust);
+
+                    return newXLength;
                 }
                 else
                 {
@@ -966,6 +932,8 @@ out length))
 
                     g_tree_remove_internal(
                         startIndex);
+
+                    return 0;
                 }
             }
         }
@@ -1084,49 +1052,47 @@ out length))
                 if (root != Null)
                 {
                     Node node = root;
+                    /*[Widen]*/
+                    long xPosition = 0 ;
+                    /*[Widen]*/
+                    long yPosition = 0 ;
+                    while (true)
                     {
-                        /*[Widen]*/
-                        long xPosition = 0 ;
-                        /*[Widen]*/
-                        long yPosition = 0 ;
-                        while (true)
+                        xPosition += node.xOffset;
+
+                        int c;
                         {
-                            xPosition += node.xOffset;
-
-                            int c;
-                            {
-                                c = position.CompareTo(xPosition);
-                            }
-                            if (orEqual && (c == 0))
-                            {
-                                nearestNode = node;
-                                nearestStart = xPosition;
-                                return true;
-                            }
-                            Node next;
-                            if (c <= 0)
-                            {
-                                if (!node.left_child)
-                                {
-                                    break;
-                                }
-                                next = node.left;
-                            }
-                            else
-                            {
-                                lastLess = node;
-                                xPositionLastLess = xPosition;
-                                yPositionLastLess = yPosition;
-
-                                if (!node.right_child)
-                                {
-                                    break;
-                                }
-                                next = node.right;
-                            }
-                            Debug.Assert(next != Null);
-                            node = next;
+                            c = position.CompareTo(xPosition);
                         }
+                        if (orEqual && (c == 0))
+                        {
+                            nearestNode = node;
+                            nearestStart = xPosition;
+                            return true;
+                        }
+                        Node next;
+                        if (c <= 0)
+                        {
+                            if (!node.left_child)
+                            {
+                                break;
+                            }
+                            next = node.left;
+                        }
+                        else
+                        {
+                            lastLess = node;
+                            xPositionLastLess = xPosition;
+                            yPositionLastLess = yPosition;
+
+                            if (!node.right_child)
+                            {
+                                break;
+                            }
+                            next = node.right;
+                        }
+                        Debug.Assert(next != Null);
+                        node = next;
                     }
                 }
                 if (lastLess != Null)
@@ -1153,50 +1119,47 @@ out length))
                 if (root != Null)
                 {
                     Node node = root;
-                    if (node != Null)
+                    /*[Widen]*/
+                    long xPosition = 0 ;
+                    /*[Widen]*/
+                    long yPosition = 0 ;
+                    while (true)
                     {
-                        /*[Widen]*/
-                        long xPosition = 0 ;
-                        /*[Widen]*/
-                        long yPosition = 0 ;
-                        while (true)
+                        xPosition += node.xOffset;
+
+                        int c;
                         {
-                            xPosition += node.xOffset;
-
-                            int c;
-                            {
-                                c = position.CompareTo(xPosition);
-                            }
-                            if (orEqual && (c == 0))
-                            {
-                                nearestNode = node;
-                                nearestStart = xPosition;
-                                return true;
-                            }
-                            Node next;
-                            if (c < 0)
-                            {
-                                lastGreater = node;
-                                xPositionLastGreater = xPosition;
-                                yPositionLastGreater = yPosition;
-
-                                if (!node.left_child)
-                                {
-                                    break;
-                                }
-                                next = node.left;
-                            }
-                            else
-                            {
-                                if (!node.right_child)
-                                {
-                                    break;
-                                }
-                                next = node.right;
-                            }
-                            Debug.Assert(next != Null);
-                            node = next;
+                            c = position.CompareTo(xPosition);
                         }
+                        if (orEqual && (c == 0))
+                        {
+                            nearestNode = node;
+                            nearestStart = xPosition;
+                            return true;
+                        }
+                        Node next;
+                        if (c < 0)
+                        {
+                            lastGreater = node;
+                            xPositionLastGreater = xPosition;
+                            yPositionLastGreater = yPosition;
+
+                            if (!node.left_child)
+                            {
+                                break;
+                            }
+                            next = node.left;
+                        }
+                        else
+                        {
+                            if (!node.right_child)
+                            {
+                                break;
+                            }
+                            next = node.right;
+                        }
+                        Debug.Assert(next != Null);
+                        node = next;
                     }
                 }
                 if (lastGreater != Null)
@@ -1260,6 +1223,7 @@ out length))
             {
                 if (root == Null)
                 {
+
                     if (!add)
                     {
                         return false;
@@ -1279,7 +1243,7 @@ out length))
 
                     Debug.Assert(this.count == 0);
                     this.count = 1;
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     return true;
                 }
@@ -1330,7 +1294,6 @@ out length))
                         }
                         else
                         {
-                            // precedes node
 
                             if (!add)
                             {
@@ -1352,7 +1315,6 @@ out length))
                         }
                         else
                         {
-                            // follows node
 
                             if (!add)
                             {
@@ -1381,7 +1343,7 @@ out length))
                         }
                     }
 
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     // throw here before modifying tree
                     /*[Widen]*/
@@ -1430,7 +1392,7 @@ out length))
                         return false;
                     }
 
-                    this.version = unchecked((ushort)(this.version + 1));
+                    this.version = unchecked(this.version + 1);
 
                     // throw here before modifying tree
                     /*[Widen]*/
@@ -1539,6 +1501,7 @@ out length))
 
                     if (cmp == 0)
                     {
+
                         break;
                     }
 
@@ -1569,7 +1532,7 @@ out length))
                     }
                 }
 
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 Node successor;
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
@@ -1862,7 +1825,7 @@ out length))
         {
             unchecked
             {
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
 
                 if (root != Null)
                 {
@@ -2675,7 +2638,7 @@ out length))
 
             private bool started;
             private bool valid;
-            private ushort enumeratorVersion;
+            private uint enumeratorVersion;
             //
             [Feature(Feature.Range, Feature.Range2)]
             [Widen]
@@ -2684,7 +2647,7 @@ out length))
             // saving the currentXStart with does not work well for range collections because it may shift, so making updates
             // is not permitted in range trees
             [Feature(Feature.Range, Feature.Range2)]
-            private ushort treeVersion;
+            private uint treeVersion;
 
             public RobustEnumerator(AVLTreeRangeListLong tree,bool forward)
             {
@@ -2759,7 +2722,7 @@ out length))
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (!started)
                 {
@@ -2822,7 +2785,7 @@ out length))
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 treeVersion = tree.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
             }
         }
 
@@ -2841,8 +2804,8 @@ out length))
             [Widen]
             private readonly long startStart;
 
-            private ushort treeVersion;
-            private ushort enumeratorVersion;
+            private uint treeVersion;
+            private uint enumeratorVersion;
 
             private Node currentNode;
             private Node leadingNode;
@@ -3063,7 +3026,7 @@ out length))
                         throw new InvalidOperationException();
                     }
 
-                    this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                     previousXStart = currentXStart;
                     currentNode = leadingNode;

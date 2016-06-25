@@ -22,6 +22,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using TreeLib;
 using TreeLib.Internal;
@@ -37,8 +38,8 @@ namespace TreeLibTest
         IEnumerable<EntryMap<KeyType, ValueType>>
         where KeyType : IComparable<KeyType>
     {
-        private readonly List<EntryMap<KeyType, ValueType>> items = new List<EntryMap<KeyType, ValueType>>();
-        private ushort version;
+        private List<EntryMap<KeyType, ValueType>> items = new List<EntryMap<KeyType, ValueType>>();
+        private uint version;
 
 
         //
@@ -47,6 +48,16 @@ namespace TreeLibTest
 
         public ReferenceMap()
         {
+        }
+
+        public ReferenceMap(ReferenceMap<KeyType, ValueType> original)
+        {
+            items.AddRange(original.items);
+        }
+
+        public ReferenceMap<KeyType, ValueType> Clone()
+        {
+            return new ReferenceMap<KeyType, ValueType>(this);
         }
 
 
@@ -77,7 +88,7 @@ namespace TreeLibTest
                 return false;
             }
             items.Insert(~i, new EntryMap<KeyType, ValueType>(key, value, null, 0));
-            this.version = unchecked((ushort)(this.version + 1));
+            this.version = unchecked(this.version + 1);
             return true;
         }
 
@@ -87,7 +98,7 @@ namespace TreeLibTest
             if (i < 0)
             {
                 items.Insert(~i, new EntryMap<KeyType, ValueType>(key, value, null, 0));
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
                 return true;
             }
             return false;
@@ -99,7 +110,7 @@ namespace TreeLibTest
             if (i >= 0)
             {
                 items.RemoveAt(i);
-                this.version = unchecked((ushort)(this.version + 1));
+                this.version = unchecked(this.version + 1);
                 return true;
             }
             return false;
@@ -159,6 +170,77 @@ namespace TreeLibTest
             if (!TrySetValue(key, value))
             {
                 throw new ArgumentException("item not in tree");
+            }
+        }
+
+        public void ConditionalSetOrAdd(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            ValueType value;
+            bool resident = TryGetValue(key, out value);
+
+            uint version = this.version;
+            List<EntryMap<KeyType, ValueType>> savedItems = items;
+            items = new List<EntryMap<KeyType, ValueType>>();
+
+            bool add = predicate(key, ref value, resident);
+
+            items = savedItems;
+            if (version != this.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (resident)
+            {
+                bool f = TrySetValue(key, value);
+                Debug.Assert(f);
+            }
+            else if (add)
+            {
+                bool f = TryAdd(key, value);
+                Debug.Assert(f);
+            }
+        }
+
+        public void ConditionalSetOrRemove(KeyType key, UpdatePredicate<KeyType, ValueType> predicate)
+        {
+            if (predicate == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            ValueType value;
+            bool resident = TryGetValue(key, out value);
+
+            uint version = this.version;
+            List<EntryMap<KeyType, ValueType>> savedItems = items;
+            items = new List<EntryMap<KeyType, ValueType>>();
+
+            bool remove = predicate(key, ref value, resident);
+
+            items = savedItems;
+            if (version != this.version)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (resident)
+            {
+                if (remove)
+                {
+                    bool f = TryRemove(key);
+                    Debug.Assert(f);
+                }
+                else
+                {
+                    bool f = TrySetValue(key, value);
+                    Debug.Assert(f);
+                }
             }
         }
 
@@ -332,7 +414,7 @@ namespace TreeLibTest
 
         int ISimpleTreeInspection<KeyType, ValueType>.Count { get { return items.Count; } }
 
-        EntryMap<KeyType, ValueType>[] ISimpleTreeInspection<KeyType, ValueType>.ToArray()
+        public EntryMap<KeyType, ValueType>[] ToArray()
         {
             return items.ToArray();
         }
@@ -400,8 +482,8 @@ namespace TreeLibTest
 
             private int index;
             private EntryMap<KeyType, ValueType> current;
-            private ushort mapVersion;
-            private ushort enumeratorVersion;
+            private uint mapVersion;
+            private uint enumeratorVersion;
 
             public Enumerator(ReferenceMap<KeyType, ValueType> map, bool forward, bool robust, bool startKeyed, KeyType startKey)
             {
@@ -429,7 +511,7 @@ namespace TreeLibTest
                     throw new InvalidOperationException();
                 }
 
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 if (((index >= 0) && (index < map.Count)) && (0 != Comparer<KeyType>.Default.Compare(current.Key, map.items[index].Key)))
                 {
@@ -470,7 +552,7 @@ namespace TreeLibTest
             public void Reset()
             {
                 this.mapVersion = map.version;
-                this.enumeratorVersion = unchecked((ushort)(this.enumeratorVersion + 1));
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
 
                 current = new EntryMap<KeyType, ValueType>();
 
@@ -511,7 +593,7 @@ namespace TreeLibTest
                 }
             }
 
-            public void SetValue(ValueType value, ushort expectedEnumeratorVersion)
+            public void SetValue(ValueType value, uint expectedEnumeratorVersion)
             {
                 if ((!robust && (this.mapVersion != map.version)) || (this.enumeratorVersion != expectedEnumeratorVersion))
                 {
