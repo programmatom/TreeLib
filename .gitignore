@@ -39,3 +39,5 @@ Diff.cmd
 link.URL
 
 EditNuspecs.cmd
+PackNugets.cmd
+PushNugets.cmd
