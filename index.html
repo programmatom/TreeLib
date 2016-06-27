@@ -343,6 +343,8 @@
 
 <p>Any type parameters for key or value (if applicable) are specified in the type name of the construction. Constructors taking an explicit comparer are not available for the range collections, as they do not have keys.</p>
 
+
+
 <h2 id="how-do-the-interfaces-work">How do the interfaces work?</h2>
 
 <p>Each specialization implements a specific interface appropriate to the specialization. The interface identifies the accessors that make sense for that particular type of tree. Here are the interfaces associated with each specialization type:</p>
@@ -481,9 +483,17 @@
 </tbody></table>
 
 
-<p>Each type of enumerator is explicitly available on the tree by calling either the <code>GetRobustEnumerable()</code> method or the <code>GetFastEnumerable()</code> method.</p>
+<p>Each type of enumerator is explicitly available on the tree by calling either the <code>GetRobustEnumerable()</code> method or the <code>GetFastEnumerable()</code> method. Example usage is as follows:</p>
 
+<blockquote>
+  <p><code>foreach (var entry in tree.GetEnumerable()) { ...</code> <br>
+  <code>foreach (var entry in tree.GetFastEnumerable()) { ...</code> <br>
+  <code>foreach (var entry in tree.GetRobustEnumerable()) { ...</code></p>
+</blockquote>
 
+<h3 id="enhanced-enumeration">Enhanced enumeration</h3>
+
+<p>The trees also support enhanced enumeration, which includes the ability to specify the direction (forward or reverse) and the starting key or index for the enumeration. These are provided as overloads of <code>GetEnumerable()</code>, <code>GetFastEnumerable()</code> and <code>GetRobustEnumerable()</code> taking the appropriate configuration parameters.</p>
 
 <h2 id="whats-in-treelibutil">What’s in TreeLibUtil?</h2>
 

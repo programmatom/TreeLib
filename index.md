@@ -158,7 +158,14 @@ Tree Type|Default Enumerator
 AVL|Fast
 Red-Black|Fast
 Splay|Robust
-Each type of enumerator is explicitly available on the tree by calling either the `GetRobustEnumerable()` method or the `GetFastEnumerable()` method.
+Each type of enumerator is explicitly available on the tree by calling either the `GetRobustEnumerable()` method or the `GetFastEnumerable()` method. Example usage is as follows:
+
+> `foreach (var entry in tree.GetEnumerable()) { ...`
+> `foreach (var entry in tree.GetFastEnumerable()) { ...`
+> `foreach (var entry in tree.GetRobustEnumerable()) { ...`
+
+###Enhanced enumeration
+The trees also support enhanced enumeration, which includes the ability to specify the direction (forward or reverse) and the starting key or index for the enumeration. These are provided as overloads of `GetEnumerable()`, `GetFastEnumerable()` and `GetRobustEnumerable()` taking the appropriate configuration parameters.
 
 What's in TreeLibUtil?
 ---
@@ -172,3 +179,4 @@ TreeLibUtil contains `HugeList<>`, an analog of the .NET Framework's `List<>` cl
 [5]: https://stackedit.io/editor
 
 Last updated June 2016. Authored using [stackedit][5].
+
