@@ -35,7 +35,10 @@
 <li><a href="#width-of-rankrange-numbers">Width of Rank/Range numbers</a><ul>
 <li><a href="#how-do-i-create-a-tree">How do I create a tree?</a></li>
 <li><a href="#how-do-the-interfaces-work">How do the interfaces work?</a></li>
-<li><a href="#what-about-enumeration">What about enumeration?</a></li>
+<li><a href="#what-about-enumeration">What about enumeration?</a><ul>
+<li><a href="#enhanced-enumeration">Enhanced enumeration</a></li>
+</ul>
+</li>
 <li><a href="#whats-in-treelibutil">What’s in TreeLibUtil?</a></li>
 </ul>
 </li>
@@ -53,7 +56,7 @@
 
 <p>The linked articles discuss the properties of these tree types in detail and that discussion will not be repeated here. Here is the crucial summary: All trees have O(lg N) per-operation complexity over a large number of operations. AVL and Red-Black trees have O(lg N) worst case time for individual operations whereas Splay trees have O(N) worst case time, so their overall O(lg N) is only in an amortized sense. (For scenarios with hard deadlines, Red-Black and AVL are fine, but Splay is inappropriate.) Red-Black is a good general-purpose tree. For access patterns that include many more queries than writes, AVL trees may be faster due to a tighter bound on depth (thus search path length), but they rotate more on insert/delete so may be more expensive in modification-heavy scenarios. Splay trees move recently accessed nodes near the root, so may have better than O(lg N) performance on access patterns with strong referential locality.</p>
 
-
+<p>The current version is 1.1.0. Versions and revision history can be viewed at <a href="https://github.com/programmatom/TreeLib/releases">https://github.com/programmatom/TreeLib/releases</a>, however it is recommended to obtain the binaries from <a href="https://nuget.org">https://nuget.org</a> rather than using the release packages.</p>
 
 <h2 id="where-did-the-implementations-come-from">Where did the implementations come from?</h2>
 
@@ -491,9 +494,13 @@
   <code>foreach (var entry in tree.GetRobustEnumerable()) { ...</code></p>
 </blockquote>
 
+
+
 <h3 id="enhanced-enumeration">Enhanced enumeration</h3>
 
 <p>The trees also support enhanced enumeration, which includes the ability to specify the direction (forward or reverse) and the starting key or index for the enumeration. These are provided as overloads of <code>GetEnumerable()</code>, <code>GetFastEnumerable()</code> and <code>GetRobustEnumerable()</code> taking the appropriate configuration parameters.</p>
+
+
 
 <h2 id="whats-in-treelibutil">What’s in TreeLibUtil?</h2>
 

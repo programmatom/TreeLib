@@ -11,6 +11,8 @@ The source code is written in C# and the assemblies will work with any .NET lang
 
 The linked articles discuss the properties of these tree types in detail and that discussion will not be repeated here. Here is the crucial summary: All trees have O(lg N) per-operation complexity over a large number of operations. AVL and Red-Black trees have O(lg N) worst case time for individual operations whereas Splay trees have O(N) worst case time, so their overall O(lg N) is only in an amortized sense. (For scenarios with hard deadlines, Red-Black and AVL are fine, but Splay is inappropriate.) Red-Black is a good general-purpose tree. For access patterns that include many more queries than writes, AVL trees may be faster due to a tighter bound on depth (thus search path length), but they rotate more on insert/delete so may be more expensive in modification-heavy scenarios. Splay trees move recently accessed nodes near the root, so may have better than O(lg N) performance on access patterns with strong referential locality.
 
+The current version is 1.1.0. Versions and revision history can be viewed at https://github.com/programmatom/TreeLib/releases, however it is recommended to obtain the binaries from https://nuget.org rather than using the release packages.
+
 Where did the implementations come from?
 ---
  The Splay tree comes from code written by the inventor, Daniel Sleator, available in basic form from http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c.
