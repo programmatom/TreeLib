@@ -1223,11 +1223,22 @@ uint countNew = checked(this.count + 1);
         // ITreeEnumerable
         //
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator. Equivalent to IEnumerable&lt;&gt;.GetEnumerator()
+        /// </summary>
+        /// <returns>A new instance of the default enumerator</returns>
         public IEnumerable<EntryList<KeyType>> GetEnumerable()
         {
             return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
         public IEnumerable<EntryList<KeyType>> GetEnumerable(bool forward)
         {
             return new RobustEnumerableSurrogate(this, forward);
@@ -1243,11 +1254,22 @@ uint countNew = checked(this.count + 1);
         /// enumerate the entire tree.
         /// </summary>
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator.
+        /// </summary>
+        /// <returns>A new instance of the robust enumerator</returns>
         public IEnumerable<EntryList<KeyType>> GetRobustEnumerable()
         {
             return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
         public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(bool forward)
         {
             return new RobustEnumerableSurrogate(this, forward);
@@ -1269,11 +1291,22 @@ uint countNew = checked(this.count + 1);
         /// robust enumerator�s O(N lg N) complexity.
         /// </summary>
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator.
+        /// </summary>
+        /// <returns>A new instance of the fast enumerator</returns>
         public IEnumerable<EntryList<KeyType>> GetFastEnumerable()
         {
             return new FastEnumerableSurrogate(this, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
         public IEnumerable<EntryList<KeyType>> GetFastEnumerable(bool forward)
         {
             return new FastEnumerableSurrogate(this, forward);
@@ -1283,36 +1316,81 @@ uint countNew = checked(this.count + 1);
         // IKeyedTreeEnumerable
         //
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public IEnumerable<EntryList<KeyType>> GetEnumerable(KeyType startAt)
         {
             return new RobustEnumerableSurrogate(this, startAt, true/*forward*/); // default
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts as follows: for forward enumeration, the next key higher in sort order; for reverse enumeration, the next lower
+        /// (i.e. previous) key in sort order</param>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public IEnumerable<EntryList<KeyType>> GetEnumerable(KeyType startAt,bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward); // default
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public IEnumerable<EntryList<KeyType>> GetFastEnumerable(KeyType startAt)
         {
             return new FastEnumerableSurrogate(this, startAt, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts as follows: for forward enumeration, the next key higher in sort order; for reverse enumeration, the next lower
+        /// (i.e. previous) key in sort order</param>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public IEnumerable<EntryList<KeyType>> GetFastEnumerable(KeyType startAt,bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, forward);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(KeyType startAt)
         {
             return new RobustEnumerableSurrogate(this, startAt, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified key.
+        /// </summary>
+        /// <param name="startAt">The key to start enumeration at. If the key is not present in the collection, enumeration
+        /// starts as follows: for forward enumeration, the next key higher in sort order; for reverse enumeration, the next lower
+        /// (i.e. previous) key in sort order</param>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(KeyType startAt,bool forward)
         {

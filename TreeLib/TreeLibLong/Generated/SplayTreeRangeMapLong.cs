@@ -1698,11 +1698,22 @@ namespace TreeLib
         // ITreeEnumerable
         //
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator. Equivalent to IEnumerable&lt;&gt;.GetEnumerator()
+        /// </summary>
+        /// <returns>A new instance of the default enumerator</returns>
         public IEnumerable<EntryRangeMapLong<ValueType>> GetEnumerable()
         {
             return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
         public IEnumerable<EntryRangeMapLong<ValueType>> GetEnumerable(bool forward)
         {
             return new RobustEnumerableSurrogate(this, forward);
@@ -1718,11 +1729,22 @@ namespace TreeLib
         /// enumerate the entire tree.
         /// </summary>
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator.
+        /// </summary>
+        /// <returns>A new instance of the robust enumerator</returns>
         public IEnumerable<EntryRangeMapLong<ValueType>> GetRobustEnumerable()
         {
             return new RobustEnumerableSurrogate(this, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
         public IEnumerable<EntryRangeMapLong<ValueType>> GetRobustEnumerable(bool forward)
         {
             return new RobustEnumerableSurrogate(this, forward);
@@ -1744,11 +1766,22 @@ namespace TreeLib
         /// robust enumerator�s O(N lg N) complexity.
         /// </summary>
         /// <returns>An IEnumerable which can be used in a foreach statement</returns>
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator.
+        /// </summary>
+        /// <returns>A new instance of the fast enumerator</returns>
         public IEnumerable<EntryRangeMapLong<ValueType>> GetFastEnumerable()
         {
             return new FastEnumerableSurrogate(this, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
         public IEnumerable<EntryRangeMapLong<ValueType>> GetFastEnumerable(bool forward)
         {
             return new FastEnumerableSurrogate(this, forward);
@@ -1758,36 +1791,84 @@ namespace TreeLib
         // IIndexedTreeEnumerable/IIndexed2TreeEnumerable
         //
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
         public IEnumerable<EntryRangeMapLong<ValueType>> GetEnumerable([Widen] long startAt)
         {
             return new RobustEnumerableSurrogate(this, startAt, true/*forward*/); // default
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the default enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
         public IEnumerable<EntryRangeMapLong<ValueType>> GetEnumerable([Widen] long startAt,bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward); // default
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
         public IEnumerable<EntryRangeMapLong<ValueType>> GetFastEnumerable([Widen] long startAt)
         {
             return new FastEnumerableSurrogate(this, startAt, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the fast enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
         public IEnumerable<EntryRangeMapLong<ValueType>> GetFastEnumerable([Widen] long startAt,bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, forward);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator traversing in the specified direction.
+        /// </summary>
+        /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
+        /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
         public IEnumerable<EntryRangeMapLong<ValueType>> GetRobustEnumerable([Widen] long startAt)
         {
             return new RobustEnumerableSurrogate(this, startAt, true/*forward*/);
         }
 
+        
+        /// <summary>
+        /// Create a new instance of the robust enumerator, starting the enumeration at the specified index.
+        /// </summary>
+        /// <param name="startAt">The index to start enumeration at. If the index is interior to a range, enumeration
+        /// starts as follows: for forward enumeration, the range that follows; for reverse enumeration, the range containing
+        /// the specified index</param>
+        /// <param name="forward">True to move from ranges in order of increasing start indexes; False to move backwards
+        /// from the last range through decreasing start indexes</param>
+        /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
         public IEnumerable<EntryRangeMapLong<ValueType>> GetRobustEnumerable([Widen] long startAt,bool forward)
         {

@@ -49,7 +49,7 @@ Most important, add testing for new or changed functionality.
 
 Testing
 ===
-Testing is the most important (and most tedious) aspect of maintaining a library like TreeLib. The `TreeLibTest.exe` provides comprehensive unit, stochastic, and performance testing. There three important categories of testing. The test tool has several arguments. which can all be combined and are interpreted left-to-right, although not all make sense together.
+Testing is the most important (and most tedious) aspect of maintaining a library like TreeLib. The `TreeLibTest.exe` provides comprehensive unit, stochastic, and performance testing. There are three important categories of testing. The test tool has several arguments which can all be combined and are interpreted left-to-right, although not all make sense together.
 
 Argument|Description
 ---|---
@@ -67,7 +67,7 @@ Argument|Description
 `+perf`|Enable performance testing
 `baseline`|Cause a new baseline measurement to be made. If omitted, the current run will be compared to any existing baseline and deviations (faster or slower) will be written to the output
 ---|---
-`break:<iteration>`|Generate an assert and `Debugger.Break()` at the specified iteration. This is used for rerunning and breaking immediately before a test failure.
+`break:<iteration>`|Generate an assert and `Debugger.Break()` at the specified iteration. This is useful for rerunning and breaking immediately before a test failure.
 `seed:<number>`|Specify the seed to use for the random number generator in stochastic tests. This allows failures to be reproduced upon rerun, and debugged if used in conjunction with `break`.
 
 Unit Tests

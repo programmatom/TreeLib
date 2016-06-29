@@ -41,7 +41,7 @@ namespace BuildTool
 {
     public static class PropagateDocumentation
     {
-        private const string DocSourceAttributeName= "DocumentationSource";
+        private const string DocSourceAttributeName = "DocumentationSource";
 
         public static SyntaxNode Do(Compilation compilation, Compilation interfacesCompilation, SyntaxNode root, SyntaxNode targetTypeDeclaration)
         {
@@ -69,7 +69,8 @@ namespace BuildTool
                             {
                                 members.Add((MemberDeclarationSyntax)decl);
                             }
-                            interfaces.Add((InterfaceDeclarationSyntax)node, members);
+                            InterfaceDeclarationSyntax ifaceDecl = (InterfaceDeclarationSyntax)node;
+                            interfaces.Add(ifaceDecl, members);
                         }
                     }
                 }
@@ -93,8 +94,9 @@ namespace BuildTool
                 {
                     InterfaceDeclarationSyntax interfaceDeclaration = interfaceItem.Key;
                     // hack
-                    string baseTypeString = baseType.Type.ToString();
-                    string patternString = String.Concat(interfaceDeclaration.Identifier.Text, interfaceDeclaration.TypeParameterList != null ? interfaceDeclaration.TypeParameterList.ToString() : null);
+                    string baseTypeString = GetStringForBaseTypeComparison(baseType);
+                    string patternString = GetStringForInterfaceComparison(interfaceDeclaration);
+                    //Console.WriteLine("{2}  {0}  ?  {1}", baseTypeString, patternString, String.Equals(baseTypeString, patternString) ? "*" : " ");
                     if (String.Equals(baseTypeString, patternString))
                     {
                         // can we find any members we implemented that are in the interface?
@@ -123,7 +125,10 @@ namespace BuildTool
                                                     node.GetLeadingTrivia()
                                                         .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
                                                         .AddRange(CookDocumentationTrivia(prototype.GetLeadingTrivia())));
-                                            replacements.Add(node, replacement);
+                                            if (!replacements.ContainsKey(node)) // in case exposed by multiple interfaces
+                                            {
+                                                replacements.Add(node, replacement);
+                                            }
 
                                             break;
                                         }
@@ -151,7 +156,10 @@ namespace BuildTool
                                                     node.GetLeadingTrivia()
                                                         .Add(SyntaxFactory.EndOfLine(Environment.NewLine))
                                                         .AddRange(CookDocumentationTrivia(prototype.GetLeadingTrivia())));
-                                            replacements.Add(node, replacement);
+                                            if (!replacements.ContainsKey(node)) // in case exposed by multiple interfaces
+                                            {
+                                                replacements.Add(node, replacement);
+                                            }
 
                                             break;
                                         }
@@ -226,6 +234,29 @@ namespace BuildTool
                 }
             }
             return new SyntaxTriviaList().AddRange(trivia);
+        }
+
+        private static string GetStringForBaseTypeComparison(BaseTypeSyntax baseType)
+        {
+            if (baseType.Type.IsKind(SyntaxKind.GenericName))
+            {
+                GenericNameSyntax genericType = ((GenericNameSyntax)baseType.Type);
+                return String.Concat(genericType.Identifier.Text, "`", genericType.TypeArgumentList.Arguments.Count);
+            }
+            else
+            {
+                return baseType.Type.ToString();
+            }
+        }
+
+        private static string GetStringForInterfaceComparison(InterfaceDeclarationSyntax interfaceDeclaration)
+        {
+            string text = interfaceDeclaration.Identifier.Text;
+            if (interfaceDeclaration.TypeParameterList != null)
+            {
+                text = String.Concat(text, "`", interfaceDeclaration.TypeParameterList.Parameters.Count);
+            }
+            return text;
         }
     }
 }

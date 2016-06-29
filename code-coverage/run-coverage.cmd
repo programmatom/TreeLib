@@ -1,6 +1,6 @@
 @echo off
 
-set PROGRAMARGS=
+set PROGRAMARGS=%1 %2 %3 %4 %5 %6 %7 %8 %9
 
 set OPENCOVER=%ProgramFiles(x86)%\OpenCover\OpenCover.Console.exe
 set REPORTGEN=%ProgramFiles(x86)%\ReportGenerator_2.1.8.0\bin\ReportGenerator.exe

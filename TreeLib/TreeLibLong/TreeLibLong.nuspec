@@ -9,7 +9,7 @@
     <licenseUrl>http://www.gnu.org/licenses/lgpl-3.0.html</licenseUrl>
     <projectUrl>http://programmatom.github.io/TreeLib/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>TreeLib: Balanced Binary Trees, Rank Augmented provides binary tree collections (AVL, red-black and splay) with optional rank information for sparse indexing applications. This package contains implementations with Int64 rank indexing.</description>
+    <description>TreeLib: Balanced Binary Trees, Rank Augmented provides binary tree collections (AVL, red-black and splay) with optional rank information for order-statistic and sparse indexing applications. This package contains implementations with Int64 rank indexing.</description>
     <releaseNotes>Fix bug limiting size of AVL trees; Enhanced enumeration (start at key/index and reverse); ConditionalSetOrAdd and ConditionalSetOrRemmove</releaseNotes>
     <copyright>Copyright 2016 Thomas R. Lawrence</copyright>
     <tags>binary search tree bst avl red-black splay rank augmented order-statistic sparse</tags>
