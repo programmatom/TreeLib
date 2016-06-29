@@ -30,7 +30,15 @@ namespace TreeLibTest
 {
     // This is part wrapper, with non-trivial additional functionality
 
-    public class ReferenceHugeList<T> : IHugeList<T>, IList<T>, ICollection<T>, IEnumerable<T>, IReadOnlyList<T>, IReadOnlyCollection<T>, IHugeListValidation
+    public class ReferenceHugeList<T> :
+        IHugeList<T>,
+        IList<T>,
+        ICollection<T>,
+        IEnumerable<T>,
+        IChunkedEnumerable<EntryRangeMap<T[]>>,
+        IReadOnlyList<T>,
+        IReadOnlyCollection<T>,
+        IHugeListValidation
     {
         private readonly List<T> inner = new List<T>();
 
@@ -96,6 +104,29 @@ namespace TreeLibTest
             inner.InsertRange(index, subset);
         }
 
+        public void InsertRange(int index, IHugeList<T> items, int offset, int count)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException();
+            }
+            if ((count < 0) || (offset < 0))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            if (unchecked((uint)offset + (uint)count > (uint)items.Count))
+            {
+                throw new ArgumentException();
+            }
+
+            T[] array = new T[count];
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = items[i + offset];
+            }
+            InsertRange(index, array, 0, count);
+        }
+
         public void InsertRange(int index, T[] items)
         {
             inner.InsertRange(index, items);
@@ -122,6 +153,11 @@ namespace TreeLibTest
         }
 
         public void AddRange(IEnumerable<T> collection)
+        {
+            inner.AddRange(collection);
+        }
+
+        public void AddRange(IHugeList<T> collection)
         {
             inner.AddRange(collection);
         }
@@ -379,10 +415,13 @@ namespace TreeLibTest
 
         public T[] ToArray()
         {
-            T[] array = new T[Count];
-            CopyTo(array);
-            return array;
+            return inner.ToArray();
         }
+
+
+        //
+        // Enumeration
+        //
 
         public IEnumerator<T> GetEnumerator()
         {
@@ -393,6 +432,151 @@ namespace TreeLibTest
         {
             return ((IEnumerable)inner).GetEnumerator();
         }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked()
+        {
+            return new ChunkedEnumerableSurrogate(this, 0, true/*forward*/);
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked(int start)
+        {
+            if (start < 0)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            if (start > inner.Count)
+            {
+                throw new ArgumentException();
+            }
+
+            return new ChunkedEnumerableSurrogate(this, start, true/*forward*/);
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked(bool forward)
+        {
+            return new ChunkedEnumerableSurrogate(this, Int32.MaxValue, forward);
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked(int start, bool forward)
+        {
+            if (forward)
+            {
+                if (start < 0)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (start > inner.Count)
+                {
+                    throw new ArgumentException();
+                }
+            }
+            else
+            {
+                if (start < -1)
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+                if (start >= inner.Count)
+                {
+                    throw new ArgumentException();
+                }
+            }
+
+            return new ChunkedEnumerableSurrogate(this, start, forward);
+        }
+
+        private class ChunkedEnumerableSurrogate : IEnumerable<EntryRangeMap<T[]>>
+        {
+            private readonly ReferenceHugeList<T> list;
+            private readonly int start;
+            private readonly bool forward;
+
+            public ChunkedEnumerableSurrogate(ReferenceHugeList<T> list, int start, bool forward)
+            {
+                this.list = list;
+                this.start = start;
+                this.forward = forward;
+            }
+
+            public IEnumerator<EntryRangeMap<T[]>> GetEnumerator()
+            {
+                return new TrivialChunkedEnumerator(list, start, forward);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
+        private class TrivialChunkedEnumerator : IEnumerator<EntryRangeMap<T[]>>
+        {
+            private readonly ReferenceHugeList<T> list;
+            private readonly int start;
+            private readonly bool forward;
+            private bool started, valid;
+            private T[] arrayReference;
+            private T[] array;
+
+            public TrivialChunkedEnumerator(ReferenceHugeList<T> list, int start, bool forward)
+            {
+                this.list = list;
+                this.start = start;
+                this.forward = forward;
+                Reset();
+            }
+
+            public EntryRangeMap<T[]> Current { get { return new EntryRangeMap<T[]>(array, 0, array.Length); } }
+
+            object IEnumerator.Current { get { return this.Current; } }
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (!started)
+                {
+                    started = true;
+                    if (forward)
+                    {
+                        valid = (list.Count > 0) && (start < list.Count);
+                    }
+                    else
+                    {
+                        valid = (list.Count > 0) && (start >= 0);
+                    }
+                }
+                else if (valid)
+                {
+                    // propagate array changes back to master - hacky but clear enough for the reference implementation
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        if (0 != Comparer<T>.Default.Compare(arrayReference[i], array[i]))
+                        {
+                            list.inner[i] = array[i];
+                        }
+                    }
+
+                    valid = false;
+                }
+                return valid;
+            }
+
+            public void Reset()
+            {
+                this.started = false;
+                this.valid = false;
+                this.array = list.ToArray();
+                this.arrayReference = (T[])this.array.Clone();
+            }
+        }
+
+
+        //
+        // Validation
+        //
 
         void IHugeListValidation.Validate()
         {

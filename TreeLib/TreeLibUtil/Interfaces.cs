@@ -58,7 +58,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="T">Type of item contained in the collection</typeparam>
     [DocumentationSource]
-    public interface IHugeList<T> : IList<T>, ICollection<T>, IEnumerable<T>
+    public interface IHugeList<T> : IList<T>, ICollection<T>, IEnumerable<T>, IChunkedEnumerable<EntryRangeMap<T[]>>
     {
         /// <summary>
         /// The maximum size of a single segment (or chunk) stored in the collection. There is a tradeoff in this value: smaller
@@ -101,6 +101,18 @@ namespace TreeLib
         /// </summary>
         /// <param name="index">index of the item in the collection to insert before</param>
         /// <param name="items">the array of items to insert into the colletion</param>
+        /// <param name="offset">the index of the first item in 'items' to insert</param>
+        /// <param name="count">number of default-valued items to insert</param>
+        /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
+        /// <exception cref="ArgumentException">index, count, or offset exceeds the length of the collection or array</exception>
+        /// <exception cref="ArgumentNullException">'items' is null</exception>
+        void InsertRange(int index, IHugeList<T> items, int offset, int count);
+
+        /// <summary>
+        /// Insert a range of values into the collection.
+        /// </summary>
+        /// <param name="index">index of the item in the collection to insert before</param>
+        /// <param name="items">the array of items to insert into the colletion</param>
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
         /// <exception cref="ArgumentException">index exceeds the length of the collection or</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
@@ -133,6 +145,13 @@ namespace TreeLib
         /// <param name="collection">an enumerable collection of items to insert</param>
         /// <exception cref="ArgumentNullException">'collection' is null</exception>
         void AddRange(IEnumerable<T> collection);
+
+        /// <summary>
+        /// Append a range of values to the end of the collection
+        /// </summary>
+        /// <param name="collection">an enumerable collection of items to insert</param>
+        /// <exception cref="ArgumentNullException">'collection' is null</exception>
+        void AddRange(IHugeList<T> collection);
 
         /// <summary>
         /// Remove a range of values from the collection
@@ -476,7 +495,7 @@ namespace TreeLib
     /// </summary>
     /// <typeparam name="T">Type of item contained in the collection</typeparam>
     [DocumentationSource]
-    public interface IHugeListLong<T> : IListLong<T>, ICollectionLong<T>, IEnumerable<T>
+    public interface IHugeListLong<T> : IListLong<T>, ICollectionLong<T>, IEnumerable<T>, IChunkedEnumerableLong<EntryRangeMapLong<T[]>>
     {
         /// <summary>
         /// The maximum size of a single segment (or chunk) stored in the collection. There is a tradeoff in this value: smaller
@@ -519,6 +538,18 @@ namespace TreeLib
         /// </summary>
         /// <param name="index">index of the item in the collection to insert before</param>
         /// <param name="items">the array of items to insert into the colletion</param>
+        /// <param name="offset">the index of the first item in 'items' to insert</param>
+        /// <param name="count">number of default-valued items to insert</param>
+        /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
+        /// <exception cref="ArgumentException">index, count, or offset exceeds the length of the collection or array</exception>
+        /// <exception cref="ArgumentNullException">'items' is null</exception>
+        void InsertRange(long index, IHugeListLong<T> items, long offset, long count);
+
+        /// <summary>
+        /// Insert a range of values into the collection.
+        /// </summary>
+        /// <param name="index">index of the item in the collection to insert before</param>
+        /// <param name="items">the array of items to insert into the colletion</param>
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
         /// <exception cref="ArgumentException">index exceeds the length of the collection or</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
@@ -551,6 +582,13 @@ namespace TreeLib
         /// <param name="collection">an enumerable collection of items to insert</param>
         /// <exception cref="ArgumentNullException">'collection' is null</exception>
         void AddRange(IEnumerable<T> collection);
+
+        /// <summary>
+        /// Append a range of values to the end of the collection
+        /// </summary>
+        /// <param name="collection">an enumerable collection of items to insert</param>
+        /// <exception cref="ArgumentNullException">'collection' is null</exception>
+        void AddRange(IHugeListLong<T> collection);
 
         /// <summary>
         /// Remove a range of values from the collection
@@ -874,6 +912,109 @@ namespace TreeLib
         /// </summary>
         /// <returns>the array containing all the items in collection order</returns>
         T[] ToArray();
+    }
+
+
+    //
+    // Enumeration
+    //
+
+    /// <summary>
+    /// Interface supporting chunked enumeration with options beyond that supported by the built-in IEnumerable&lt;&gt;
+    /// </summary>
+    /// <typeparam name="RangeT">Chunked enumerable type: EntryRangeMap&lt;T[]&gt;</typeparam>
+    [DocumentationSource]
+    public interface IChunkedEnumerable<RangeT>
+    {
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <returns>Enumerable object that visits array chunks (segments) from beginning in forward order</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        IEnumerable<RangeT> GetEnumerableChunked();
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <param name="start">Enumeration will begin with the chunk (segment) containing the list item identified
+        /// by the start index</param>
+        /// <returns>Enumerable object that visits array chunks (segments) starting from the segment containing the start
+        /// index in forward order</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
+        /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
+        IEnumerable<RangeT> GetEnumerableChunked(int start);
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <param name="forward">True to move toward end of collection; false to move toward beginning</param>
+        /// <returns>Enumerable object that visits array chunks (segments) in the specified direction</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        IEnumerable<RangeT> GetEnumerableChunked(bool forward);
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <param name="start">Enumeration will begin with the chunk (segment) containing the list item identified
+        /// by the start index</param>
+        /// <param name="forward">True to move toward end of collection; false to move toward beginning</param>
+        /// <returns>Enumerable object that visits array chunks (segments) in the specified direction, starting with
+        /// the chunk (segment) containing the item identified by the start index</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
+        /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
+        IEnumerable<RangeT> GetEnumerableChunked(int start, bool forward);
+    }
+
+    /// <summary>
+    /// Interface supporting chunked enumeration with options beyond that supported by the built-in IEnumerable&lt;&gt;
+    /// </summary>
+    /// <typeparam name="RangeT">Chunked enumerable type: EntryRangeMap&lt;T[]&gt;</typeparam>
+    [DocumentationSource]
+    public interface IChunkedEnumerableLong<RangeT>
+    {
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <returns>Enumerable object that visits array chunks (segments) from beginning in forward order</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        IEnumerable<RangeT> GetEnumerableChunked();
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <param name="start">Enumeration will begin with the chunk (segment) containing the list item identified
+        /// by the start index</param>
+        /// <returns>Enumerable object that visits array chunks (segments) starting from the segment containing the start
+        /// index in forward order</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
+        /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
+        IEnumerable<RangeT> GetEnumerableChunked(long start);
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <param name="forward">True to move toward end of collection; false to move toward beginning</param>
+        /// <returns>Enumerable object that visits array chunks (segments) in the specified direction</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        IEnumerable<RangeT> GetEnumerableChunked(bool forward);
+        /// <summary>
+        /// Get default chunked enumerator which visits internal array chunks.
+        /// </summary>
+        /// <param name="start">Enumeration will begin with the chunk (segment) containing the list item identified
+        /// by the start index</param>
+        /// <param name="forward">True to move toward end of collection; false to move toward beginning</param>
+        /// <returns>Enumerable object that visits array chunks (segments) in the specified direction, starting with
+        /// the chunk (segment) containing the item identified by the start index</returns>
+        /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
+        /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
+        /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
+        /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
+        IEnumerable<RangeT> GetEnumerableChunked(long start, bool forward);
     }
 
 

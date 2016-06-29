@@ -165,6 +165,62 @@ namespace TreeLibTest
             }
         }
 
+        private class OpRemoveAll<T> : Op<T> where T : IComparable<T>
+        {
+            private readonly Predicate<T> predicate;
+
+            public OpRemoveAll(Predicate<T> predicate)
+            {
+                this.predicate = predicate;
+            }
+
+            public override void Do(IHugeList<T> list)
+            {
+                list.RemoveAll(predicate);
+            }
+        }
+
+        private class OpInsertHugeList<T> : Op<T> where T : IComparable<T>
+        {
+            private readonly int chunkSize;
+            private readonly int length;
+            private readonly int insertAt;
+            private readonly int offset;
+            private readonly int count;
+            private readonly int[] hugeListInsertIndices;
+            private readonly T[] data;
+
+            public OpInsertHugeList(int chunkSize, int length, int insertAt, int offset, int count, int[] hugeListInsertIndices)
+            {
+                this.chunkSize = chunkSize;
+                this.length = length;
+                this.insertAt = insertAt;
+                this.offset = offset;
+                this.count = count;
+                this.hugeListInsertIndices = hugeListInsertIndices;
+                this.data = new T[hugeListInsertIndices.Length];
+            }
+
+            public override void FillData(MakeT makeT)
+            {
+                for (int i = 0; i < data.Length; i++)
+                {
+                    data[i] = makeT();
+                }
+            }
+
+            public override void Do(IHugeList<T> list)
+            {
+                HugeList<T> toAdd = new HugeList<T>(chunkSize);
+                for (int i = 0; i < hugeListInsertIndices.Length; i++)
+                {
+                    toAdd.Insert(hugeListInsertIndices[i], data[i]);
+                }
+
+                list.InsertRange(insertAt, toAdd, offset, count);
+            }
+        }
+
         private void TestOps<T>(string label, IHugeList<T> test, Op<T>.MakeT makeT, bool pruning, Op<T>[] ops) where T : IComparable<T>
         {
             List<Tuple<int, Op<T>>> pruneList = new List<Tuple<int, Op<T>>>();
@@ -263,7 +319,7 @@ namespace TreeLibTest
         }
 
         private delegate IHugeList<T> MakeHugeList<T>();
-        private void HugeListTestSpecific(MakeHugeList<int> makeList, bool checkBlockSize)
+        private void HugeListTestSpecific(MakeHugeList<int> makeList, bool checkBlockSize, bool splay)
         {
             long startIter = IncrementIteration(true/*setLast*/);
 
@@ -528,6 +584,15 @@ namespace TreeLibTest
                 TestThrow("CopyTo(int, T[], int, int)", typeof(ArgumentException), delegate () { test.CopyTo(0, items, 1, reference.Count); });
                 TestThrow("CopyTo(int, T[], int, int)", typeof(ArgumentException), delegate () { test.CopyTo(Int32.MaxValue, items, Int32.MaxValue, reference.Count); });
                 TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentNullException), delegate () { test.ReplaceRange(0, 1, null, 0, 1); });
+                TestNoThrow("ReplaceRange(int index, int count, T[] items)", delegate () { test.ReplaceRange(0, 0, new int[0], 0, 0); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentOutOfRangeException), delegate () { test.ReplaceRange(-1, 0, new int[0], 0, 0); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentOutOfRangeException), delegate () { test.ReplaceRange(0, -1, new int[0], 0, 0); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentOutOfRangeException), delegate () { test.ReplaceRange(0, 0, new int[0], -1, 0); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentOutOfRangeException), delegate () { test.ReplaceRange(0, 0, new int[0], 0, -1); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentException), delegate () { test.ReplaceRange(test.Count, 1, new int[1], 0, 0); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentException), delegate () { test.ReplaceRange(test.Count + 1, 0, new int[1], 0, 0); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentException), delegate () { test.ReplaceRange(0, 0, new int[1], 0, 2); });
+                TestThrow("ReplaceRange(int index, int count, T[] items)", typeof(ArgumentException), delegate () { test.ReplaceRange(0, 0, new int[1], 1, 1); });
                 Validate(reference, test);
 
                 // iterate range
@@ -610,14 +675,14 @@ namespace TreeLibTest
                     {
                         TestTrue("enumeration", delegate () { return collected[j] == reference[j]; });
                     }
-                    int kk = 0;
+                    int l = 0;
                     foreach (int item2 in (IEnumerable)test) // test non-generic version
                     {
-                        TestTrue("enumeration overrun", delegate () { return kk < reference.Count; });
-                        TestTrue("enumeration", delegate () { return collected[kk] == item2; });
-                        kk++;
+                        TestTrue("enumeration overrun", delegate () { return l < reference.Count; });
+                        TestTrue("enumeration", delegate () { return collected[l] == item2; });
+                        l++;
                     }
-                    TestTrue("enumeration count", delegate () { return kk == reference.Count; });
+                    TestTrue("enumeration count", delegate () { return l == reference.Count; });
                     // break enumeration with insertion
                     if (reference.Count != 0)
                     {
@@ -657,6 +722,261 @@ namespace TreeLibTest
                     }
 #endif
                     Validate(reference, test);
+                    // pre-advancement enumeration value (code coverage)
+                    {
+                        IEnumerator<int> enumerator = test.GetEnumerator();
+                        TestTrue("Enumerator initial value", delegate () { return default(int) == enumerator.Current; });
+                    }
+
+                    // chunked enumeration
+
+                    // basic forward
+                    startIter = IncrementIteration(true/*setLast*/);
+                    l = 0;
+                    int offset = 0;
+                    collected.Clear();
+                    foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked())
+                    {
+                        TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+                        TestTrue("Chunked enum offset", delegate () { return offset == entry.Start; });
+                        for (int j = 0; j < entry.Length; j++)
+                        {
+                            collected.Add(entry.Value[j]);
+                        }
+                        offset += entry.Length;
+                        l++;
+                    }
+                    TestTrue("Chunked enum count", delegate () { return offset == reference.Count; });
+                    ValidateItems(reference, 0, reference.Count, collected);
+
+                    // basic reverse
+                    startIter = IncrementIteration(true/*setLast*/);
+                    l = 0;
+                    offset = reference.Count;
+                    collected.Clear();
+                    foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked(false/*forward*/))
+                    {
+                        TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+                        offset -= entry.Length;
+                        TestTrue("Chunked enum offset", delegate () { return offset == entry.Start; });
+                        for (int j = entry.Length - 1; j >= 0; j--)
+                        {
+                            collected.Add(entry.Value[j]);
+                        }
+                        l++;
+                    }
+                    TestTrue("Chunked enum count", delegate () { return offset == 0; });
+                    collected.Reverse();
+                    ValidateItems(reference, 0, reference.Count, collected);
+
+                    // basic forward - nongeneric
+                    startIter = IncrementIteration(true/*setLast*/);
+                    l = 0;
+                    offset = 0;
+                    collected.Clear();
+                    foreach (object obj in (IEnumerable)test.GetEnumerableChunked())
+                    {
+                        EntryRangeMap<int[]> entry = (EntryRangeMap<int[]>)obj;
+                        TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+                        TestTrue("Chunked enum offset", delegate () { return offset == entry.Start; });
+                        for (int j = 0; j < entry.Length; j++)
+                        {
+                            collected.Add(entry.Value[j]);
+                        }
+                        offset += entry.Length;
+                        l++;
+                    }
+                    TestTrue("Chunked enum count", delegate () { return offset == reference.Count; });
+                    ValidateItems(reference, 0, reference.Count, collected);
+
+                    // forward with start point
+                    for (int m = 0; m < reference.Count; m++)
+                    {
+                        startIter = IncrementIteration(true/*setLast*/);
+                        l = 0;
+                        collected.Clear();
+                        foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked(m))
+                        {
+                            if (m == reference.Count)
+                            {
+                                // shouldn't get here for empty enumeration
+                                Fault(test, "Chunked enum no-op");
+                            }
+                            TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+
+                            int count = entry.Length;
+                            offset = 0;
+                            if (l == 0)
+                            {
+                                offset = m - entry.Start;
+                                count = entry.Length - offset;
+                                if (!(count > 0))
+                                {
+                                    Fault(test, "Chunked enum out of bounds segment");
+                                }
+                            }
+                            for (int j = 0; j < count; j++)
+                            {
+                                collected.Add(entry.Value[j + offset]);
+                            }
+                            l++;
+                        }
+                        ValidateItems(reference, m, reference.Count - m, collected);
+                    }
+
+                    // reverse with start point
+                    for (int m = reference.Count - 1; m >= -1; m--)
+                    {
+                        startIter = IncrementIteration(true/*setLast*/);
+                        l = 0;
+                        collected.Clear();
+                        offset = m;
+                        foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked(m, false/*forward*/))
+                        {
+                            if (m == -1)
+                            {
+                                // shouldn't get here for empty enumeration
+                                Fault(test, "Chunked enum no-op");
+                            }
+                            TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+
+                            if ((l == 0) && !(entry.Start + entry.Length >= m + 1))
+                            {
+                                Fault(test, "Chunked enum start range error");
+                            }
+                            int count = Math.Min((m + 1) - entry.Start, entry.Length);
+                            for (int j = count - 1; j >= 0; j--)
+                            {
+                                collected.Add(entry.Value[j]);
+                            }
+                            l++;
+                        }
+                        collected.Reverse();
+                        ValidateItems(reference, 0, m + 1, collected);
+                    }
+
+                    // updates array segment in place
+                    startIter = IncrementIteration(true/*setLast*/);
+                    l = 0;
+                    offset = 0;
+                    int ll = 0;
+                    foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked())
+                    {
+                        TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+                        TestTrue("Chunked enum offset", delegate () { return offset == entry.Start; });
+                        for (int j = 0; j < entry.Length; j++)
+                        {
+                            if (ll % 3 == 0)
+                            {
+                                entry.Value[j] = -entry.Value[j];
+                            }
+                            ll++;
+                        }
+                        offset += entry.Length;
+                        l++;
+                    }
+                    collected.Clear();
+                    // rerun and collect modified values
+                    l = 0;
+                    offset = 0;
+                    foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked())
+                    {
+                        TestTrue("Chunked enum overrun", delegate () { return collected.Count < reference.Count; });
+                        TestTrue("Chunked enum offset", delegate () { return offset == entry.Start; });
+                        for (int j = 0; j < entry.Length; j++)
+                        {
+                            collected.Add(entry.Value[j]);
+                        }
+                        offset += entry.Length;
+                        l++;
+                    }
+                    TestTrue("Chunked enum count", delegate () { return offset == reference.Count; });
+                    // undo modifications for comparison
+                    for (int j = 0; j < collected.Count; j += 3)
+                    {
+                        collected[j] = -collected[j];
+                        test[j] = -test[j];
+                    }
+                    ValidateItems(reference, 0, reference.Count, collected);
+
+                    // enumerable bounds checking
+                    TestThrow("Chunked enum bounds", typeof(ArgumentOutOfRangeException), delegate () { test.GetEnumerableChunked(-1); });
+                    TestThrow("Chunked enum bounds", typeof(ArgumentException), delegate () { test.GetEnumerableChunked(test.Count + 1); });
+                    TestThrow("Chunked enum bounds", typeof(ArgumentOutOfRangeException), delegate () { test.GetEnumerableChunked(-1, true/*forward*/); });
+                    TestThrow("Chunked enum bounds", typeof(ArgumentException), delegate () { test.GetEnumerableChunked(test.Count + 1, true/*forward*/); });
+                    TestThrow("Chunked enum bounds", typeof(ArgumentOutOfRangeException), delegate () { test.GetEnumerableChunked(-2, false/*forward*/); });
+                    TestThrow("Chunked enum bounds", typeof(ArgumentException), delegate () { test.GetEnumerableChunked(test.Count, false/*forward*/); });
+
+                    // test enumerable fails on underlying list change
+                    if (!String.Equals(test.GetType().Name, "ReferenceHugeList`1"))
+                    {
+                        KeyValuePair<Action, bool>[] actions = new KeyValuePair<Action, bool>[]
+                        {
+                            new KeyValuePair<Action, bool>(delegate () { test.Add(rand.Next()); }, false/*splayOnly*/),
+                            new KeyValuePair<Action, bool>(delegate () { test[reference.Count / 2] = rand.Next(); }, true/*splayOnly*/),
+                            new KeyValuePair<Action, bool>(delegate () { l = test[reference.Count / 2]; }, true/*splayOnly*/),
+                        };
+                        foreach (KeyValuePair<Action, bool> action in actions)
+                        {
+                            startIter = IncrementIteration(true/*setLast*/);
+                            bool changed = false;
+                            try
+                            {
+                                l = 0;
+                                ll = 0;
+                                offset = 0;
+                                foreach (EntryRangeMap<int[]> entry in test.GetEnumerableChunked(0, true/*forward*/))
+                                {
+                                    if (changed)
+                                    {
+                                        Fault(test, "Should have thrown and didn't");
+                                    }
+                                    TestTrue("Chunked enum overrun", delegate () { return ll < reference.Count; });
+                                    TestTrue("Chunked enum offset", delegate () { return offset == entry.Start; });
+                                    for (int j = 0; j < entry.Length; j++)
+                                    {
+                                        if (ll == reference.Count / 2)
+                                        {
+                                            action.Key();
+                                            changed = splay || (!splay && !action.Value);
+                                        }
+                                        ll++;
+                                    }
+                                    offset += entry.Length;
+                                    l++;
+                                }
+                                if (changed)
+                                {
+                                    Fault(test, "Should have thrown and didn't");
+                                }
+                            }
+                            catch (InvalidOperationException) when (changed)
+                            {
+                                // expected
+                            }
+                            catch (Exception exception)
+                            {
+                                Fault(test, "Unexpected exception", exception);
+                            }
+
+                            // reset content after changes above
+                            if (test.Count > reference.Count)
+                            {
+                                test.RemoveRange(reference.Count, test.Count - reference.Count);
+                            }
+                            for (int j = 0; j < reference.Count; j++)
+                            {
+                                if (j < test.Count)
+                                {
+                                    test[j] = reference[j];
+                                }
+                                else
+                                {
+                                    test.Add(reference[j]);
+                                }
+                            }
+                        }
+                    }
                 }
             }
             // clean up
@@ -1042,6 +1362,8 @@ namespace TreeLibTest
             TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, new int[2], 1, 2); });
             TestTrue("Count", delegate () { return (reference.Count == HugeListInternalChunkSize) && (test.Count == HugeListInternalChunkSize); });
             TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, new int[2], 1, Int32.MaxValue); });
+            TestTrue("Count", delegate () { return (reference.Count == HugeListInternalChunkSize) && (test.Count == HugeListInternalChunkSize); });
+            TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, (int[])null, 0, 0); });
             TestTrue("Count", delegate () { return (reference.Count == HugeListInternalChunkSize) && (test.Count == HugeListInternalChunkSize); });
             TestThrow("InsertRange", typeof(ArgumentNullException), delegate () { test.InsertRange(0, (int[])null); });
             TestTrue("Count", delegate () { return (reference.Count == HugeListInternalChunkSize) && (test.Count == HugeListInternalChunkSize); });
@@ -1472,6 +1794,101 @@ namespace TreeLibTest
                 TestClear(reference, test);
             }
 
+            // InsertRange and AddRange with IHugeList<T> as argument
+            {
+                for (int length = 0; length < HugeListInternalChunkSize * 11; length += HugeListInternalChunkSize - 1)
+                {
+                    long startIter1 = IncrementIteration(true/*setLast*/);
+
+                    // create source hugelist with randomized segment lengths
+                    IHugeList<int> source = new HugeList<int>(HugeListInternalChunkSize - 1);
+                    List<int> referenceSource = new List<int>();
+                    // scramble segment lengths a bit
+                    for (int jj = 0; jj < length; jj++)
+                    {
+                        int insertAt = rand.Next() % (jj + 1);
+                        int value = rand.Next();
+                        referenceSource.Insert(insertAt, value);
+                        source.Insert(insertAt, value);
+                    }
+                    Validate(referenceSource, source);
+
+                    int j = 0;
+                    int k;
+                    while ((j < length) && ((k = length - j / 2) >= j))
+                    {
+                        for (int insertIndex = -1; insertIndex < HugeListInternalChunkSize * 4; insertIndex += HugeListInternalChunkSize - 1)
+                        {
+                            long startIter2 = IncrementIteration(true/*setLast*/);
+
+                            // change insert content to make deviations easier to detect
+                            for (int ll = 0; ll < referenceSource.Count; ll++)
+                            {
+                                int value = rand.Next();
+                                referenceSource[ll] = value;
+                                source[ll] = value;
+                            }
+                            Validate(referenceSource, source);
+
+                            int[] referenceSubset = new int[k - j];
+                            referenceSource.CopyTo(j, referenceSubset, 0, referenceSubset.Length);
+
+                            // scramble segment lengths a bit
+                            for (int jj = 0; jj < reference.Count / 3; jj++)
+                            {
+                                int removeAt = rand.Next() % reference.Count;
+                                reference.RemoveAt(removeAt);
+                                test.RemoveAt(removeAt);
+                            }
+                            Validate(referenceSource, source);
+
+                            if (insertIndex < 0)
+                            {
+                                test.AddRange(source);
+                                reference.AddRange(referenceSource);
+                            }
+                            else
+                            {
+                                test.InsertRange(Math.Min(insertIndex, reference.Count), source, j, k - j);
+                                reference.InsertRange(Math.Min(insertIndex, reference.Count), referenceSubset);
+                            }
+                            Validate(referenceSource, source);
+                        }
+
+                        j += HugeListInternalChunkSize / 2 + 1;
+                    }
+                    TestClear(reference, test);
+
+                    // bounds checks
+                    HugeList<int> hl0 = new HugeList<int>();
+                    HugeList<int> hl1 = new HugeList<int>();
+                    hl1.Add(1);
+                    HugeList<int> hl2 = new HugeList<int>();
+                    hl2.Add(1);
+                    hl2.Add(2);
+                    TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, hl0, 0, 1); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(1, hl0, 0, 0); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, hl1, 0, 2); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, hl1, 1, 1); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentOutOfRangeException), delegate () { test.InsertRange(0, hl1, 0, -1); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentOutOfRangeException), delegate () { test.InsertRange(0, hl2, -1, 1); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, hl2, 1, 2); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentException), delegate () { test.InsertRange(0, hl2, 1, Int32.MaxValue); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("InsertRange", typeof(ArgumentNullException), delegate () { test.InsertRange(0, (IHugeList<int>)null, 0, 0); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                    TestThrow("AddRange", typeof(ArgumentNullException), delegate () { test.AddRange((IHugeList<int>)null); });
+                    TestTrue("Count", delegate () { return (reference.Count == 0) && (test.Count == 0); });
+                }
+            }
+
             // RemoveAll reentrance checking
             // (Note, List<> does not handle this case, so avoid testing it on the reference implementation)
             if (!String.Equals(test.GetType().Name, "ReferenceHugeList`1"))
@@ -1585,7 +2002,17 @@ namespace TreeLibTest
                 new OpRemoveRange<Int32>(17, 84) });
             test.Clear();
 
-            // LAST USED: A25
+            // CASE A26: regression test for incorrect array indexing in InsertRange(... IHugeList<>) method
+            TestOps("A25", test, delegate () { return rand.Next(); }, true/*pruning*/, new Op<Int32>[] {
+                new OpInsert<Int32>(0, 1355101391),
+                new OpInsertRange<Int32>(0, new int[15] { 1823188099, 1750541737, 761056731, 1452589330, 1087701800, 2046801798, 35365476, 134751311, 1104622753, 240453888, 1344668849, 1300439969, 115435185, 1306967799, 15926192 }, 0, 15),
+                new OpInsert<Int32>(2, 335161898),
+                new OpRemoveAll<Int32>(delegate (int candidate) { return (0 == 0) ? (candidate == 1823188099) : (candidate % 0 == 1823188099); }),
+                new OpInsertRange<Int32>(6, new int[818], 0, 818),
+                new OpInsertHugeList<Int32>(15, 44, 585, 7, 35, new int[44] { 0, 0, 1, 2, 1, 3, 4, 0, 5, 4, 5, 6, 6, 2, 8, 14, 0, 0, 15, 7, 17, 0, 21, 19, 0, 17, 7, 27, 25, 8, 27, 15, 31, 9, 30, 9, 13, 36, 21, 28, 9, 15, 6, 1 }) });
+            test.Clear();
+
+            // LAST USED: A26
         }
 
         private class InvertedComparer : IComparer<int>
@@ -1616,6 +2043,16 @@ namespace TreeLibTest
             }
         }
 
+        private void ValidateItems(List<int> reference, int referenceOffset, int referenceCount, List<int> testItems)
+        {
+            TestTrue("ValidateItems", delegate () { return referenceCount == testItems.Count; });
+            TestTrue("ValidateItems", delegate () { return referenceOffset + reference.Count >= testItems.Count; });
+            for (int i = 0; i < testItems.Count; i++)
+            {
+                TestTrue("ValidateItems", delegate () { return reference[i + referenceOffset] == testItems[i]; });
+            }
+        }
+
         private class NoDefaultConstructor<T>
         {
             private NoDefaultConstructor()
@@ -1630,36 +2067,36 @@ namespace TreeLibTest
 
         private void HugeListBasicCoverage()
         {
-            HugeListTestSpecific(delegate () { return new ReferenceHugeList<int>(); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new ReferenceHugeList<int>(); }, false/*checkBlockSize*/, true/*splay*/);
 
             // test all three tree types (really shouldn't matter) with specific testing-tuned block size
-            HugeListTestSpecific(delegate () { return new HugeList<int>(new AVLTreeRangeMap<int[]>(), HugeListInternalChunkSize); }, true/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new HugeList<int>(new RedBlackTreeRangeMap<int[]>(), HugeListInternalChunkSize); }, true/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new HugeList<int>(new SplayTreeRangeMap<int[]>(), HugeListInternalChunkSize); }, true/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(new AVLTreeRangeMap<int[]>(), HugeListInternalChunkSize); }, true/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(new RedBlackTreeRangeMap<int[]>(), HugeListInternalChunkSize); }, true/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(new SplayTreeRangeMap<int[]>(), HugeListInternalChunkSize); }, true/*checkBlockSize*/, true/*splay*/);
 
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(new RedBlackTreeRangeMapLong<int[]>(), HugeListInternalChunkSize)); }, true/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(new RedBlackTreeRangeMapLong<int[]>(), HugeListInternalChunkSize)); }, true/*checkBlockSize*/, false/*splay*/);
 
             // test variations based on construction
             // typeof constructor variation
-            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), HugeListInternalChunkSize); }, true/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), HugeListInternalChunkSize)); }, true/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), HugeListInternalChunkSize); }, true/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), HugeListInternalChunkSize)); }, true/*checkBlockSize*/, false/*splay*/);
             // pass in instance, without chunk size argument (uses internal default)
-            HugeListTestSpecific(delegate () { return new HugeList<int>(new AVLTreeRangeMap<int[]>()); }, false/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(new AVLTreeRangeMapLong<int[]>())); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(new AVLTreeRangeMap<int[]>()); }, false/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(new AVLTreeRangeMapLong<int[]>())); }, false/*checkBlockSize*/, false/*splay*/);
             // typeof, without chunk size argument (uses internal default)
-            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>)); }, false/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>))); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>)); }, false/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>))); }, false/*checkBlockSize*/, false/*splay*/);
             // special case - max block size 1 (degenerate form)
-            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), 1); }, false/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), 1)); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), 1); }, false/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), 1)); }, false/*checkBlockSize*/, false/*splay*/);
             // special case - max block size 2
-            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), 2); }, false/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), 2)); }, false/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(typeof(AVLTreeRangeMap<>), 2); }, false/*checkBlockSize*/, false/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(typeof(AVLTreeRangeMapLong<>), 2)); }, false/*checkBlockSize*/, false/*splay*/);
             // default (splay) constructor variation
-            HugeListTestSpecific(delegate () { return new HugeList<int>(); }, false/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>()); }, false/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new HugeList<int>(HugeListInternalChunkSize); }, true/*checkBlockSize*/);
-            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(HugeListInternalChunkSize)); }, true/*checkBlockSize*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(); }, false/*checkBlockSize*/, true/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>()); }, false/*checkBlockSize*/, true/*splay*/);
+            HugeListTestSpecific(delegate () { return new HugeList<int>(HugeListInternalChunkSize); }, true/*checkBlockSize*/, true/*splay*/);
+            HugeListTestSpecific(delegate () { return new AdaptHugeListToHugeListLong<int>(new HugeListLong<int>(HugeListInternalChunkSize)); }, true/*checkBlockSize*/, true/*splay*/);
 
             // validate constructor error checking
             TestThrow("constructor", typeof(ArgumentNullException), delegate () { new HugeList<int>((AVLTreeRangeMap<int[]>)null); });

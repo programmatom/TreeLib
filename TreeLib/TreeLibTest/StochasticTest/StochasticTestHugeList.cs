@@ -74,9 +74,9 @@ namespace TreeLibTest
             for (int listIndex = 1; listIndex < lists.Length; listIndex++)
             {
                 IHugeList<T> list = lists[listIndex];
-                TestTrue("Count", delegate () { return list.Count == template.Length; });
+                TestTrue("Count - instance " + listIndex.ToString(), delegate () { return list.Count == template.Length; });
                 TestTrue(
-                    "Equality",
+                    "Equality - instance " + listIndex.ToString(),
                     delegate ()
                     {
                         for (int i = 0; i < template.Length; i++)
@@ -177,7 +177,7 @@ namespace TreeLibTest
             bool valid = (index >= 0) && (index <= extent);
 
             description = String.Format("Insert [{0}, {1}: {2}]", index, valid ? "valid" : "invalid", item);
-            script.AppendLine(String.Format("new OpInsert<T>({0}, default(T)),", index));
+            script.AppendLine(String.Format("new OpInsert<T>({0}, {1}),", index, item));
             for (int i = 0; i < lists.Length; i++)
             {
                 try
@@ -320,7 +320,8 @@ namespace TreeLibTest
             }
 
             description = String.Format("InsertRange [{0}, {1}: {2}]", index, count, valid ? "valid" : "invalid");
-            script.AppendLine(String.Format("new OpInsertRange<T>({0}, null, {1}, {2}),", index, offset, count));
+            script.AppendLine(String.Format("new OpInsertRange<T>({0}, {3}, {1}, {2}),", index, offset, count,
+                items != null ? String.Format("int [{0}] {{ {1} }}", items.Length, String.Join(", ", items)) : "null"));
             for (int i = 0; i < lists.Length; i++)
             {
                 try
@@ -511,7 +512,8 @@ namespace TreeLibTest
             }
 
             description = String.Format("ReplaceRange [{0}, {1}: {2}]", index, insertCount, valid ? "valid" : "invalid");
-            script.AppendLine(String.Format("new OpReplaceRange<T>({0}, {1}, null, {2}, {3}),", index, removeCount, offset, insertCount));
+            script.AppendLine(String.Format("new OpReplaceRange<T>({0}, {1}, {4}, {2}, {3}),", index, removeCount, offset, insertCount,
+                items != null ? String.Format("int[{0}] {{ {1} }}", items.Length, String.Join(", ", items)) : "null"));
             for (int i = 0; i < lists.Length; i++)
             {
                 try
@@ -579,7 +581,7 @@ namespace TreeLibTest
 
             string delegateText = String.Format("delegate (int candidate) {{ return ({1} == 0) ? (candidate == {0}) : (candidate % {1} == {0}); }}", item, modulus);
             description = String.Format("RemoveAll [{0}]", delegateText);
-            script.AppendLine(String.Format("new RemoveAll<T>({0}),", delegateText));
+            script.AppendLine(String.Format("new OpRemoveAll<T>({0}),", delegateText));
             for (int i = 0; i < lists.Length; i++)
             {
                 try
@@ -1044,6 +1046,85 @@ namespace TreeLibTest
             }
         }
 
+        private void InsertRangeHugeListAction(IHugeList<int>[] lists, Random rnd, ref string description)
+        {
+            IHugeList<int> reference = lists[0];
+            int extent = reference.Count;
+
+            int insertAt = rnd.Next() % (extent + 1);
+
+            int chunkSize = rnd.Next() % 20 + 1;
+            int length = rnd.Next() % 50;
+            int offset = length > 0 ? rnd.Next() % length : 0;
+            int count = length - offset > 0 ? rnd.Next() % (length - offset) : 0;
+
+            HugeList<int> toAdd = new HugeList<int>(chunkSize);
+            List<int> insertionIndices = new List<int>();
+            for (int i = 0; i < length; i++)
+            {
+                int index = rnd.Next() % (toAdd.Count + 1); // ensure segment lengths come out randomized
+                insertionIndices.Add(index);
+                toAdd.Insert(index, rnd.Next());
+            }
+
+            bool valid = true;
+            if (rnd.Next() % 10 == 0)
+            {
+                valid = false;
+                switch (rnd.Next() % 6)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case 0:
+                        count = length + 1;
+                        break;
+                    case 1:
+                        count = -1;
+                        break;
+                    case 2:
+                        offset = -1;
+                        break;
+                    case 3:
+                        insertAt = -1;
+                        break;
+                    case 4:
+                        insertAt = extent + 1;
+                        break;
+                    case 5:
+                        toAdd = null;
+                        break;
+                }
+            }
+
+            description = String.Format("InsertHugeList ({0}) ({1}, [{2}, {3}, {4}])", valid ? "valid" : "invalid", insertAt, length, offset, count);
+            script.AppendLine(String.Format("new OpInsertHugeList<T>({0}, {1}, {2}, {3}, {4}, new int[{6}] {{ {5} }})", chunkSize, length, insertAt, offset, count, String.Join(", ", insertionIndices), insertionIndices.Count));
+
+            for (int i = 0; i < lists.Length; i++)
+            {
+                try
+                {
+                    lists[i].InsertRange(insertAt, toAdd, offset, count);
+                }
+                catch (ArgumentNullException) when (!valid)
+                {
+                    // expected
+                }
+                catch (ArgumentOutOfRangeException) when (!valid)
+                {
+                    // expected
+                }
+                catch (ArgumentException) when (!valid)
+                {
+                    // expected
+                }
+                catch (Exception exception)
+                {
+                    Fault(lists[i], description + " - threw exception", exception);
+                }
+            }
+        }
+
 
         public override bool Do(int seed, StochasticControls control)
         {
@@ -1072,6 +1153,7 @@ namespace TreeLibTest
                 new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 200,  200), CopyToAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 200,  200), IndexSearchAction),
                 new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 200,  200), LastIndexSearchAction),
+                new Tuple<Tuple<int, int>, InvokeAction<IHugeList<int>>>(new Tuple<int, int>( 100,  100), InsertRangeHugeListAction),
             };
 
             return StochasticDriver(

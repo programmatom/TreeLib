@@ -84,6 +84,11 @@ namespace TreeLibTest
             inner.AddRange(collection);
         }
 
+        public void AddRange(IHugeList<T> collection)
+        {
+            inner.AddRange(collection != null ? new AdaptHugeListLongToHugeList<T>(collection) : null);
+        }
+
         public void AddRange(T[] items)
         {
             inner.AddRange(items);
@@ -164,11 +169,6 @@ namespace TreeLibTest
             return IntLong.ToInt(inner.FindLastIndex(IntLong.ToLong(start), IntLong.ToLong(count), match));
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return inner.GetEnumerator();
-        }
-
         public int IndexOf(T item)
         {
             return IntLong.ToInt(inner.IndexOf(item));
@@ -207,6 +207,15 @@ namespace TreeLibTest
         public void InsertRange(int index, T[] items, int offset, int count)
         {
             inner.InsertRange(IntLong.ToLong(index), items, IntLong.ToLong(offset), IntLong.ToLong(count));
+        }
+
+        public void InsertRange(int index, IHugeList<T> items, int offset, int count)
+        {
+            inner.InsertRange(
+                IntLong.ToLong(index),
+                items != null ? new AdaptHugeListLongToHugeList<T>(items) : null,
+                IntLong.ToLong(offset),
+                IntLong.ToLong(count));
         }
 
         public void InsertRangeDefault(int index, int count)
@@ -287,18 +296,57 @@ namespace TreeLibTest
             return inner.ToArray();
         }
 
+
+        //
+        // Enumeration
+        //
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)inner).GetEnumerator();
         }
 
-        string IHugeListValidation.Metadata
+        public IEnumerator<T> GetEnumerator()
         {
-            get
-            {
-                return ((IHugeListValidation)inner).Metadata;
-            }
+            return inner.GetEnumerator();
         }
+
+        private static EntryRangeMap<T[]> Convert(EntryRangeMapLong<T[]> entry)
+        {
+            return new EntryRangeMap<T[]>(
+                entry.Value,
+                ((IGetEnumeratorSetValueInfo<T[]>)entry).SetValueCallack,
+                ((IGetEnumeratorSetValueInfo<T[]>)entry).Version,
+                IntLong.ToInt(entry.Start),
+                IntLong.ToInt(entry.Length));
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked()
+        {
+            return new AdaptEnumerable<EntryRangeMap<T[]>, EntryRangeMapLong<T[]>>(inner.GetEnumerableChunked(), Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked(int start)
+        {
+            return new AdaptEnumerable<EntryRangeMap<T[]>, EntryRangeMapLong<T[]>>(inner.GetEnumerableChunked(start), Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked(bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<T[]>, EntryRangeMapLong<T[]>>(inner.GetEnumerableChunked(forward), Convert);
+        }
+
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked(int start, bool forward)
+        {
+            return new AdaptEnumerable<EntryRangeMap<T[]>, EntryRangeMapLong<T[]>>(inner.GetEnumerableChunked(start, forward), Convert);
+        }
+
+
+        //
+        // Validation
+        //
+
+        string IHugeListValidation.Metadata { get { return ((IHugeListValidation)inner).Metadata; } }
 
         void IHugeListValidation.Validate()
         {

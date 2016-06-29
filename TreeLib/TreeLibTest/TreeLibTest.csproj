@@ -59,6 +59,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reference\AdaptEnumerator.cs" />
+    <Compile Include="Reference\AdaptHugeListLongToHugeList.cs" />
     <Compile Include="Reference\AdaptHugeListToHugeListLong.cs" />
     <Compile Include="Reference\AdaptMultiRankMapToMultiRankMapLong.cs" />
     <Compile Include="Reference\AdaptMultiRankListToMultiRankMap.cs" />
