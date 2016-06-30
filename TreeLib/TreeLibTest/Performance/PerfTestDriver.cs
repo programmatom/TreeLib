@@ -655,7 +655,7 @@ namespace TreeLibTest
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static bool RunAllPerfTests(bool resetBaseline, Group group, KeyValuePair<string, bool>[] enables)
+        public static bool RunAllPerfTests(bool enabled, bool resetBaseline, Group group, KeyValuePair<string, bool>[] enables)
         {
             Debug.Assert(enables.Length == CategoryTokens.Length);
 
@@ -667,6 +667,8 @@ namespace TreeLibTest
 #pragma warning disable CS0162 // complaint about unreachable code
             Console.WriteLine("  DEBUG build - skipping");
             if (false)
+#else
+            if (enabled)
 #endif
             {
                 GCLatencyMode oldGCLatencyMode = GCSettings.LatencyMode;
@@ -773,7 +775,7 @@ namespace TreeLibTest
                 }
             }
 
-            Program.WritePassFail("Performance Regression Tests - Finished", success, status, status);
+            Program.WritePassFail("Performance Regression Tests - Finished", success ? Program.TestResultCode.Passed : Program.TestResultCode.Failed, status);
             return success;
         }
     }

@@ -230,48 +230,91 @@ namespace TreeLibTest
             }
         }
 
-        public static void WritePassFail(string message, bool success, string pass, string fail)
+        public enum TestResultCode { Passed = 0, Failed = 1, Skipped = 2 };
+        public static void WritePassFail(string message, TestResultCode code, string customResult = null)
         {
-            Console.Write("{0}: ", message);
             ConsoleColor savedForeColor = Console.ForegroundColor;
             ConsoleColor savedBackColor = Console.BackgroundColor;
+
+            Console.Write("{0}: ", message);
+
+            string result = customResult;
+            if (result == null)
+            {
+                switch (code)
+                {
+                    default:
+                        Debug.Assert(false);
+                        throw new ArgumentException();
+                    case TestResultCode.Passed:
+                        result = "PASSED";
+                        break;
+                    case TestResultCode.Failed:
+                        result = "FAILED";
+                        break;
+                    case TestResultCode.Skipped:
+                        result = "SKIPPED";
+                        break;
+                }
+            }
+            switch (code)
+            {
+                default:
+                    Debug.Assert(false);
+                    throw new ArgumentException();
+                case TestResultCode.Passed:
+                    Console.BackgroundColor = ConsoleColor.DarkGreen;
+                    break;
+                case TestResultCode.Failed:
+                    Console.BackgroundColor = ConsoleColor.DarkRed;
+                    break;
+                case TestResultCode.Skipped:
+                    Console.BackgroundColor = ConsoleColor.DarkRed;
+                    break;
+            }
             Console.ForegroundColor = ConsoleColor.White;
-            Console.BackgroundColor = success ? ConsoleColor.DarkGreen : ConsoleColor.DarkRed;
-            Console.WriteLine(success ? pass : fail);
+            Console.Write(result);
+
             Console.ForegroundColor = savedForeColor;
             Console.BackgroundColor = savedBackColor;
+
+            Console.WriteLine();
         }
 
-        public static void WritePassFail(string message, bool success)
+        public static void WritePassFail(string message, bool success, string customResult = null)
         {
-            WritePassFail(message, success, "PASSED", "FAILED");
+            WritePassFail(message, success ? TestResultCode.Passed : TestResultCode.Failed, customResult);
         }
 
-        private static bool UnitTests(Options options)
+        private static bool UnitTests(Options options, bool enabled)
         {
             Console.WriteLine("Unit Tests - Started");
 
-            bool success = false;
-            if (Debugger.IsAttached || options.failHard)
+            TestResultCode result = TestResultCode.Skipped;
+            if (enabled)
             {
-                UnitTestsKernel(options);
-                success = true;
-            }
-            else
-            {
-                try
+                result = TestResultCode.Failed;
+                if (Debugger.IsAttached || options.failHard)
                 {
                     UnitTestsKernel(options);
-                    success = true;
+                    result = TestResultCode.Passed;
                 }
-                catch (Exception exception)
+                else
                 {
-                    Console.WriteLine(exception.ToString());
+                    try
+                    {
+                        UnitTestsKernel(options);
+                        result = TestResultCode.Passed;
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine(exception.ToString());
+                    }
                 }
             }
 
-            WritePassFail("Unit Tests - Finished", success);
-            return success;
+            WritePassFail("Unit Tests - Finished", result);
+            return result == TestResultCode.Passed;
         }
 
         private delegate void DoStochasticTest();
@@ -352,7 +395,7 @@ namespace TreeLibTest
 
         private readonly static int[] ReportingIntervals = new int[] { 100, 250, 500, 1000, 1250, 2500, 5000, 10000, 12500, 25000 };
 
-        private static bool StochasticTests(Options options)
+        private static bool StochasticTests(Options options, bool enabled)
         {
             Console.Write("Stochastic Tests - Started [Seed ");
             ConsoleColor savedColor = Console.ForegroundColor;
@@ -361,11 +404,16 @@ namespace TreeLibTest
             Console.ForegroundColor = savedColor;
             Console.WriteLine("]");
 
-            StochasticControls control = new StochasticControls();
-
-            int bufferHeight1 = Math.Max(1, (Console.WindowHeight - 6) / StochasticTestCount - 2);
-            StochasticTestEntry[] tests = new StochasticTestEntry[StochasticTestCount]
+            TestResultCode result = TestResultCode.Skipped;
+            if (enabled)
             {
+                result = TestResultCode.Failed;
+
+                StochasticControls control = new StochasticControls();
+
+                int bufferHeight1 = Math.Max(1, (Console.WindowHeight - 6) / StochasticTestCount - 2);
+                StochasticTestEntry[] tests = new StochasticTestEntry[StochasticTestCount]
+                {
                 new StochasticTestEntry(
                     StochasticTokens[Array.IndexOf(StochasticTokens, "map")],
                     new StochasticTestMap(options.breakIterations, 0),
@@ -406,88 +454,112 @@ namespace TreeLibTest
                     new StochasticTestHugeList(options.breakIterations, 0),
                     new ConsoleBuffer("HugeList Stochastic Test:", Console.BufferWidth, bufferHeight1),
                     options.seed, control),
-            };
-            for (int i = 0; i < tests.Length; i++)
-            {
-                tests[i].actuallyDo = Array.Find(options.stochasticEnables, x => String.Equals(x.Key, tests[i].token)).Value;
-                tests[i].Start();
-            }
-
-            int totalHeight = tests.Length * (bufferHeight1 + 1) + 2;
-            for (int i = 0; i < totalHeight; i++)
-            {
-                Console.WriteLine();
-            }
-            Console.CursorTop = Math.Max(0, Console.CursorTop - totalHeight);
-
-            Stopwatch started = Stopwatch.StartNew();
-            const int PollIntervalMSec = 250;
-            while (true)
-            {
-                if (!Array.TrueForAll(tests, delegate (StochasticTestEntry candidate) { return !candidate.consoleBuffer.Changed; }))
+                };
+                for (int i = 0; i < tests.Length; i++)
                 {
-                    int y = Console.CursorTop;
-                    RefreshConsoles(tests);
-                    Console.CursorTop = y;
+                    tests[i].actuallyDo = Array.Find(options.stochasticEnables, x => String.Equals(x.Key, tests[i].token)).Value;
+                    tests[i].Start();
                 }
 
-                while (Console.KeyAvailable)
+                int totalHeight = tests.Length * (bufferHeight1 + 1) + 2;
+                for (int i = 0; i < totalHeight; i++)
                 {
-                    ConsoleKeyInfo keyInfo = Console.ReadKey(true/*intercept*/);
-                    if (keyInfo.Key == ConsoleKey.Q)
-                    {
-                        goto Done;
-                    }
-                    else if (keyInfo.KeyChar == '+')
-                    {
-                        int i = Array.BinarySearch(ReportingIntervals, control.ReportingInterval);
-                        i = i >= 0 ? i + 1 : ~i;
-                        control.ReportingInterval = i < ReportingIntervals.Length ? ReportingIntervals[i] : control.ReportingInterval * 2;
-                    }
-                    else if (keyInfo.KeyChar == '-')
-                    {
-                        int i = Array.BinarySearch(ReportingIntervals, control.ReportingInterval);
-                        i = i >= 0 ? i - 1 : ~i - 1;
-                        control.ReportingInterval = i >= 0 ? ReportingIntervals[i] : control.ReportingInterval / 2;
-                    }
+                    Console.WriteLine();
                 }
+                Console.CursorTop = Math.Max(0, Console.CursorTop - totalHeight);
 
-                Thread.Sleep(PollIntervalMSec);
-
-                if (options.timeLimit.HasValue && (started.ElapsedMilliseconds >= 1000L * options.timeLimit.Value))
+                Stopwatch started = Stopwatch.StartNew();
+                const int PollIntervalMSec = 250;
+                while (true)
                 {
-                    break;
-                }
-            }
-            Done:
-            control.Stop = true;
-            bool allStopped = false;
-            while (!allStopped)
-            {
-                allStopped = true;
-                foreach (StochasticTestEntry test in tests)
-                {
-                    if (test.thread.ThreadState != System.Threading.ThreadState.Stopped)
+                    if (!Array.TrueForAll(tests, delegate (StochasticTestEntry candidate) { return !candidate.consoleBuffer.Changed; }))
                     {
-                        allStopped = false;
+                        int y = Console.CursorTop;
+                        RefreshConsoles(tests);
+                        Console.CursorTop = y;
+                    }
+
+                    while (Console.KeyAvailable)
+                    {
+                        ConsoleKeyInfo keyInfo = Console.ReadKey(true/*intercept*/);
+                        if (keyInfo.Key == ConsoleKey.Q)
+                        {
+                            goto Done;
+                        }
+                        else if (keyInfo.KeyChar == '+')
+                        {
+                            int i = Array.BinarySearch(ReportingIntervals, control.ReportingInterval);
+                            i = i >= 0 ? i + 1 : ~i;
+                            control.ReportingInterval = i < ReportingIntervals.Length ? ReportingIntervals[i] : control.ReportingInterval * 2;
+                        }
+                        else if (keyInfo.KeyChar == '-')
+                        {
+                            int i = Array.BinarySearch(ReportingIntervals, control.ReportingInterval);
+                            i = i >= 0 ? i - 1 : ~i - 1;
+                            control.ReportingInterval = i >= 0 ? ReportingIntervals[i] : control.ReportingInterval / 2;
+                        }
+                    }
+
+                    Thread.Sleep(PollIntervalMSec);
+
+                    if (options.timeLimit.HasValue && (started.ElapsedMilliseconds >= 1000L * options.timeLimit.Value))
+                    {
                         break;
                     }
                 }
+            Done:
+                control.Stop = true;
+                bool allStopped = false;
+                while (!allStopped)
+                {
+                    allStopped = true;
+                    foreach (StochasticTestEntry test in tests)
+                    {
+                        if (test.thread.ThreadState != System.Threading.ThreadState.Stopped)
+                        {
+                            allStopped = false;
+                            break;
+                        }
+                    }
+                }
+                RefreshConsoles(tests);
+
+                Console.WriteLine();
+
+                if (!control.Failed)
+                {
+                    result = TestResultCode.Passed;
+                }
             }
-            RefreshConsoles(tests);
 
-            Console.WriteLine();
-
-            bool success = !control.Failed;
-            WritePassFail("Stochastic Tests - Finished", success);
-            return success;
+            WritePassFail("Stochastic Tests - Finished", result);
+            return result == TestResultCode.Passed;
         }
 
-        private delegate bool TestMethod(Options options);
+        private static bool MemoryTests(Options options, bool enabled)
+        {
+            Console.WriteLine("Memory Tests - Started");
+
+            TestResultCode result = TestResultCode.Skipped;
+            if (enabled)
+            {
+                result = TestResultCode.Failed;
+                if (new TestMemory().Do())
+                {
+                    result = TestResultCode.Passed;
+                }
+            }
+
+            WritePassFail("Memory Tests - Finished", result);
+            return result == TestResultCode.Passed;
+        }
+
+        private delegate bool TestMethod(Options options, bool enabled);
         private readonly static KeyValuePair<string, TestMethod>[] Tests = new KeyValuePair<string, TestMethod>[]
         {
             new KeyValuePair<string, TestMethod>("unit", UnitTests),
-            new KeyValuePair<string, TestMethod>("perf", delegate(Options options) { return PerfTestDriver.RunAllPerfTests(options.baseline, options.perfGroup, options.perfEnables); }),
+            new KeyValuePair<string, TestMethod>("memory", MemoryTests),
+            new KeyValuePair<string, TestMethod>("perf", delegate(Options options, bool enabled) { return PerfTestDriver.RunAllPerfTests(enabled, options.baseline, options.perfGroup, options.perfEnables); }),
             new KeyValuePair<string, TestMethod>("random", StochasticTests),
         };
 
@@ -547,6 +619,16 @@ namespace TreeLibTest
 
         public static int Main(string[] args)
         {
+            // hook for reentrant invocation under profiler
+            const int ProfilerCallbackArgCount = 3;
+            if ((args.Length >= ProfilerCallbackArgCount) && String.Equals(args[0], TestMemory.CallbackCommandSwitch))
+            {
+                string[] subArgs = new string[args.Length - ProfilerCallbackArgCount];
+                Array.Copy(args, ProfilerCallbackArgCount, subArgs, 0, subArgs.Length);
+                return (int)TestMemory.Reentry(args[1], args[2], subArgs);
+            }
+
+
             TestFramework();
 
             Options options = new Options();
@@ -653,14 +735,11 @@ namespace TreeLibTest
 
             for (int i = 0; i < Tests.Length; i++)
             {
-                if (!disables[i])
+                if (!Tests[i].Value(options, !disables[i]))
                 {
-                    if (!Tests[i].Value(options))
-                    {
-                        exitCode = 1;
-                    }
-                    Console.WriteLine();
+                    exitCode = 1;
                 }
+                Console.WriteLine();
             }
 
             if (Debugger.IsAttached)

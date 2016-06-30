@@ -46,6 +46,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Memory\CLRProfilerControl.cs" />
     <Compile Include="ISimpleInspection.cs" />
     <Compile Include="Performance\Measurement.cs" />
     <Compile Include="Performance\ParkAndMillerRandom.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="StochasticTest\StochasticTestRangeMap.cs" />
     <Compile Include="StochasticTest\StochasticTestRankMap.cs" />
     <Compile Include="StochasticTest\StochasticTestRangeList.cs" />
+    <Compile Include="Memory\TestMemory.cs" />
     <Compile Include="UnitTest\UnitTestAllocation.cs" />
     <Compile Include="UnitTest\UnitTestClone.cs" />
     <Compile Include="UnitTest\UnitTestEnumeration.cs" />
