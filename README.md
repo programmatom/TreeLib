@@ -58,6 +58,9 @@ Argument|Description
 `-unit:<name>`|Disable a particular unit test. `all` may be specified for `<name>` to disable all tests. Use `all` followed by `+unit:<name>` to enable just one test
 `+unit:<name>`|Enable a particular unit test
 ---|---
+`-memory`|Disable the memory allocation regression tests
+`+memory`|Enable the memory allocation regression tests
+---|---
 `-random`|Disable the stochastic test phase
 `+random`|Enable the stochastic test phase. Individual tests specifically disabled will remain disabled
 `-random:<name>`|Disable a particular stochastic test. `all` may be specified for `<name>` to disable all tests. Use `all` followed by `+random:<name>` to enable just one test
@@ -79,6 +82,11 @@ Some testing is done by explicitly checking for expected results when invoking e
 Stochastic Tests
 ---
 There are a set of randomized stress tests that can pound on the generated implementations indefinitely (overnight is good). The randomized tests should make an effort to test boundary cases of all exposed methods, including invalid inputs. All stochastic tests include the appropriate "reference" implementation in the battery and ensure that all implementations produce the same results.
+
+Memory Allocation Regression Tests
+---
+The test suite includes memory allocation regression tests to detect if code changes have increased
+(or decreased) the number or size of memory allocations. The tests require [CLR Profiler][2] ([download:][3] [CLRProfiler45Binaries][4]) to be installed as `C:\Program Files\CLRProfiler45Binaries\{bits}\CLRProfiler.exe` where `{bits}` is `32` or `64` based on the setting target for `TreeLibTest.exe`. (This can be overridden with the `CLR_PROFILER_PATH_32` and `CLR_PROFILER_PATH_64` environment variables, which specify an alternate full path to the appropriate CLRProfiler.exe.)
 
 Performance Tests
 ---
@@ -109,4 +117,7 @@ Thank You
 Thanks for your interest in TreeLib!
 
 [1]: http://www.gnu.org/licenses/lgpl-3.0-standalone.html
+[2]: http://clrprofiler.codeplex.com/
+[3]: http://clrprofiler.codeplex.com/releases/view/97738
+[4]: http://clrprofiler.codeplex.com/downloads/get/532810
 
