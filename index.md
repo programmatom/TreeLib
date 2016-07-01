@@ -5,7 +5,7 @@ TreeLib: Balanced Binary Trees - Rank Augmented, for .NET
 
 What's in TreeLib?
 ---
-TreeLib provides three self-balancing binary tree implementations ([Red-Black][1], [AVL][2], and [Splay][3]), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings. There is also [TreeLibUtil](#whats-in-treelibutil) which provides `HugeList<>`, a substitute for `List<>` that supports fast insertion and deletion on very large lists.
+TreeLib provides three self-balancing binary tree implementations ([Red-Black][1], [AVL][2], and [Splay][3]), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution (order-statistic) information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings. There is also [TreeLibUtil](#whats-in-treelibutil) which provides `HugeList<>`, a substitute for `List<>` that supports fast insertion and deletion on very large lists.
 
 The source code is written in C# and the assemblies will work with any .NET language.
 
@@ -15,11 +15,11 @@ The current version is 1.1.0. Versions and revision history can be viewed at htt
 
 Where did the implementations come from?
 ---
- The Splay tree comes from code written by the inventor, Daniel Sleator, available in basic form from http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c.
+ The Splay tree comes from code written by one of the inventors, Daniel Sleator, available in basic form from http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c. (The other inventor is Robert Tarjan.)
 
-The Red-Black tree comes from the now-open-sourced Microsoft .NET Framework Base Class Library implementation of SortedSet, at https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs
+The Red-Black tree comes from the now-open-sourced Microsoft .NET Framework Base Class Library implementation of SortedSet, at https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs.
 
-The AVL tree comes from the Glib library maintained by GNOME project, at https://github.com/GNOME/glib/blob/master/glib/gtree.c
+The AVL tree comes from the Glib library maintained by GNOME project, at https://github.com/GNOME/glib/blob/master/glib/gtree.c.
 
 The rank-augmentation code was written by [Thomas R. Lawrence][4].
 

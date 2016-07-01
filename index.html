@@ -50,7 +50,7 @@
 
 <h2 id="whats-in-treelib">What’s in TreeLib?</h2>
 
-<p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings. There is also <a href="#whats-in-treelibutil">TreeLibUtil</a> which provides <code>HugeList&lt;&gt;</code>, a substitute for <code>List&lt;&gt;</code> that supports fast insertion and deletion on very large lists.</p>
+<p>TreeLib provides three self-balancing binary tree implementations (<a href="https://en.wikipedia.org/wiki/Red-black_tree">Red-Black</a>, <a href="https://en.wikipedia.org/wiki/AVL_tree">AVL</a>, and <a href="https://en.wikipedia.org/wiki/Splay_tree">Splay</a>), optionally augmented with rank information. Each tree specialization can be configured as a key collection or a collection of key-value pairs. Rank information provides the ability to quickly compute distribution (order-statistic) information at any time (e.g. median or Nth percentile), as well as providing the basis for sparse collections and range mappings. There is also <a href="#whats-in-treelibutil">TreeLibUtil</a> which provides <code>HugeList&lt;&gt;</code>, a substitute for <code>List&lt;&gt;</code> that supports fast insertion and deletion on very large lists.</p>
 
 <p>The source code is written in C# and the assemblies will work with any .NET language.</p>
 
@@ -58,13 +58,15 @@
 
 <p>The current version is 1.1.0. Versions and revision history can be viewed at <a href="https://github.com/programmatom/TreeLib/releases">https://github.com/programmatom/TreeLib/releases</a>, however it is recommended to obtain the binaries from <a href="https://nuget.org">https://nuget.org</a> rather than using the release packages.</p>
 
+
+
 <h2 id="where-did-the-implementations-come-from">Where did the implementations come from?</h2>
 
-<p>The Splay tree comes from code written by the inventor, Daniel Sleator, available in basic form from <a href="http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c">http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c</a>.</p>
+<p>The Splay tree comes from code written by one of the inventors, Daniel Sleator, available in basic form from <a href="http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c">http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c</a>. (The other inventor is Robert Tarjan.)</p>
 
-<p>The Red-Black tree comes from the now-open-sourced Microsoft .NET Framework Base Class Library implementation of SortedSet, at <a href="https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs">https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs</a></p>
+<p>The Red-Black tree comes from the now-open-sourced Microsoft .NET Framework Base Class Library implementation of SortedSet, at <a href="https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs">https://github.com/dotnet/corefx/blob/master/src/System.Collections/src/System/Collections/Generic/SortedSet.cs</a>.</p>
 
-<p>The AVL tree comes from the Glib library maintained by GNOME project, at <a href="https://github.com/GNOME/glib/blob/master/glib/gtree.c">https://github.com/GNOME/glib/blob/master/glib/gtree.c</a></p>
+<p>The AVL tree comes from the Glib library maintained by GNOME project, at <a href="https://github.com/GNOME/glib/blob/master/glib/gtree.c">https://github.com/GNOME/glib/blob/master/glib/gtree.c</a>.</p>
 
 <p>The rank-augmentation code was written by <a href="https://github.com/programmatom">Thomas R. Lawrence</a>.</p>
 
