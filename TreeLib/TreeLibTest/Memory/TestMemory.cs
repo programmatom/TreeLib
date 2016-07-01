@@ -436,12 +436,14 @@ namespace TreeLibTest
 
             AllocInfo[] records = ParseAllocationReport(reportText);
 
+#pragma warning disable CS0162 // unreachable
             if (ShowReports)
             {
                 WriteLine(String.Empty);
                 WriteLine("Report for {0}({1})", op, String.Join(", ", args));
                 Dump(records, null);
             }
+#pragma warning restore CS0162
 
             return records;
         }
@@ -618,29 +620,40 @@ namespace TreeLibTest
         {
             try
             {
+                // corrective factors for debug-only state
+#if DEBUG
+                const int a = 0, A = 0;
+                const int b = 0, B = 0;
+                const int c = 0, C = 0;
+#else
+                const int a = -8, A = -8;
+                const int b = -8, B = -8;
+                const int c = -8, C = -8;
+#endif
+
                 Test("basic-map", new string[] { "avl" }, new AllocInfo[] {
                     new AllocInfo(2000, 56000, 96000, "TreeLib.AVLTreeMap<T,U>.Node"),
                     new AllocInfo(1, 380, 760, "TreeLib.AVLTreeMap<T,U>.Node []"),
-                    new AllocInfo(1, 48, 72, "TreeLib.AVLTreeMap<T,U>"),
+                    new AllocInfo(1, 48 + a, 72 + A, "TreeLib.AVLTreeMap<T,U>"),
                     new AllocInfo(1, 12, 24, "System.WeakReference<T>"), });
                 Test("basic-map", new string[] { "redblack" }, new AllocInfo[] {
                     new AllocInfo(2000, 56000, 96000, "TreeLib.RedBlackTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 44, 64, "TreeLib.RedBlackTreeMap<T,U>"), });
+                    new AllocInfo(1, 44 + b, 64 + B, "TreeLib.RedBlackTreeMap<T,U>"), });
                 Test("basic-map", new string[] { "splay" }, new AllocInfo[] {
                     new AllocInfo(2002, 48048, 80080, "TreeLib.SplayTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 52, 80, "TreeLib.SplayTreeMap<T,U>"), });
+                    new AllocInfo(1, 52 + c, 80 + C, "TreeLib.SplayTreeMap<T,U>"), });
 
                 Test("basic-map-fixed", new string[] { "avl" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.AVLTreeMap<T,U>.Node"),
                     new AllocInfo(1, 380, 760, "TreeLib.AVLTreeMap<T,U>.Node []"),
-                    new AllocInfo(1, 48, 72, "TreeLib.AVLTreeMap<T,U>"),
+                    new AllocInfo(1, 48 + a, 72 + A, "TreeLib.AVLTreeMap<T,U>"),
                     new AllocInfo(1, 12, 24, "System.WeakReference<T>"), });
                 Test("basic-map-fixed", new string[] { "redblack" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.RedBlackTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 44, 64, "TreeLib.RedBlackTreeMap<T,U>"), });
+                    new AllocInfo(1, 44 + b, 64 + B, "TreeLib.RedBlackTreeMap<T,U>"), });
                 Test("basic-map-fixed", new string[] { "splay" }, new AllocInfo[] {
                     new AllocInfo(1002, 24048, 40080, "TreeLib.SplayTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 52, 80, "TreeLib.SplayTreeMap<T,U>"), });
+                    new AllocInfo(1, 52 + c, 80 + C, "TreeLib.SplayTreeMap<T,U>"), });
 
                 Test("basic-map-fixedarray", new string[] { "avl" }, new AllocInfo[] {
                     new AllocInfo(1, 20012, 32024, "TreeLib.AVLTreeArrayMap<T,U>.Node []"),
@@ -658,42 +671,39 @@ namespace TreeLibTest
                 Test("enum-map", new string[] { "avl", "fast" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.AVLTreeMap<T,U>.Node"),
                     new AllocInfo(1, 380, 760, "TreeLib.AVLTreeMap<T,U>.Node []"),
-                    new AllocInfo(3, 148, 296, "TreeLib.Internal.STuple<T> []"),
-                    new AllocInfo(1, 48, 72, "TreeLib.AVLTreeMap<T,U>"),
-                    new AllocInfo(1, 40, 64, "TreeLib.AVLTreeMap<T,U>.FastEnumerator"),
-                    new AllocInfo(1, 24, 40, "System.Collections.Generic.Stack<T>"),
+                    new AllocInfo(1, 72, 144, "TreeLib.Internal.STuple<T> []"),
+                    new AllocInfo(1, 48 + a, 72 + A, "TreeLib.AVLTreeMap<T,U>"),
+                    new AllocInfo(1, 44, 72, "TreeLib.AVLTreeMap<T,U>.FastEnumerator"),
                     new AllocInfo(1, 20, 32, "TreeLib.AVLTreeMap<T,U>.FastEnumerableSurrogate"),
                     new AllocInfo(1, 12, 24, "System.WeakReference<T>"), });
                 Test("enum-map", new string[] { "redblack", "fast" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.RedBlackTreeMap<T,U>.Node"),
-                    new AllocInfo(3, 148, 296, "TreeLib.Internal.STuple<T> []"),
-                    new AllocInfo(1, 40, 64, "TreeLib.RedBlackTreeMap<T,U>.FastEnumerator"),
-                    new AllocInfo(1, 44, 64, "TreeLib.RedBlackTreeMap<T,U>"),
-                    new AllocInfo(1, 24, 40, "System.Collections.Generic.Stack<T>"),
+                    new AllocInfo(1, 96, 192, "TreeLib.Internal.STuple<T> []"),
+                    new AllocInfo(1, 44, 72, "TreeLib.RedBlackTreeMap<T,U>.FastEnumerator"),
+                    new AllocInfo(1, 44 + b, 64 + B, "TreeLib.RedBlackTreeMap<T,U>"),
                     new AllocInfo(1, 20, 32, "TreeLib.RedBlackTreeMap<T,U>.FastEnumerableSurrogate"), });
                 Test("enum-map", new string[] { "splay", "fast" }, new AllocInfo[] {
                     new AllocInfo(1002, 24048, 40080, "TreeLib.SplayTreeMap<T,U>.Node"),
-                    new AllocInfo(9, 8284, 16568, "TreeLib.Internal.STuple<T> []"),
-                    new AllocInfo(1, 52, 80, "TreeLib.SplayTreeMap<T,U>"),
-                    new AllocInfo(1, 40, 64, "TreeLib.SplayTreeMap<T,U>.FastEnumerator"),
-                    new AllocInfo(1, 24, 40, "System.Collections.Generic.Stack<T>"),
+                    new AllocInfo(6, 8136, 16272, "TreeLib.Internal.STuple<T> []"),
+                    new AllocInfo(1, 52 + c, 80 + C, "TreeLib.SplayTreeMap<T,U>"),
+                    new AllocInfo(1, 44, 72, "TreeLib.SplayTreeMap<T,U>.FastEnumerator"),
                     new AllocInfo(1, 20, 32, "TreeLib.SplayTreeMap<T,U>.FastEnumerableSurrogate"), });
 
                 Test("enum-map", new string[] { "avl", "robust" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.AVLTreeMap<T,U>.Node"),
                     new AllocInfo(1, 380, 760, "TreeLib.AVLTreeMap<T,U>.Node []"),
-                    new AllocInfo(1, 48, 72, "TreeLib.AVLTreeMap<T,U>"),
+                    new AllocInfo(1, 48 + a, 72 + A, "TreeLib.AVLTreeMap<T,U>"),
                     new AllocInfo(1, 28, 40, "TreeLib.AVLTreeMap<T,U>.RobustEnumerator"),
                     new AllocInfo(1, 20, 32, "TreeLib.AVLTreeMap<T,U>.RobustEnumerableSurrogate"),
                     new AllocInfo(1, 12, 24, "System.WeakReference<T>"), });
                 Test("enum-map", new string[] { "redblack", "robust" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.RedBlackTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 44, 64, "TreeLib.RedBlackTreeMap<T,U>"),
+                    new AllocInfo(1, 44 + b, 64 + B, "TreeLib.RedBlackTreeMap<T,U>"),
                     new AllocInfo(1, 28, 40, "TreeLib.RedBlackTreeMap<T,U>.RobustEnumerator"),
                     new AllocInfo(1, 20, 32, "TreeLib.RedBlackTreeMap<T,U>.RobustEnumerableSurrogate"), });
                 Test("enum-map", new string[] { "splay", "robust" }, new AllocInfo[] {
                     new AllocInfo(1002, 24048, 40080, "TreeLib.SplayTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 52, 80, "TreeLib.SplayTreeMap<T,U>"),
+                    new AllocInfo(1, 52 + c, 80 + C, "TreeLib.SplayTreeMap<T,U>"),
                     new AllocInfo(1, 28, 40, "TreeLib.SplayTreeMap<T,U>.RobustEnumerator"),
                     new AllocInfo(1, 20, 32, "TreeLib.SplayTreeMap<T,U>.RobustEnumerableSurrogate"), });
 
@@ -701,14 +711,14 @@ namespace TreeLibTest
                 Test("cond-map", new string[] { "avl" }, new AllocInfo[] {
                     new AllocInfo(2000, 56000, 96000, "TreeLib.AVLTreeMap<T,U>.Node"),
                     new AllocInfo(1, 380, 760, "TreeLib.AVLTreeMap<T,U>.Node []"),
-                    new AllocInfo(1, 48, 72, "TreeLib.AVLTreeMap<T,U>"),
+                    new AllocInfo(1, 48 + a, 72 + A, "TreeLib.AVLTreeMap<T,U>"),
                     new AllocInfo(1, 12, 24, "System.WeakReference<T>"), });
                 Test("cond-map", new string[] { "redblack" }, new AllocInfo[] {
                     new AllocInfo(2000, 56000, 96000, "TreeLib.RedBlackTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 44, 64, "TreeLib.RedBlackTreeMap<T,U>"), });
+                    new AllocInfo(1, 44 + b, 64 + B, "TreeLib.RedBlackTreeMap<T,U>"), });
                 Test("cond-map", new string[] { "splay" }, new AllocInfo[] {
                     new AllocInfo(2002, 48048, 80080, "TreeLib.SplayTreeMap<T,U>.Node"),
-                    new AllocInfo(1, 52, 80, "TreeLib.SplayTreeMap<T,U>"), });
+                    new AllocInfo(1, 52 + c, 80 + C, "TreeLib.SplayTreeMap<T,U>"), });
 
 
                 return true;

@@ -78,7 +78,11 @@ namespace TreeLibTest
             return IncrementIteration(false/*setLast*/);
         }
 
-        private int? seed;
+        protected int? seed;
+        public void SetSeed(int seed)
+        {
+            this.seed = seed;
+        }
 
         public void WriteIteration()
         {
@@ -1309,8 +1313,8 @@ namespace TreeLibTest
         {
             try
             {
-                Random rnd = new Random(seed);
                 this.seed = seed;
+                Random rnd = new Random(seed);
 
                 int totalProb1 = 0;
                 int totalProb2 = 0;

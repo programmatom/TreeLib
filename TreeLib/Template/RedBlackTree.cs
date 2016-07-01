@@ -3883,20 +3883,36 @@ namespace TreeLib
         private void ValidateDepthInvariant()
         {
             int min = Int32.MaxValue;
-            MinDepth(root, 0, ref min);
-            int depth = MaxDepth(root);
+            ActualMinDepth(root, 0, ref min);
+            int depth = ActualMaxDepth(root);
             min++;
             int max = depth + 1;
 
-            Check.Assert((2 * min >= max) && (depth <= 2 * Math.Log(this.count + 1) / Math.Log(2)), "depth invariant");
+            Check.Assert((2 * min >= max) && (depth <= TheoreticalMaxDepth(this.count)), "depth invariant");
         }
 
-        private int MaxDepth(NodeRef root)
+        public static int TheoreticalMaxDepth(ulong c)
         {
-            return (root == Null) ? 0 : (1 + Math.Max(MaxDepth(nodes[root].left), MaxDepth(nodes[root].right)));
+            return (int)Math.Ceiling(2 * Math.Log(c + 1, 2) + .001/*epsilon*/);
         }
 
-        private void MinDepth(NodeRef root, int depth, ref int min)
+        public static int EstimateMaxDepth(ulong c)
+        {
+            unchecked
+            {
+                int h = 2 * Log2.CeilLog2(c + 1) + 1/*robust about rounding error in TheoreticalMaxDepth()*/;
+
+                Debug.Assert(h >= TheoreticalMaxDepth(c));
+                return h;
+            }
+        }
+
+        private int ActualMaxDepth(NodeRef root)
+        {
+            return (root == Null) ? 0 : (1 + Math.Max(ActualMaxDepth(nodes[root].left), ActualMaxDepth(nodes[root].right)));
+        }
+
+        private void ActualMinDepth(NodeRef root, int depth, ref int min)
         {
             if (root == Null)
             {
@@ -3906,11 +3922,11 @@ namespace TreeLib
             {
                 if (depth < min)
                 {
-                    MinDepth(nodes[root].left, depth + 1, ref min);
+                    ActualMinDepth(nodes[root].left, depth + 1, ref min);
                 }
                 if (depth < min)
                 {
-                    MinDepth(nodes[root].right, depth + 1, ref min);
+                    ActualMinDepth(nodes[root].right, depth + 1, ref min);
                 }
             }
         }
@@ -4752,8 +4768,8 @@ namespace TreeLib
             [Widen]
             private int currentYStart, nextYStart, previousYStart;
 
-            private readonly Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>> stack
-                = new Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>>();
+            private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(RedBlackTree<KeyType, ValueType> tree, bool forward)
             {
@@ -4855,7 +4871,13 @@ namespace TreeLib
             {
                 unchecked
                 {
-                    stack.Clear();
+                    int stackSize = EstimateMaxDepth(tree.count);
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Null;
                     leadingNode = tree.Null;
@@ -4933,10 +4955,10 @@ namespace TreeLib
 
                         if (!foundMatch1 && (forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
+                            stack[stackIndex++] = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
                                 node,
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
-                                /*[Feature(Feature.Range2)]*/yPosition));
+                                /*[Feature(Feature.Range2)]*/yPosition);
                         }
 
                         if (c == 0)
@@ -5016,7 +5038,7 @@ namespace TreeLib
 
                     leadingNode = tree.Null;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         if (forward)
                         {
@@ -5032,7 +5054,7 @@ namespace TreeLib
                     }
 
                     STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int> cursor
-                        = stack.Pop();
+                        = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
                     nextXStart = cursor.Item2;
@@ -5048,10 +5070,10 @@ namespace TreeLib
                         xPosition += tree.nodes[node].xOffset;
                         yPosition += tree.nodes[node].yOffset;
 
-                        stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
+                        stack[stackIndex++] = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
                             node,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
-                            /*[Feature(Feature.Range2)]*/yPosition));
+                            /*[Feature(Feature.Range2)]*/yPosition);
                         node = forward ? tree.nodes[node].left : tree.nodes[node].right;
                     }
                 }

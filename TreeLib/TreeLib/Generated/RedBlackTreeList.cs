@@ -1691,20 +1691,36 @@ namespace TreeLib
         private void ValidateDepthInvariant()
         {
             int min = Int32.MaxValue;
-            MinDepth(root, 0, ref min);
-            int depth = MaxDepth(root);
+            ActualMinDepth(root, 0, ref min);
+            int depth = ActualMaxDepth(root);
             min++;
             int max = depth + 1;
 
-            Check.Assert((2 * min >= max) && (depth <= 2 * Math.Log(this.count + 1) / Math.Log(2)), "depth invariant");
+            Check.Assert((2 * min >= max) && (depth <= TheoreticalMaxDepth(this.count)), "depth invariant");
         }
 
-        private int MaxDepth(Node root)
+        public static int TheoreticalMaxDepth(ulong c)
         {
-            return (root == Null) ? 0 : (1 + Math.Max(MaxDepth(root.left), MaxDepth(root.right)));
+            return (int)Math.Ceiling(2 * Math.Log(c + 1, 2) + .001/*epsilon*/);
         }
 
-        private void MinDepth(Node root,int depth,ref int min)
+        public static int EstimateMaxDepth(ulong c)
+        {
+            unchecked
+            {
+                int h = 2 * Log2.CeilLog2(c + 1) + 1/*robust about rounding error in TheoreticalMaxDepth()*/;
+
+                Debug.Assert(h >= TheoreticalMaxDepth(c));
+                return h;
+            }
+        }
+
+        private int ActualMaxDepth(Node root)
+        {
+            return (root == Null) ? 0 : (1 + Math.Max(ActualMaxDepth(root.left), ActualMaxDepth(root.right)));
+        }
+
+        private void ActualMinDepth(Node root,int depth,ref int min)
         {
             if (root == Null)
             {
@@ -1714,11 +1730,11 @@ namespace TreeLib
             {
                 if (depth < min)
                 {
-                    MinDepth(root.left, depth + 1, ref min);
+                    ActualMinDepth(root.left, depth + 1, ref min);
                 }
                 if (depth < min)
                 {
-                    MinDepth(root.right, depth + 1, ref min);
+                    ActualMinDepth(root.right, depth + 1, ref min);
                 }
             }
         }
@@ -2165,8 +2181,8 @@ namespace TreeLib
             private Node currentNode;
             private Node leadingNode;
 
-            private readonly Stack<STuple<Node>> stack
-                = new Stack<STuple<Node>>();
+            private STuple<Node>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(RedBlackTreeList<KeyType> tree,bool forward)
             {
@@ -2225,7 +2241,13 @@ namespace TreeLib
             {
                 unchecked
                 {
-                    stack.Clear();
+                    int stackSize = EstimateMaxDepth(tree.count);
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<Node>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Null;
                     leadingNode = tree.Null;
@@ -2253,8 +2275,8 @@ namespace TreeLib
 
                         if ((forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<Node>(
-                                node));
+                            stack[stackIndex++] = new STuple<Node>(
+                                node);
                         }
 
                         if (c == 0)
@@ -2300,13 +2322,13 @@ namespace TreeLib
 
                     leadingNode = tree.Null;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         return;
                     }
 
                     STuple<Node> cursor
-                        = stack.Pop();
+                        = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
 
@@ -2314,8 +2336,8 @@ namespace TreeLib
                     while (node != tree.Null)
                     {
 
-                        stack.Push(new STuple<Node>(
-                            node));
+                        stack[stackIndex++] = new STuple<Node>(
+                            node);
                         node = forward ? node.left : node.right;
                     }
                 }

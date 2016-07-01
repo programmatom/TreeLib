@@ -2382,8 +2382,8 @@ uint countNew = checked(this.count + 1);
             [Widen]
             private int currentXStart, nextXStart;
 
-            private readonly Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>> stack
-                = new Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>>();
+            private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(SplayTreeArrayRankList<KeyType> tree,bool forward)
             {
@@ -2442,11 +2442,32 @@ uint countNew = checked(this.count + 1);
                 return currentNode != tree.Nil;
             }
 
+            private void Push(STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> item)
+            {
+                if (stackIndex >= stack.Length)
+                {
+                    Array.Resize(ref stack, stack.Length * 2);
+                }
+                stack[stackIndex++] = item;
+            }
+
+            private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> Pop()
+            {
+                return stack[--stackIndex];
+            }
+
             public void Reset()
             {
                 unchecked
                 {
-                    stack.Clear();
+                    const int MinStackSize = 32;
+                    int stackSize = Math.Max(MinStackSize, 2 * Log2.CeilLog2(tree.count)); // estimate of no theoretical significance, actual case is usually much worse
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Nil;
                     leadingNode = tree.Nil;
@@ -2477,7 +2498,7 @@ uint countNew = checked(this.count + 1);
 
                         if ((forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                            Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
                                 node,
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
                         }
@@ -2526,7 +2547,7 @@ uint countNew = checked(this.count + 1);
 
                     leadingNode = tree.Nil;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         if (forward)
                         {
@@ -2540,7 +2561,7 @@ uint countNew = checked(this.count + 1);
                     }
 
                     STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> cursor
-                        = stack.Pop();
+                        = Pop();
 
                     leadingNode = cursor.Item1;
                     nextXStart = cursor.Item2;
@@ -2552,7 +2573,7 @@ uint countNew = checked(this.count + 1);
                     {
                         xPosition += tree.nodes[node].xOffset;
 
-                        stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                        Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
                             node,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
                         node = forward ? tree.nodes[node].left : tree.nodes[node].right;

@@ -2582,19 +2582,35 @@ uint countNew = checked(this.count + 1);
 
         private void ValidateDepthInvariant()
         {
-            const double phi = 1.618033988749894848204;
-            const double epsilon = .001;
-
-            double max = Math.Log((count + 2) * Math.Sqrt(5)) / Math.Log(phi) - 2;
-            int depth = root != Null ? MaxDepth(root) : 0;
-            Check.Assert(depth <= max + epsilon, "max depth invariant");
+            double max = TheoreticalMaxDepth(count); // includes epsilon
+            int depth = root != Null ? ActualDepth(root) : 0;
+            Check.Assert(depth <= max, "max depth invariant");
         }
 
-        private int MaxDepth(NodeRef node)
+        private int ActualDepth(NodeRef node)
         {
-            int ld = nodes[node].left_child ? MaxDepth(nodes[node].left) : 0;
-            int rd = nodes[node].right_child ? MaxDepth(nodes[node].right) : 0;
+            int ld = nodes[node].left_child ? ActualDepth(nodes[node].left) : 0;
+            int rd = nodes[node].right_child ? ActualDepth(nodes[node].right) : 0;
             return 1 + Math.Max(ld, rd);
+        }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int TheoreticalMaxDepth(ulong c)
+        {
+            // from https://en.wikipedia.org/wiki/AVL_tree#Comparison_to_other_structures
+            return (int)Math.Ceiling(Math.Log(c + 1.0652475842498528) * 2.0780869212350273 + (-0.32772406181544556 + .001/*epsilon*/));
+        }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int EstimateMaxDepth(ulong c)
+        {
+            unchecked
+            {
+                int h = 36 * (Log2.CeilLog2(c + 1) + 1) / 25;
+
+                Debug.Assert(h >= TheoreticalMaxDepth(c));
+                return h;
+            }
         }
 
         private void g_tree_node_check(NodeRef node)
@@ -3163,13 +3179,7 @@ uint countNew = checked(this.count + 1);
                 }
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current { get { return this.Current; } }
 
             public void Dispose()
             {
@@ -3301,8 +3311,8 @@ uint countNew = checked(this.count + 1);
             [Widen]
             private int currentYStart, nextYStart, previousYStart;
 
-            private readonly Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>> stack
-                = new Stack<STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>>();
+            private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(AVLTreeArrayRange2Map<ValueType> tree,bool forward)
             {
@@ -3365,13 +3375,7 @@ uint countNew = checked(this.count + 1);
                 }
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current { get { return this.Current; } }
 
             public void Dispose()
             {
@@ -3387,7 +3391,13 @@ uint countNew = checked(this.count + 1);
             {
                 unchecked
                 {
-                    stack.Clear();
+                    int stackSize = EstimateMaxDepth(tree.count);
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Null;
                     leadingNode = tree.Null;
@@ -3460,10 +3470,10 @@ uint countNew = checked(this.count + 1);
 
                         if (!foundMatch1 && (forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
+                            stack[stackIndex++] = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
                                 node,
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
-                                /*[Feature(Feature.Range2)]*/yPosition));
+                                /*[Feature(Feature.Range2)]*/yPosition);
                         }
 
                         if (c == 0)
@@ -3540,7 +3550,7 @@ uint countNew = checked(this.count + 1);
 
                     leadingNode = tree.Null;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         if (forward)
                         {
@@ -3556,7 +3566,7 @@ uint countNew = checked(this.count + 1);
                     }
 
                     STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int> cursor
-                        = stack.Pop();
+                        = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
                     nextXStart = cursor.Item2;
@@ -3574,10 +3584,10 @@ uint countNew = checked(this.count + 1);
                         xPosition += tree.nodes[node].xOffset;
                         yPosition += tree.nodes[node].yOffset;
 
-                        stack.Push(new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
+                        stack[stackIndex++] = new STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>(
                             node,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
-                            /*[Feature(Feature.Range2)]*/yPosition));
+                            /*[Feature(Feature.Range2)]*/yPosition);
                         node = forward
                             ? (tree.nodes[node].left_child ? tree.nodes[node].left : tree.Null)
                             : (tree.nodes[node].right_child ? tree.nodes[node].right : tree.Null);

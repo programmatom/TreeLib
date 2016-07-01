@@ -86,7 +86,7 @@ There are a set of randomized stress tests that can pound on the generated imple
 Memory Allocation Regression Tests
 ---
 The test suite includes memory allocation regression tests to detect if code changes have increased
-(or decreased) the number or size of memory allocations. The tests require [CLR Profiler][2] ([download:][3] [CLRProfiler45Binaries][4]) to be installed as `C:\Program Files\CLRProfiler45Binaries\{bits}\CLRProfiler.exe` where `{bits}` is `32` or `64` based on the setting target for `TreeLibTest.exe`. (This can be overridden with the `CLR_PROFILER_PATH_32` and `CLR_PROFILER_PATH_64` environment variables, which specify an alternate full path to the appropriate CLRProfiler.exe.)
+(or decreased) the number or size of memory allocations. The tests require [CLR Profiler][2] ([download:][3] [CLRProfiler45Binaries][4]) to be installed as `C:\Program Files\CLRProfiler45Binaries\{bits}\CLRProfiler.exe` where `{bits}` is `32` or `64` based on the target settings for `TreeLibTest.exe`. (This can be overridden with the `CLR_PROFILER_PATH_32` and `CLR_PROFILER_PATH_64` environment variables, which specify an alternate full path to the appropriate `CLRProfiler.exe`.)
 
 Performance Tests
 ---

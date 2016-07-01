@@ -1780,19 +1780,35 @@ uint countNew = checked(this.count + 1);
 
         private void ValidateDepthInvariant()
         {
-            const double phi = 1.618033988749894848204;
-            const double epsilon = .001;
-
-            double max = Math.Log((count + 2) * Math.Sqrt(5)) / Math.Log(phi) - 2;
-            int depth = root != Null ? MaxDepth(root) : 0;
-            Check.Assert(depth <= max + epsilon, "max depth invariant");
+            double max = TheoreticalMaxDepth(count); // includes epsilon
+            int depth = root != Null ? ActualDepth(root) : 0;
+            Check.Assert(depth <= max, "max depth invariant");
         }
 
-        private int MaxDepth(NodeRef node)
+        private int ActualDepth(NodeRef node)
         {
-            int ld = nodes[node].left_child ? MaxDepth(nodes[node].left) : 0;
-            int rd = nodes[node].right_child ? MaxDepth(nodes[node].right) : 0;
+            int ld = nodes[node].left_child ? ActualDepth(nodes[node].left) : 0;
+            int rd = nodes[node].right_child ? ActualDepth(nodes[node].right) : 0;
             return 1 + Math.Max(ld, rd);
+        }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int TheoreticalMaxDepth(ulong c)
+        {
+            // from https://en.wikipedia.org/wiki/AVL_tree#Comparison_to_other_structures
+            return (int)Math.Ceiling(Math.Log(c + 1.0652475842498528) * 2.0780869212350273 + (-0.32772406181544556 + .001/*epsilon*/));
+        }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int EstimateMaxDepth(ulong c)
+        {
+            unchecked
+            {
+                int h = 36 * (Log2.CeilLog2(c + 1) + 1) / 25;
+
+                Debug.Assert(h >= TheoreticalMaxDepth(c));
+                return h;
+            }
         }
 
         private void g_tree_node_check(NodeRef node)
@@ -2202,13 +2218,7 @@ uint countNew = checked(this.count + 1);
                 }
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current { get { return this.Current; } }
 
             public void Dispose()
             {
@@ -2291,8 +2301,8 @@ uint countNew = checked(this.count + 1);
             private NodeRef currentNode;
             private NodeRef leadingNode;
 
-            private readonly Stack<STuple<NodeRef>> stack
-                = new Stack<STuple<NodeRef>>();
+            private STuple<NodeRef>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(AVLTreeArrayList<KeyType> tree,bool forward)
             {
@@ -2329,13 +2339,7 @@ uint countNew = checked(this.count + 1);
                 }
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current { get { return this.Current; } }
 
             public void Dispose()
             {
@@ -2351,7 +2355,13 @@ uint countNew = checked(this.count + 1);
             {
                 unchecked
                 {
-                    stack.Clear();
+                    int stackSize = EstimateMaxDepth(tree.count);
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<NodeRef>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Null;
                     leadingNode = tree.Null;
@@ -2379,8 +2389,8 @@ uint countNew = checked(this.count + 1);
 
                         if ((forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<NodeRef>(
-                                node));
+                            stack[stackIndex++] = new STuple<NodeRef>(
+                                node);
                         }
 
                         if (c == 0)
@@ -2426,13 +2436,13 @@ uint countNew = checked(this.count + 1);
 
                     leadingNode = tree.Null;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         return;
                     }
 
                     STuple<NodeRef> cursor
-                        = stack.Pop();
+                        = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
 
@@ -2442,8 +2452,8 @@ uint countNew = checked(this.count + 1);
                     while (node != tree.Null)
                     {
 
-                        stack.Push(new STuple<NodeRef>(
-                            node));
+                        stack[stackIndex++] = new STuple<NodeRef>(
+                            node);
                         node = forward
                             ? (tree.nodes[node].left_child ? tree.nodes[node].left : tree.Null)
                             : (tree.nodes[node].right_child ? tree.nodes[node].right : tree.Null);

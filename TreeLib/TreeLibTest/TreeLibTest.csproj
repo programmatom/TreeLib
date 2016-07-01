@@ -89,6 +89,7 @@
     <Compile Include="UnitTest\UnitTestClone.cs" />
     <Compile Include="UnitTest\UnitTestEnumeration.cs" />
     <Compile Include="UnitTest\UnitTestHugeList.cs" />
+    <Compile Include="UnitTest\UnitTestInvariants.cs" />
     <Compile Include="UnitTest\UnitTestRange2List.cs" />
     <Compile Include="UnitTest\UnitTestRangeList.cs" />
     <Compile Include="UnitTest\UnitTestRangeMap.cs" />

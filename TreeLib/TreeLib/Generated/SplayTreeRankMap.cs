@@ -2548,8 +2548,8 @@ namespace TreeLib
             [Widen]
             private int currentXStart, nextXStart;
 
-            private readonly Stack<STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>> stack
-                = new Stack<STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>>();
+            private STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(SplayTreeRankMap<KeyType, ValueType> tree,bool forward)
             {
@@ -2611,11 +2611,32 @@ namespace TreeLib
                 return currentNode != tree.Nil;
             }
 
+            private void Push(STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> item)
+            {
+                if (stackIndex >= stack.Length)
+                {
+                    Array.Resize(ref stack, stack.Length * 2);
+                }
+                stack[stackIndex++] = item;
+            }
+
+            private STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> Pop()
+            {
+                return stack[--stackIndex];
+            }
+
             public void Reset()
             {
                 unchecked
                 {
-                    stack.Clear();
+                    const int MinStackSize = 32;
+                    int stackSize = Math.Max(MinStackSize, 2 * Log2.CeilLog2(tree.count)); // estimate of no theoretical significance, actual case is usually much worse
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Nil;
                     leadingNode = tree.Nil;
@@ -2646,7 +2667,7 @@ namespace TreeLib
 
                         if ((forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                            Push(new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
                                 node,
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
                         }
@@ -2695,7 +2716,7 @@ namespace TreeLib
 
                     leadingNode = tree.Nil;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         if (forward)
                         {
@@ -2709,7 +2730,7 @@ namespace TreeLib
                     }
 
                     STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> cursor
-                        = stack.Pop();
+                        = Pop();
 
                     leadingNode = cursor.Item1;
                     nextXStart = cursor.Item2;
@@ -2721,7 +2742,7 @@ namespace TreeLib
                     {
                         xPosition += node.xOffset;
 
-                        stack.Push(new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                        Push(new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
                             node,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
                         node = forward ? node.left : node.right;

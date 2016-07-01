@@ -2460,19 +2460,35 @@ out length))
 
         private void ValidateDepthInvariant()
         {
-            const double phi = 1.618033988749894848204;
-            const double epsilon = .001;
-
-            double max = Math.Log((count + 2) * Math.Sqrt(5)) / Math.Log(phi) - 2;
-            int depth = root != Null ? MaxDepth(root) : 0;
-            Check.Assert(depth <= max + epsilon, "max depth invariant");
+            double max = TheoreticalMaxDepth(count); // includes epsilon
+            int depth = root != Null ? ActualDepth(root) : 0;
+            Check.Assert(depth <= max, "max depth invariant");
         }
 
-        private int MaxDepth(Node node)
+        private int ActualDepth(Node node)
         {
-            int ld = node.left_child ? MaxDepth(node.left) : 0;
-            int rd = node.right_child ? MaxDepth(node.right) : 0;
+            int ld = node.left_child ? ActualDepth(node.left) : 0;
+            int rd = node.right_child ? ActualDepth(node.right) : 0;
             return 1 + Math.Max(ld, rd);
+        }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int TheoreticalMaxDepth(ulong c)
+        {
+            // from https://en.wikipedia.org/wiki/AVL_tree#Comparison_to_other_structures
+            return (int)Math.Ceiling(Math.Log(c + 1.0652475842498528) * 2.0780869212350273 + (-0.32772406181544556 + .001/*epsilon*/));
+        }
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int EstimateMaxDepth(ulong c)
+        {
+            unchecked
+            {
+                int h = 36 * (Log2.CeilLog2(c + 1) + 1) / 25;
+
+                Debug.Assert(h >= TheoreticalMaxDepth(c));
+                return h;
+            }
         }
 
         private void g_tree_node_check(Node node)
@@ -2995,13 +3011,7 @@ out length))
                 }
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current { get { return this.Current; } }
 
             public void Dispose()
             {
@@ -3128,8 +3138,8 @@ out length))
             [Widen]
             private int previousXStart;
 
-            private readonly Stack<STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>> stack
-                = new Stack<STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>>();
+            private STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(AVLTreeRangeMap<ValueType> tree,bool forward)
             {
@@ -3184,13 +3194,7 @@ out length))
                 }
             }
 
-            object IEnumerator.Current
-            {
-                get
-                {
-                    return this.Current;
-                }
-            }
+            object IEnumerator.Current { get { return this.Current; } }
 
             public void Dispose()
             {
@@ -3206,7 +3210,13 @@ out length))
             {
                 unchecked
                 {
-                    stack.Clear();
+                    int stackSize = EstimateMaxDepth(tree.count);
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Null;
                     leadingNode = tree.Null;
@@ -3275,9 +3285,9 @@ out length))
 
                         if (!foundMatch1 && (forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                            stack[stackIndex++] = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
                                 node,
-                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition);
                         }
 
                         if (c == 0)
@@ -3348,7 +3358,7 @@ out length))
 
                     leadingNode = tree.Null;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         if (forward)
                         {
@@ -3362,7 +3372,7 @@ out length))
                     }
 
                     STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int> cursor
-                        = stack.Pop();
+                        = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
                     nextXStart = cursor.Item2;
@@ -3376,9 +3386,9 @@ out length))
                     {
                         xPosition += node.xOffset;
 
-                        stack.Push(new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
+                        stack[stackIndex++] = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>(
                             node,
-                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition));
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition);
                         node = forward
                             ? (node.left_child ? node.left : tree.Null)
                             : (node.right_child ? node.right : tree.Null);

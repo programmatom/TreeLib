@@ -129,4 +129,57 @@ namespace TreeLib.Internal
         ISetValue<ValueType> SetValueCallack { get; }
         void SetValue(ValueType value);
     }
+
+
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public static class Log2
+    {
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public static int CeilLog2(ulong n)
+        {
+            unchecked
+            {
+                int l = 0;
+
+                ulong c = n;
+                if ((c & (c - 1)) != 0)
+                {
+                    l += 1;
+                }
+                if ((c >> 32) != 0)
+                {
+                    l += 32;
+                    c >>= 32;
+                }
+                uint d = (uint)c;
+                if ((d >> 16) != 0)
+                {
+                    l += 16;
+                    d >>= 16;
+                }
+                if ((d >> 8) != 0)
+                {
+                    l += 8;
+                    d >>= 8;
+                }
+                if ((d >> 4) != 0)
+                {
+                    l += 4;
+                    d >>= 4;
+                }
+                if ((d >> 2) != 0)
+                {
+                    l += 2;
+                    d >>= 2;
+                }
+                if ((d >> 1) != 0)
+                {
+                    l += 1;
+                    d >>= 1;
+                }
+
+                return l;
+            }
+        }
+    }
 }

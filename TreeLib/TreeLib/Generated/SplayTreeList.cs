@@ -1680,8 +1680,8 @@ namespace TreeLib
             private Node currentNode;
             private Node leadingNode;
 
-            private readonly Stack<STuple<Node>> stack
-                = new Stack<STuple<Node>>();
+            private STuple<Node>[] stack;
+            private int stackIndex;
 
             public FastEnumerator(SplayTreeList<KeyType> tree,bool forward)
             {
@@ -1736,11 +1736,32 @@ namespace TreeLib
                 return currentNode != tree.Nil;
             }
 
+            private void Push(STuple<Node> item)
+            {
+                if (stackIndex >= stack.Length)
+                {
+                    Array.Resize(ref stack, stack.Length * 2);
+                }
+                stack[stackIndex++] = item;
+            }
+
+            private STuple<Node> Pop()
+            {
+                return stack[--stackIndex];
+            }
+
             public void Reset()
             {
                 unchecked
                 {
-                    stack.Clear();
+                    const int MinStackSize = 32;
+                    int stackSize = Math.Max(MinStackSize, 2 * Log2.CeilLog2(tree.count)); // estimate of no theoretical significance, actual case is usually much worse
+                    if ((stack == null) || (stackSize > stack.Length))
+                    {
+                        stack = new STuple<Node>[
+                            stackSize];
+                    }
+                    stackIndex = 0;
 
                     currentNode = tree.Nil;
                     leadingNode = tree.Nil;
@@ -1768,7 +1789,7 @@ namespace TreeLib
 
                         if ((forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack.Push(new STuple<Node>(
+                            Push(new STuple<Node>(
                                 node));
                         }
 
@@ -1815,13 +1836,13 @@ namespace TreeLib
 
                     leadingNode = tree.Nil;
 
-                    if (stack.Count == 0)
+                    if (stackIndex == 0)
                     {
                         return;
                     }
 
                     STuple<Node> cursor
-                        = stack.Pop();
+                        = Pop();
 
                     leadingNode = cursor.Item1;
 
@@ -1829,7 +1850,7 @@ namespace TreeLib
                     while (node != tree.Nil)
                     {
 
-                        stack.Push(new STuple<Node>(
+                        Push(new STuple<Node>(
                             node));
                         node = forward ? node.left : node.right;
                     }

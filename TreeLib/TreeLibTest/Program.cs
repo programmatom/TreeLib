@@ -196,13 +196,14 @@ namespace TreeLibTest
 
         private readonly static string[] UnitTestTokens = new string[]
         {
-            "map", "range2map", "rangemap", "range2list", "rangelist", "multirankmap", "rankmap", "alloc", "enum", "clone", "hugelist"
+            "invariants", "map", "range2map", "rangemap", "range2list", "rangelist", "multirankmap", "rankmap", "alloc", "enum", "clone", "hugelist"
         };
         private delegate TestBase MakeTestBase(long startIteration);
         private static void UnitTestsKernel(Options options)
         {
             Tuple<string, MakeTestBase>[] unitTests = new Tuple<string, MakeTestBase>[]
             {
+                new Tuple<string, MakeTestBase>("invariants",       delegate (long startIter) { return new UnitTestInvariants(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("map",              delegate (long startIter) { return new UnitTestMap(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("range2map",        delegate (long startIter) { return new UnitTestRange2Map(options.breakIterations, startIter); }),
                 new Tuple<string, MakeTestBase>("rangemap",         delegate (long startIter) { return new UnitTestRangeMap(options.breakIterations, startIter); }),
@@ -224,6 +225,7 @@ namespace TreeLibTest
                 {
                     Console.WriteLine("Unit test: {0}", unitTests[i].Item1);
                     TestBase unitTest = unitTests[i].Item2(iteration);
+                    unitTest.SetSeed(options.seed);
                     unitTest.Do();
                     iteration = unitTest.iteration;
                 }
