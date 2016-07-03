@@ -671,9 +671,8 @@ namespace TreeLibTest
                 Test("enum-map", new string[] { "avl", "fast" }, new AllocInfo[] {
                     new AllocInfo(1000, 28000, 48000, "TreeLib.AVLTreeMap<T,U>.Node"),
                     new AllocInfo(1, 380, 760, "TreeLib.AVLTreeMap<T,U>.Node []"),
-                    new AllocInfo(1, 72, 144, "TreeLib.Internal.STuple<T> []"),
                     new AllocInfo(1, 48 + a, 72 + A, "TreeLib.AVLTreeMap<T,U>"),
-                    new AllocInfo(1, 44, 72, "TreeLib.AVLTreeMap<T,U>.FastEnumerator"),
+                    new AllocInfo(1, 32, 48, "TreeLib.AVLTreeMap<T,U>.FastEnumeratorThreaded"),
                     new AllocInfo(1, 20, 32, "TreeLib.AVLTreeMap<T,U>.FastEnumerableSurrogate"),
                     new AllocInfo(1, 12, 24, "System.WeakReference<T>"), });
                 Test("enum-map", new string[] { "redblack", "fast" }, new AllocInfo[] {

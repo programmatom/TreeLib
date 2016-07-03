@@ -3183,13 +3183,14 @@ out length))
 
             public IEnumerator<EntryRange2MapLong<ValueType>> GetEnumerator()
             {
-
+                // OR
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 if (startIndexed)
                 {
                     return new FastEnumerator(tree, startStart, /*[Feature(Feature.Range2)]*/side, forward);
                 }
-
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
 
@@ -3410,6 +3411,7 @@ out length))
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
+        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         public class FastEnumerator :
             IEnumerator<EntryRange2MapLong<ValueType>>,
             /*[Payload(Payload.Value)]*/ISetValue<ValueType>

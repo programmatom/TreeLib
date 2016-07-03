@@ -2596,8 +2596,8 @@ out xPosition,
             }
         }
 
-        [Feature(Feature.Rank, Feature.RankMulti)]
-        private bool Find(            KeyType key,            out Node match,            [Widen] out int xPositionMatch,            [Feature(Feature.RankMulti)][Widen] out int xLengthMatch)
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private bool Find(            KeyType key,            out Node match,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xPositionMatch,            [Feature(Feature.RankMulti)][Widen] out int xLengthMatch)
         {
             unchecked
             {
@@ -3344,12 +3344,14 @@ out xPosition,
 
             public IEnumerator<EntryMultiRankList<KeyType>> GetEnumerator()
             {
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                 if (startKeyed)
                 {
                     return new FastEnumerator(tree, startKey, forward);
                 }
-
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
 
@@ -3498,6 +3500,7 @@ out xPosition,
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
+        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         public class FastEnumerator :
             IEnumerator<EntryMultiRankList<KeyType>>        {
             private readonly AVLTreeMultiRankList<KeyType> tree;

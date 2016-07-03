@@ -3668,11 +3668,11 @@ namespace TreeLib
             }
         }
 
-        [Feature(Feature.Rank, Feature.RankMulti)]
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool Find(
             KeyType key,
             out NodeRef match,
-            [Widen] out int xPositionMatch,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xPositionMatch,
             [Feature(Feature.Range2)][Widen] out int yPositionMatch,
             [Feature(Feature.RankMulti)][Widen] out int xLengthMatch,
             [Feature(Feature.Range2)][Widen] out int yLengthMatch)
@@ -3720,6 +3720,10 @@ namespace TreeLib
                             xPositionMatch = xPositionCurrent;
                             yPositionMatch = yPositionCurrent;
                             match = current;
+
+                            // successor not needed for dict mode only
+                            /*[Feature(Feature.Dict)]*/
+                            break;
                         }
 
                         successor = current;
@@ -4579,18 +4583,28 @@ namespace TreeLib
 
             public IEnumerator<AVLTreeEntry<KeyType, ValueType>> GetEnumerator()
             {
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                /*[Feature(Feature.Dict)]*/
+                if (startKeyed)
+                {
+                    return new FastEnumeratorThreaded(tree, startKey, forward);
+                }
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                 if (startKeyed)
                 {
                     return new FastEnumerator(tree, startKey, forward);
                 }
-
+                // OR
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 if (startIndexed)
                 {
                     return new FastEnumerator(tree, startStart, /*[Feature(Feature.Range2)]*/side, forward);
                 }
 
+                /*[Feature(Feature.Dict)]*/
+                return new FastEnumeratorThreaded(tree, forward);
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
 
@@ -4910,6 +4924,7 @@ namespace TreeLib
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
+        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         public class FastEnumerator :
             IEnumerator<AVLTreeEntry<KeyType, ValueType>>,
             /*[Payload(Payload.Value)]*/ISetValue<ValueType>
@@ -5251,6 +5266,172 @@ namespace TreeLib
                             : (tree.nodes[node].right_child ? tree.nodes[node].right : tree.Null);
                     }
                 }
+            }
+
+            [Payload(Payload.Value)]
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
+            {
+                if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
+                {
+                    throw new InvalidOperationException();
+                }
+
+                tree.nodes[currentNode].value = value;
+            }
+        }
+
+        /// <summary>
+        /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
+        /// However, any Add or Remove to the tree invalidates it.
+        /// </summary>
+        [Feature(Feature.Dict)]
+        public class FastEnumeratorThreaded :
+            IEnumerator<AVLTreeEntry<KeyType, ValueType>>,
+            /*[Payload(Payload.Value)]*/ISetValue<ValueType>
+        {
+            private readonly AVLTree<KeyType, ValueType> tree;
+            private readonly bool forward;
+
+            private readonly bool startKeyed;
+            //
+            private readonly KeyType startKey;
+
+            private uint treeVersion;
+            private uint enumeratorVersion;
+
+            private NodeRef currentNode;
+
+            private bool started;
+
+            public FastEnumeratorThreaded(AVLTree<KeyType, ValueType> tree, bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                Reset();
+            }
+
+            public FastEnumeratorThreaded(AVLTree<KeyType, ValueType> tree, KeyType startKey, bool forward)
+            {
+                this.tree = tree;
+                this.forward = forward;
+
+                this.startKeyed = true;
+                this.startKey = startKey;
+
+                Reset();
+            }
+
+            public AVLTreeEntry<KeyType, ValueType> Current
+            {
+                get
+                {
+                    if (currentNode != tree.Null)
+                    {
+                        return new AVLTreeEntry<KeyType, ValueType>(
+                            /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                            tree.nodes[currentNode].key,
+                            /*[Payload(Payload.Value)]*/tree.nodes[currentNode].value,
+                            /*[Payload(Payload.Value)]*/this,
+                            /*[Payload(Payload.Value)]*/this.enumeratorVersion,
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                            /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                            /*[Feature(Feature.Range2)]*/0,
+                            /*[Feature(Feature.Range2)]*/0);
+                    }
+                    return new AVLTreeEntry<KeyType, ValueType>();
+                }
+            }
+
+            object IEnumerator.Current { get { return this.Current; } }
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext()
+            {
+                if (this.treeVersion != tree.version)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
+
+                if (!started)
+                {
+                    started = true;
+
+                    if (!startKeyed)
+                    {
+                        if (forward)
+                        {
+                            currentNode = tree.g_tree_first_node();
+                        }
+                        else
+                        {
+                            currentNode = tree.g_tree_last_node();
+                        }
+                    }
+                    else
+                    {
+                        if (forward)
+                        {
+                            KeyType nearestKey;
+                            /*[Widen]*/
+                            int nearestStart;
+                            tree.NearestGreater(
+                                out currentNode,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/startKey,
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                                /*[Feature(Feature.Range2)]*/(Side)0,
+                                /*[Feature(Feature.RankMulti)]*/(CompareKeyMode)0,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                                true/*orEqual*/);
+                        }
+                        else
+                        {
+                            KeyType nearestKey;
+                            /*[Widen]*/
+                            int nearestStart;
+                            tree.NearestLess(
+                                out currentNode,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/startKey,
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/0,
+                                /*[Feature(Feature.Range2)]*/(Side)0,
+                                /*[Feature(Feature.RankMulti)]*/(CompareKeyMode)0,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/out nearestStart,
+                                true/*orEqual*/);
+                        }
+                        started = true;
+                    }
+                }
+                else
+                {
+                    if (currentNode != tree.Null)
+                    {
+                        if (forward)
+                        {
+                            currentNode = tree.g_tree_node_next(currentNode);
+                        }
+                        else
+                        {
+                            currentNode = tree.g_tree_node_previous(currentNode);
+                        }
+                    }
+                }
+
+                return currentNode != tree.Null;
+            }
+
+            public void Reset()
+            {
+                this.treeVersion = tree.version;
+
+                this.currentNode = tree.Null;
+                this.started = false;
             }
 
             [Payload(Payload.Value)]

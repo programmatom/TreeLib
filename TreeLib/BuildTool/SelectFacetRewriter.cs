@@ -340,6 +340,15 @@ namespace BuildTool
             return base.VisitBreakStatement(node);
         }
 
+        public override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
+        {
+            if (RemoveTestTriviaAnnotation(node.GetLeadingTrivia()))
+            {
+                return null;
+            }
+            return base.VisitReturnStatement(node);
+        }
+
         public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
         {
             node = (IdentifierNameSyntax)base.VisitIdentifierName(node);

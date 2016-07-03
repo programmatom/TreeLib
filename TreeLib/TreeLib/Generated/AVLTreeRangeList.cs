@@ -2701,13 +2701,14 @@ out length))
 
             public IEnumerator<EntryRangeList> GetEnumerator()
             {
-
+                // OR
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 if (startIndexed)
                 {
                     return new FastEnumerator(tree, startStart, forward);
                 }
-
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
 
@@ -2884,6 +2885,7 @@ out length))
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
+        [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         public class FastEnumerator :
             IEnumerator<EntryRangeList>        {
             private readonly AVLTreeRangeList tree;

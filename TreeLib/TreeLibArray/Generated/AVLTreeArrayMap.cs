@@ -1814,6 +1814,66 @@ uint countNew = checked(this.count + 1);
             }
         }
 
+        [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
+        private bool Find(            KeyType key,            out NodeRef match)
+        {
+            unchecked
+            {
+                match = Null;
+
+                NodeRef successor = Null;
+                NodeRef lastGreaterAncestor = Null;
+                if (root != Null)
+                {
+                    NodeRef current = root;
+                    while (true)
+                    {
+
+                        int order = (match != Null) ? -1 : comparer.Compare(key, nodes[current].key);
+
+                        if (order == 0)
+                        {
+                            match = current;
+
+                            // successor not needed for dict mode only
+                            /*[Feature(Feature.Dict)]*/
+                            break;
+                        }
+
+                        successor = current;
+
+                        if (order < 0)
+                        {
+                            if (match == Null)
+                            {
+                                lastGreaterAncestor = current;
+                            }
+                            if (!nodes[current].left_child)
+                            {
+                                break;
+                            }
+                            current = nodes[current].left;
+                        }
+                        else
+                        {
+                            if (!nodes[current].right_child)
+                            {
+                                break;
+                            }
+                            current = nodes[current].right; // continue the search in right sub tree after we find a match
+                        }
+                    }
+                }
+
+                if (match != Null)
+                {
+                    Debug.Assert(successor != Null);
+                }
+
+                return match != Null;
+            }
+        }
+
         // INonInvasiveTreeInspection
 
         /// <summary>
@@ -2292,13 +2352,14 @@ uint countNew = checked(this.count + 1);
 
             public IEnumerator<EntryMap<KeyType, ValueType>> GetEnumerator()
             {
-                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
+                /*[Feature(Feature.Dict)]*/
                 if (startKeyed)
                 {
-                    return new FastEnumerator(tree, startKey, forward);
+                    return new FastEnumeratorThreaded(tree, startKey, forward);
                 }
 
-                return new FastEnumerator(tree, forward);
+                /*[Feature(Feature.Dict)]*/
+                return new FastEnumeratorThreaded(tree, forward);
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -2457,28 +2518,26 @@ uint countNew = checked(this.count + 1);
         /// This enumerator is fast because it uses an in-order traversal of the tree that has O(1) cost per element.
         /// However, any Add or Remove to the tree invalidates it.
         /// </summary>
-        public class FastEnumerator :
+        [Feature(Feature.Dict)]
+        public class FastEnumeratorThreaded :
             IEnumerator<EntryMap<KeyType, ValueType>>,
             /*[Payload(Payload.Value)]*/ISetValue<ValueType>
         {
             private readonly AVLTreeArrayMap<KeyType, ValueType> tree;
             private readonly bool forward;
 
-            private readonly bool startKeyedOrIndexed;
+            private readonly bool startKeyed;
             //
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private readonly KeyType startKey;
 
             private uint treeVersion;
             private uint enumeratorVersion;
 
             private NodeRef currentNode;
-            private NodeRef leadingNode;
 
-            private STuple<NodeRef>[] stack;
-            private int stackIndex;
+            private bool started;
 
-            public FastEnumerator(AVLTreeArrayMap<KeyType, ValueType> tree,bool forward)
+            public FastEnumeratorThreaded(AVLTreeArrayMap<KeyType, ValueType> tree,bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2486,13 +2545,12 @@ uint countNew = checked(this.count + 1);
                 Reset();
             }
 
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerator(AVLTreeArrayMap<KeyType, ValueType> tree,KeyType startKey,bool forward)
+            public FastEnumeratorThreaded(AVLTreeArrayMap<KeyType, ValueType> tree,KeyType startKey,bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
 
-                this.startKeyedOrIndexed = true;
+                this.startKeyed = true;
                 this.startKey = startKey;
 
                 Reset();
@@ -2504,7 +2562,6 @@ uint countNew = checked(this.count + 1);
                 {
                     if (currentNode != tree.Null)
                     {
-
                         return new EntryMap<KeyType, ValueType>(
                             /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                             tree.nodes[currentNode].key,
@@ -2524,118 +2581,75 @@ uint countNew = checked(this.count + 1);
 
             public bool MoveNext()
             {
-                Advance();
+                if (this.treeVersion != tree.version)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
+
+                if (!started)
+                {
+                    started = true;
+
+                    if (!startKeyed)
+                    {
+                        if (forward)
+                        {
+                            currentNode = tree.g_tree_first_node();
+                        }
+                        else
+                        {
+                            currentNode = tree.g_tree_last_node();
+                        }
+                    }
+                    else
+                    {
+                        if (forward)
+                        {
+                            KeyType nearestKey;
+                            tree.NearestGreater(
+                                out currentNode,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/startKey,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                                true/*orEqual*/);
+                        }
+                        else
+                        {
+                            KeyType nearestKey;
+                            tree.NearestLess(
+                                out currentNode,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/startKey,
+                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/out nearestKey,
+                                true/*orEqual*/);
+                        }
+                        started = true;
+                    }
+                }
+                else
+                {
+                    if (currentNode != tree.Null)
+                    {
+                        if (forward)
+                        {
+                            currentNode = tree.g_tree_node_next(currentNode);
+                        }
+                        else
+                        {
+                            currentNode = tree.g_tree_node_previous(currentNode);
+                        }
+                    }
+                }
+
                 return currentNode != tree.Null;
             }
 
             public void Reset()
             {
-                unchecked
-                {
-                    int stackSize = EstimateMaxDepth(tree.count);
-                    if ((stack == null) || (stackSize > stack.Length))
-                    {
-                        stack = new STuple<NodeRef>[
-                            stackSize];
-                    }
-                    stackIndex = 0;
+                this.treeVersion = tree.version;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
-
-                    this.treeVersion = tree.version;
-
-                    // push search path to starting item
-
-                    NodeRef node = tree.root;
-                    while (node != tree.Null)
-                    {
-
-                        int c;
-                        {
-                            if (!startKeyedOrIndexed)
-                            {
-                                c = forward ? -1 : 1;
-                            }
-                            else
-                            {
-                                /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
-                                c = tree.comparer.Compare(startKey, tree.nodes[node].key);
-                            }
-                        }
-
-                        if ((forward && (c <= 0)) || (!forward && (c >= 0)))
-                        {
-                            stack[stackIndex++] = new STuple<NodeRef>(
-                                node);
-                        }
-
-                        if (c == 0)
-                        {
-
-                            // successor not needed for forward traversal
-                            if (forward)
-                            {
-                                break;
-                            }
-                            // successor not needed for case where xLength always == 1
-                            /*[Feature(Feature.Dict, Feature.Rank)]*/
-                            break;
-                        }
-
-                        if (c < 0)
-                        {
-
-                            node = tree.nodes[node].left_child ? tree.nodes[node].left : tree.Null;
-                        }
-                        else
-                        {
-                            Debug.Assert(c >= 0);
-                            node = tree.nodes[node].right_child ? tree.nodes[node].right : tree.Null;
-                        }
-                    }
-
-                    Advance();
-                }
-            }
-
-            private void Advance()
-            {
-                unchecked
-                {
-                    if (this.treeVersion != tree.version)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
-                    currentNode = leadingNode;
-
-                    leadingNode = tree.Null;
-
-                    if (stackIndex == 0)
-                    {
-                        return;
-                    }
-
-                    STuple<NodeRef> cursor
-                        = stack[--stackIndex];
-
-                    leadingNode = cursor.Item1;
-
-                    NodeRef node = forward
-                        ? (tree.nodes[leadingNode].right_child ? tree.nodes[leadingNode].right : tree.Null)
-                        : (tree.nodes[leadingNode].left_child ? tree.nodes[leadingNode].left : tree.Null);
-                    while (node != tree.Null)
-                    {
-
-                        stack[stackIndex++] = new STuple<NodeRef>(
-                            node);
-                        node = forward
-                            ? (tree.nodes[node].left_child ? tree.nodes[node].left : tree.Null)
-                            : (tree.nodes[node].right_child ? tree.nodes[node].right : tree.Null);
-                    }
-                }
+                this.currentNode = tree.Null;
+                this.started = false;
             }
 
             [Payload(Payload.Value)]
