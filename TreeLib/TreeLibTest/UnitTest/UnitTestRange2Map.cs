@@ -153,6 +153,8 @@ namespace TreeLibTest
             IRange2Map<ValueType> tree,
             IEnumerable<Op<ValueType>> sequence) where ValueType : IComparable<ValueType>
         {
+            long lastIter = IncrementIteration(true/*setLast*/);
+
             ValidateTree(tree);
             foreach (Op<ValueType> op in sequence)
             {
@@ -221,16 +223,16 @@ namespace TreeLibTest
 
 
             RangeTreeBasicCoverageSpecific(
-                "SplayTreeRange2Map<string>",
-                delegate () { return new SplayTreeRange2Map<string>(); });
+                "AVLTreeRange2Map<string>",
+                delegate () { return new AVLTreeRange2Map<string>(); });
 
             RangeTreeBasicCoverageSpecific(
-                "SplayTreeArrayRange2Map<string>",
-                delegate () { return new SplayTreeArrayRange2Map<string>(); });
+                "AVLTreeArrayRange2Map<string>",
+                delegate () { return new AVLTreeArrayRange2Map<string>(); });
 
             RangeTreeBasicCoverageSpecific(
-                "SplayTreeRange2MapLong<string>",
-                delegate () { return new AdaptRange2MapToRange2MapLong<string>(new SplayTreeRange2MapLong<string>()); });
+                "AVLTreeRange2MapLong<string>",
+                delegate () { return new AdaptRange2MapToRange2MapLong<string>(new AVLTreeRange2MapLong<string>()); });
 
 
 
@@ -249,16 +251,16 @@ namespace TreeLibTest
 
 
             RangeTreeBasicCoverageSpecific(
-                "AVLTreeRange2Map<string>",
-                delegate () { return new AVLTreeRange2Map<string>(); });
+                "SplayTreeRange2Map<string>",
+                delegate () { return new SplayTreeRange2Map<string>(); });
 
             RangeTreeBasicCoverageSpecific(
-                "AVLTreeArrayRange2Map<string>",
-                delegate () { return new AVLTreeArrayRange2Map<string>(); });
+                "SplayTreeArrayRange2Map<string>",
+                delegate () { return new SplayTreeArrayRange2Map<string>(); });
 
             RangeTreeBasicCoverageSpecific(
-                "AVLTreeRange2MapLong<string>",
-                delegate () { return new AdaptRange2MapToRange2MapLong<string>(new AVLTreeRange2MapLong<string>()); });
+                "SplayTreeRange2MapLong<string>",
+                delegate () { return new AdaptRange2MapToRange2MapLong<string>(new SplayTreeRange2MapLong<string>()); });
         }
 
         private void RangeTreeBasicCoverageSpecific(

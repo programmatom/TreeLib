@@ -100,6 +100,8 @@ namespace TreeLibTest
             IOrderedMap<KeyType, ValueType> tree,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
         {
+            long lastIter = IncrementIteration(true/*setLast*/);
+
             ValidateTree(tree);
             foreach (Op<KeyType, ValueType> op in sequence)
             {
@@ -115,6 +117,8 @@ namespace TreeLibTest
             List<KeyValuePair<KeyType, ValueType>> treeAnalog,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
         {
+            long lastIter = IncrementIteration(true/*setLast*/);
+
             foreach (Op<KeyType, ValueType> op in sequence)
             {
                 IncrementIteration();

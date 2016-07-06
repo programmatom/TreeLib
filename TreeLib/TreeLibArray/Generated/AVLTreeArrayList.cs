@@ -38,6 +38,7 @@ using TreeLib.Internal;
 //
 // This implementation is adapted from Glib's AVL tree: https://github.com/GNOME/glib/blob/master/glib/gtree.c
 // which is attributed to Maurizio Monge.
+// NOTE: this (and the original) is a threaded implementation
 //
 // An overview of AVL trees can be found here: https://en.wikipedia.org/wiki/AVL_tree
 //
@@ -79,7 +80,14 @@ namespace TreeLib
             public NodeRef left, right;
 
             // tree is threaded: left_child/right_child indicate "non-null", if false, left/right point to predecessor/successor
+            [Feature(Feature.Dict)]
             public bool left_child, right_child;
+
+            [Feature(Feature.Dict)]
+            public NodeRef leftOrNull { get { return left_child ? left : Null; } }
+            [Feature(Feature.Dict)]
+            public NodeRef rightOrNull { get { return right_child ? right : Null; } }
+
             public sbyte balance;
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
@@ -88,7 +96,7 @@ namespace TreeLib
         }
 
         [Storage(Storage.Array)]
-        private readonly static NodeRef _Null = new NodeRef(unchecked((uint)-1));
+        private static NodeRef Null { get { return new NodeRef(unchecked((uint)-1)); } }
 
         [Storage(Storage.Array)]
         [StructLayout(LayoutKind.Auto)] // defaults to LayoutKind.Sequential; use .Auto to allow framework to pack key & value optimally
@@ -136,8 +144,6 @@ namespace TreeLib
         //
         // State for both array & object form
         //
-
-        private NodeRef Null { get { return AVLTreeArrayList<KeyType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private NodeRef root;
         [Count]
@@ -295,18 +301,21 @@ namespace TreeLib
             // no need to do any work for DynamicDiscard mode
             if (allocationMode != AllocationMode.DynamicDiscard)
             {
-                // use threaded feature to traverse in O(1) per node with no stack
-
-                NodeRef node = g_tree_first_node();
-
-                while (node != Null)
+                /*[Feature(Feature.Dict)]*/
                 {
-                    NodeRef next = g_tree_node_next(node);
+                    // use threaded feature to traverse in O(1) per node with no stack
 
-                    this.count = unchecked(this.count - 1);
-                    g_node_free(node);
+                    NodeRef node = g_tree_first_node();
 
-                    node = next;
+                    while (node != Null)
+                    {
+                        NodeRef next = g_tree_node_next(node);
+
+                        this.count = unchecked(this.count - 1);
+                        g_node_free(node);
+
+                        node = next;
+                    }
                 }
 
                 Debug.Assert(this.count == 0);
@@ -672,8 +681,10 @@ namespace TreeLib
 
             nodes[node].key = key;
             nodes[node].left = Null;
+            /*[Feature(Feature.Dict)]*/
             nodes[node].left_child = false;
             nodes[node].right = Null;
+            /*[Feature(Feature.Dict)]*/
             nodes[node].right_child = false;
             nodes[node].balance = 0;
 
@@ -877,6 +888,7 @@ namespace TreeLib
             }
         }
 
+        [Feature(Feature.Dict)]
         private NodeRef g_tree_node_previous(NodeRef node)
         {
             NodeRef tmp = nodes[node].left;
@@ -892,6 +904,7 @@ namespace TreeLib
             return tmp;
         }
 
+        [Feature(Feature.Dict)]
         private NodeRef g_tree_node_next(NodeRef node)
         {
             NodeRef tmp = nodes[node].right;
@@ -1122,9 +1135,12 @@ uint countNew = checked(this.count + 1);
 
                     NodeRef child = g_tree_node_new(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key);
 
-                    nodes[child].left = nodes[node].left;
-                    nodes[child].right = node;
+                    /*[Feature(Feature.Dict)]*/
+                    nodes[child].left = nodes[node].left; // back thread
+                    /*[Feature(Feature.Dict)]*/
+                    nodes[child].right = node; // forward thread
                     nodes[node].left = child;
+                    /*[Feature(Feature.Dict)]*/
                     nodes[node].left_child = true;
                     nodes[node].balance--;
                     this.count = countNew;
@@ -1150,9 +1166,12 @@ uint countNew = checked(this.count + 1);
 
                     NodeRef child = g_tree_node_new(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key);
 
-                    nodes[child].right = nodes[node].right;
-                    nodes[child].left = node;
+                    /*[Feature(Feature.Dict)]*/
+                    nodes[child].right = nodes[node].right; // forward thread
+                    /*[Feature(Feature.Dict)]*/
+                    nodes[child].left = node; // back thread
                     nodes[node].right = child;
+                    /*[Feature(Feature.Dict)]*/
                     nodes[node].right_child = true;
                     nodes[node].balance++;
                     this.count = countNew;
@@ -1297,14 +1316,18 @@ uint countNew = checked(this.count + 1);
                         }
                         else if (left_node)
                         {
+                            /*[Feature(Feature.Dict)]*/
                             nodes[parent].left_child = false;
-                            nodes[parent].left = nodes[node].left;
+                            /*[Feature(Feature.Dict)]*/
+                            nodes[parent].left = nodes[node].left; // back thread
                             nodes[parent].balance++;
                         }
                         else
                         {
+                            /*[Feature(Feature.Dict)]*/
                             nodes[parent].right_child = false;
-                            nodes[parent].right = nodes[node].right;
+                            /*[Feature(Feature.Dict)]*/
+                            nodes[parent].right = nodes[node].right; // forward thread
                             nodes[parent].balance--;
                         }
                     }
@@ -1313,7 +1336,9 @@ uint countNew = checked(this.count + 1);
 
                         /*[Feature(Feature.Dict)]*/
                         successor = g_tree_node_next(node);
-                        nodes[successor].left = nodes[node].left;
+
+                        /*[Feature(Feature.Dict)]*/
+                        nodes[successor].left = nodes[node].left; // back thread
 
                         NodeRef rightChild = nodes[node].right;
                         if (parent == Null)
@@ -1336,11 +1361,11 @@ uint countNew = checked(this.count + 1);
                 {
                     if (!nodes[node].right_child)
                     {
-                        NodeRef predecessor;
-
                         /*[Feature(Feature.Dict)]*/
-                        predecessor = g_tree_node_previous(node);
-                        nodes[predecessor].right = nodes[node].right;
+                        {
+                            NodeRef predecessor = g_tree_node_previous(node);
+                            nodes[predecessor].right = nodes[node].right; // forward thread
+                        }
 
                         NodeRef leftChild = nodes[node].left;
                         if (parent == Null)
@@ -1365,8 +1390,8 @@ uint countNew = checked(this.count + 1);
                         NodeRef successorParent = node;
                         int old_idx = ++idx;
 
-                        /* path[idx] == parent */
-                        /* find the immediately next node (and its parent) */
+                        // path[idx] == parent
+                        // find the immediately next node (and its parent)
                         while (nodes[successor].left_child)
                         {
                             path[++idx] = successorParent = successor;
@@ -1387,10 +1412,12 @@ uint countNew = checked(this.count + 1);
                             }
                             else
                             {
-                                nodes[successorParent].left_child = false;
+                                /*[Feature(Feature.Dict)]*/
+                                nodes[successorParent].left_child = false; // 'left' remains as back thread
                             }
                             nodes[successorParent].balance++;
 
+                            /*[Feature(Feature.Dict)]*/
                             nodes[successor].right_child = true;
                             nodes[successor].right = nodes[node].right;
                         }
@@ -1400,14 +1427,18 @@ uint countNew = checked(this.count + 1);
                         }
 
                         // set the predecessor's successor link to point to the right place
-                        while (nodes[predecessor].right_child)
+                        /*[Feature(Feature.Dict)]*/
                         {
-                            predecessor = nodes[predecessor].right;
+                            while (nodes[predecessor].right_child)
+                            {
+                                predecessor = nodes[predecessor].right;
+                            }
+                            nodes[predecessor].right = successor;
                         }
-                        nodes[predecessor].right = successor;
 
                         /* prepare 'successor' to replace 'node' */
                         NodeRef leftChild = nodes[node].left;
+                        /*[Feature(Feature.Dict)]*/
                         nodes[successor].left_child = true;
                         nodes[successor].left = leftChild;
                         nodes[successor].balance = nodes[node].balance;
@@ -1545,7 +1576,9 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
+                    /*[Feature(Feature.Dict)]*/
                     nodes[node].right_child = false;
+                    /*[Feature(Feature.Dict)]*/
                     nodes[right].left_child = true;
                 }
                 nodes[right].left = node;
@@ -1595,7 +1628,9 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
+                    /*[Feature(Feature.Dict)]*/
                     nodes[node].left_child = false;
+                    /*[Feature(Feature.Dict)]*/
                     nodes[left].right_child = true;
                 }
                 nodes[left].right = node;
@@ -1633,7 +1668,7 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private NodeRef g_tree_find_node(KeyType key)
+        private NodeRef g_tree_find_node(KeyType key) // TODO: consolidate with Find()
         {
             NodeRef node = root;
             if (node == Null)
@@ -1847,9 +1882,13 @@ uint countNew = checked(this.count + 1);
 
         private int ActualDepth(NodeRef node)
         {
-            int ld = nodes[node].left_child ? ActualDepth(nodes[node].left) : 0;
-            int rd = nodes[node].right_child ? ActualDepth(nodes[node].right) : 0;
-            return 1 + Math.Max(ld, rd);
+            if (node != Null)
+            {
+                int ld = ActualDepth(nodes[node].leftOrNull);
+                int rd = ActualDepth(nodes[node].rightOrNull);
+                return 1 + Math.Max(ld, rd);
+            }
+            return 0;
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -1875,32 +1914,27 @@ uint countNew = checked(this.count + 1);
         {
             if (node != Null)
             {
+                /*[Feature(Feature.Dict)]*/
                 if (nodes[node].left_child)
                 {
                     NodeRef tmp = g_tree_node_previous(node);
                     Check.Assert(nodes[tmp].right == node, "predecessor invariant");
                 }
-
+                /*[Feature(Feature.Dict)]*/
                 if (nodes[node].right_child)
                 {
                     NodeRef tmp = g_tree_node_next(node);
                     Check.Assert(nodes[tmp].left == node, "successor invariant");
                 }
 
-                int left_height = g_tree_node_height(nodes[node].left_child ? nodes[node].left : Null);
-                int right_height = g_tree_node_height(nodes[node].right_child ? nodes[node].right : Null);
+                int left_height = g_tree_node_height(nodes[node].leftOrNull);
+                int right_height = g_tree_node_height(nodes[node].rightOrNull);
 
                 int balance = right_height - left_height;
                 Check.Assert(balance == nodes[node].balance, "balance invariant");
 
-                if (nodes[node].left_child)
-                {
-                    g_tree_node_check(nodes[node].left);
-                }
-                if (nodes[node].right_child)
-                {
-                    g_tree_node_check(nodes[node].right);
-                }
+                g_tree_node_check(nodes[node].leftOrNull);
+                g_tree_node_check(nodes[node].rightOrNull);
             }
         }
 
@@ -2386,7 +2420,7 @@ uint countNew = checked(this.count + 1);
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
                         return new EntryList<KeyType>(
                             /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
@@ -2451,7 +2485,7 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
                         if (forward)
                         {
@@ -2464,14 +2498,14 @@ uint countNew = checked(this.count + 1);
                     }
                 }
 
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
             {
                 this.treeVersion = tree.version;
 
-                this.currentNode = tree.Null;
+                this.currentNode = Null;
                 this.started = false;
             }
         }

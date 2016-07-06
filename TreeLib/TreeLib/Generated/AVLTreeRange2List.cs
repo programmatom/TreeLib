@@ -38,6 +38,7 @@ using TreeLib.Internal;
 //
 // This implementation is adapted from Glib's AVL tree: https://github.com/GNOME/glib/blob/master/glib/gtree.c
 // which is attributed to Maurizio Monge.
+// NOTE: this (and the original) is a threaded implementation
 //
 // An overview of AVL trees can be found here: https://en.wikipedia.org/wiki/AVL_tree
 //
@@ -81,9 +82,17 @@ namespace TreeLib
         private sealed class Node
         {
             public Node left, right;
+            // non-threaded for augmented versions
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+            public bool left_child { get { return left != Null; } }
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+            public bool right_child { get { return right != Null; } }
+            // OR
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+            public Node leftOrNull { get { return left; } }
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
+            public Node rightOrNull { get { return right; } }
 
-            // tree is threaded: left_child/right_child indicate "non-null", if false, left/right point to predecessor/successor
-            public bool left_child, right_child;
             public sbyte balance;
 
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -95,13 +104,11 @@ namespace TreeLib
         }
 
         [Storage(Storage.Object)]
-        private readonly static Node _Null = null;
+        private static Node Null { get { return null; } }
 
         //
         // State for both array & object form
         //
-
-        private Node Null { get { return AVLTreeRange2List._Null; } } // allow tree.Null or this.Null in all cases
 
         private Node root;
         [Count]
@@ -185,10 +192,10 @@ namespace TreeLib
             this.yExtent = original.yExtent;
 
             this.allocationMode = original.allocationMode;
-            this.freelist = this.Null;
+            this.freelist = Null;
             {
                 Node nodeOriginal = original.freelist;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     nodeOriginal = nodeOriginal.left;
                     Node nodeCopy = new Node();
@@ -200,13 +207,16 @@ namespace TreeLib
             this.allocateCount = original.allocateCount;
 #endif
 
-            this.root = this.Null;
-            if (original.root != original.Null)
-            {
+            this.root = Null;
+            if (original.root != Null)
 #if VALIDATE_CLONE_THREADING
+                /*[Feature(Feature.Dict)]*/
                 int originalNumber = 0;
+                /*[Feature(Feature.Dict)]*/
                 Dictionary<NodeRef, int> originalSequence = new Dictionary<NodeRef, int>();
+                /*[Feature(Feature.Dict)]*/
                 int thisNumber = 0;
+                /*[Feature(Feature.Dict)]*/
                 Dictionary<NodeRef, int> thisSequence = new Dictionary<NodeRef, int>();
 #endif
                 {
@@ -214,41 +224,30 @@ namespace TreeLib
 
                     Node nodeOriginal = original.root;
                     Node nodeThis = this.root;
-                    while (nodeOriginal != original.Null)
+                    while (nodeOriginal != Null)
                     {
                         Node nodeChild = new Node();
-                        nodeChild.left_child = false;
-                        nodeChild.left = this.Null; // never a predecessor on the initial left chain
-                        nodeChild.right_child = false;
-                        nodeChild.right = nodeThis;
 
-                        if (this.root == this.Null)
+                        if (this.root == Null)
                         {
                             this.root = nodeChild;
                         }
                         else
                         {
-                            nodeThis.left_child = true;
                             nodeThis.left = nodeChild;
                         }
 
-                        Node nodeControllingSuccessor = nodeThis;
+                        Node nodeControllingSuccessor = Null;
                         nodeThis = nodeChild;
                         stack.Push(new STuple<Node, Node, Node>(nodeThis, nodeOriginal, nodeControllingSuccessor));
-                        nodeOriginal = nodeOriginal.left_child ? nodeOriginal.left : original.Null;
+                        nodeOriginal = nodeOriginal.leftOrNull;
                     }
                     while (stack.Count != 0)
                     {
                         STuple<Node, Node, Node> t = stack.Pop();
                         nodeThis = t.Item1;
                         nodeOriginal = t.Item2;
-                        Node nodeControllingSuccessorThis = t.Item3;
-                        {
-#if VALIDATE_CLONE_THREADING
-                            originalSequence.Add(nodeOriginal, ++originalNumber);
-                            thisSequence.Add(nodeThis, ++thisNumber);
-#endif
-                        } // stops Roslyn from removing leading trivia containing #endif in cases where the next line is removed
+                        Node nodeControllingSuccessorThis = Null;
                         nodeThis.xOffset = nodeOriginal.xOffset;
                         nodeThis.yOffset = nodeOriginal.yOffset;
                         nodeThis.balance = nodeOriginal.balance;
@@ -256,93 +255,26 @@ namespace TreeLib
                         if (nodeOriginal.right_child)
                         {
                             Node nodeChild = new Node();
-                            nodeChild.left_child = false;
-                            nodeChild.left = nodeThis;
-                            nodeChild.right_child = false;
-                            nodeChild.right = nodeControllingSuccessorThis;
-
-                            nodeThis.right_child = true;
                             nodeThis.right = nodeChild;
-
-                            Node nodeControllingPredecessor = nodeThis;
 
                             nodeOriginal = nodeOriginal.right;
                             nodeThis = nodeChild;
                             stack.Push(new STuple<Node, Node, Node>(nodeThis, nodeOriginal, nodeControllingSuccessorThis));
 
-                            nodeOriginal = nodeOriginal.left_child ? nodeOriginal.left : original.Null;
-                            while (nodeOriginal != original.Null)
+                            nodeOriginal = nodeOriginal.leftOrNull;
+                            while (nodeOriginal != Null)
                             {
                                 nodeChild = new Node();
-                                nodeChild.left_child = false;
-                                nodeChild.left = nodeControllingPredecessor;
-                                nodeChild.right_child = false;
-                                nodeChild.right = nodeThis;
-
-                                nodeThis.left_child = true;
                                 nodeThis.left = nodeChild;
 
-                                Node nodeControllingSuccessor = nodeThis;
+                                Node nodeControllingSuccessor = Null;
                                 nodeThis = nodeChild;
                                 stack.Push(new STuple<Node, Node, Node>(nodeThis, nodeOriginal, nodeControllingSuccessor));
-                                nodeOriginal = nodeOriginal.left_child ? nodeOriginal.left : original.Null;
+                                nodeOriginal = nodeOriginal.leftOrNull;
                             }
                         }
                     }
                 }
-                {
-#if VALIDATE_CLONE_THREADING
-                    Debug.Assert((ulong)thisSequence.Count == original.count);
-                    Debug.Assert((ulong)originalSequence.Count == original.count);
-                    Queue<STuple<NodeRef, NodeRef>> worklist = new Queue<STuple<NodeRef, NodeRef>>();
-                    worklist.Enqueue(new STuple<NodeRef, NodeRef>(this.root, original.root));
-                    while (worklist.Count != 0)
-                    {
-                        STuple<NodeRef, NodeRef> item = worklist.Dequeue();
-
-                        NodeRef nodeThis = item.Item1;
-                        NodeRef nodeOriginal = item.Item2;
-
-                        int sequenceThis = thisSequence[nodeThis];
-                        int sequenceOriginal = originalSequence[nodeOriginal];
-                        Debug.Assert(sequenceThis == sequenceOriginal);
-
-                        Debug.Assert(original.nodes[nodeOriginal].left_child == this.nodes[nodeThis].left_child);
-                        Debug.Assert(original.nodes[nodeOriginal].right_child == this.nodes[nodeThis].right_child);
-
-                        if (!original.nodes[nodeOriginal].left_child)
-                        {
-                            Debug.Assert((original.nodes[nodeOriginal].left == null) == (this.nodes[nodeThis].left == null));
-                            if (original.nodes[nodeOriginal].left != null)
-                            {
-                                int sequenceLeftThis = thisSequence[this.nodes[nodeThis].left];
-                                int sequenceLeftOriginal = originalSequence[original.nodes[nodeOriginal].left];
-                                Debug.Assert(sequenceLeftThis == sequenceLeftOriginal);
-                            }
-                        }
-                        if (!original.nodes[nodeOriginal].right_child)
-                        {
-                            Debug.Assert((original.nodes[nodeOriginal].right == null) == (this.nodes[nodeThis].right == null));
-                            if (original.nodes[nodeOriginal].right != null)
-                            {
-                                int sequenceRightThis = thisSequence[this.nodes[nodeThis].right];
-                                int sequenceRightOriginal = originalSequence[original.nodes[nodeOriginal].right];
-                                Debug.Assert(sequenceRightThis == sequenceRightOriginal);
-                            }
-                        }
-
-                        if (original.nodes[nodeOriginal].left_child)
-                        {
-                            worklist.Enqueue(new STuple<NodeRef, NodeRef>(this.nodes[nodeThis].left, original.nodes[nodeOriginal].left));
-                        }
-                        if (original.nodes[nodeOriginal].right_child)
-                        {
-                            worklist.Enqueue(new STuple<NodeRef, NodeRef>(this.nodes[nodeThis].right, original.nodes[nodeOriginal].right));
-                        }
-                    }
-#endif
-                }
-            }
         }
 
 
@@ -372,18 +304,35 @@ namespace TreeLib
             // no need to do any work for DynamicDiscard mode
             if (allocationMode != AllocationMode.DynamicDiscard)
             {
-                // use threaded feature to traverse in O(1) per node with no stack
-
-                Node node = g_tree_first_node();
-
-                while (node != Null)
+                // OR
+                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 {
-                    Node next = g_tree_node_next(node);
+                    // non-recusrive depth-first traversal (in-order, but doesn't matter here)
 
-                    this.count = unchecked(this.count - 1);
-                    g_node_free(node);
+                    Stack<Node> stack = new Stack<Node>();
 
-                    node = next;
+                    Node node = root;
+                    while (node != Null)
+                    {
+                        stack.Push(node);
+                        node = node.leftOrNull;
+                    }
+                    while (stack.Count != 0)
+                    {
+                        node = stack.Pop();
+
+                        Node dead = node;
+
+                        node = node.rightOrNull;
+                        while (node != Null)
+                        {
+                            stack.Push(node);
+                            node = node.leftOrNull;
+                        }
+
+                        this.count = unchecked(this.count - 1);
+                        g_node_free(dead);
+                    }
                 }
 
                 Debug.Assert(this.count == 0);
@@ -1191,9 +1140,7 @@ out length))
 #endif
             }
             node.left = Null;
-            node.left_child = false;
             node.right = Null;
-            node.right_child = false;
             node.balance = 0;
             node.xOffset = 0;
             node.yOffset = 0;
@@ -1209,9 +1156,7 @@ out length))
             Debug.Assert(allocateCount == this.count);
 
             node.left = Null;
-            node.left_child = true;
             node.right = Null;
-            node.right_child = true;
             node.balance = SByte.MinValue;
             node.xOffset = Int32.MinValue;
             node.yOffset = Int32.MinValue;
@@ -1394,36 +1339,6 @@ out length))
             }
         }
 
-        private Node g_tree_node_previous(Node node)
-        {
-            Node tmp = node.left;
-
-            if (node.left_child)
-            {
-                while (tmp.right_child)
-                {
-                    tmp = tmp.right;
-                }
-            }
-
-            return tmp;
-        }
-
-        private Node g_tree_node_next(Node node)
-        {
-            Node tmp = node.right;
-
-            if (node.right_child)
-            {
-                while (tmp.left_child)
-                {
-                    tmp = tmp.left;
-                }
-            }
-
-            return tmp;
-        }
-
         private Node[] RetrievePathWorkspace()
         {
             Node[] path;
@@ -1580,11 +1495,7 @@ out length))
                     Node child = g_tree_node_new();
 
                     ShiftRightOfPath(xPositionNode, /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
-
-                    child.left = node.left;
-                    child.right = node;
                     node.left = child;
-                    node.left_child = true;
                     node.balance--;
 
                     child.xOffset = -xLength;
@@ -1634,11 +1545,7 @@ out length))
                     Node child = g_tree_node_new();
 
                     ShiftRightOfPath(xPositionNode + 1, /*[Feature(Feature.Range2)]*/Side.X, xLength, /*[Feature(Feature.Range2)]*/yLength);
-
-                    child.right = node.right;
-                    child.left = node;
                     node.right = child;
-                    node.right_child = true;
                     node.balance++;
 
                     child.xOffset = xLengthNode;
@@ -1803,7 +1710,6 @@ out length))
                             successor = lastGreaterAncestor;
                             xPositionSuccessor = xPositionLastGreaterAncestor;
                             yPositionSuccessor = yPositionLastGreaterAncestor;
-                            Debug.Assert(successor == g_tree_node_next(node));
                         }
 
                         if (parent == Null)
@@ -1812,14 +1718,16 @@ out length))
                         }
                         else if (left_node)
                         {
-                            parent.left_child = false;
-                            parent.left = node.left;
+                            // OR
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                            parent.left = Null;
                             parent.balance++;
                         }
                         else
                         {
-                            parent.right_child = false;
-                            parent.right = node.right;
+                            // OR
+                            /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                            parent.right = Null;
                             parent.balance--;
                         }
                     }
@@ -1841,15 +1749,7 @@ out length))
                                 xPositionSuccessor += successor.xOffset;
                                 yPositionSuccessor += successor.yOffset;
                             }
-                            Debug.Assert(successor == g_tree_node_next(node));
                         }
-
-                        if (node.left_child)
-                        {
-                            node.left.xOffset += xPositionNode - xPositionSuccessor;
-                            node.left.yOffset += yPositionNode - yPositionSuccessor;
-                        }
-                        successor.left = node.left;
 
                         Node rightChild = node.right;
                         rightChild.xOffset += node.xOffset;
@@ -1874,43 +1774,13 @@ out length))
                 {
                     if (!node.right_child)
                     {
-                        Node predecessor;
-                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                        /*[Widen]*/
-                        int xPositionPredecessor = xPositionNode;
-                        /*[Feature(Feature.Range2)]*/
-                        /*[Widen]*/
-                        int yPositionPredecessor = yPositionNode;
-                        // OR
-                        /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
-                        {
-                            predecessor = node;
-                            xPositionPredecessor += predecessor.xOffset;
-                            yPositionPredecessor += predecessor.yOffset;
-                            while (predecessor.left_child)
-                            {
-                                predecessor = predecessor.left;
-                                xPositionPredecessor += predecessor.xOffset;
-                                yPositionPredecessor += predecessor.yOffset;
-                            }
-                            Debug.Assert(predecessor == g_tree_node_previous(node));
-                        }
 
-                        // and successor
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         {
                             successor = lastGreaterAncestor;
                             xPositionSuccessor = xPositionLastGreaterAncestor;
                             yPositionSuccessor = yPositionLastGreaterAncestor;
-                            Debug.Assert(successor == g_tree_node_next(node));
                         }
-
-                        if (node.right_child)
-                        {
-                            node.right.xOffset += xPositionNode - xPositionPredecessor;
-                            node.right.yOffset += yPositionNode - yPositionPredecessor;
-                        }
-                        predecessor.right = node.right;
 
                         Node leftChild = node.left;
                         leftChild.xOffset += node.xOffset;
@@ -1932,15 +1802,14 @@ out length))
                     }
                     else // node has a both children (pant, pant!)
                     {
-                        Node predecessor = node.left;
                         successor = node.right;
                         Node successorParent = node;
                         int old_idx = ++idx;
                         xPositionSuccessor = xPositionNode + successor.xOffset;
                         yPositionSuccessor = yPositionNode + successor.yOffset;
 
-                        /* path[idx] == parent */
-                        /* find the immediately next node (and its parent) */
+                        // path[idx] == parent
+                        // find the immediately next node (and its parent)
                         while (successor.left_child)
                         {
                             path[++idx] = successorParent = successor;
@@ -1967,11 +1836,11 @@ out length))
                             }
                             else
                             {
-                                successorParent.left_child = false;
+                                // OR
+                                /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                                successorParent.left = Null;
                             }
                             successorParent.balance++;
-
-                            successor.right_child = true;
                             successor.right = node.right;
 
                             node.right.xOffset += xPositionNode - xPositionSuccessor;
@@ -1982,16 +1851,8 @@ out length))
                             node.balance--;
                         }
 
-                        // set the predecessor's successor link to point to the right place
-                        while (predecessor.right_child)
-                        {
-                            predecessor = predecessor.right;
-                        }
-                        predecessor.right = successor;
-
                         /* prepare 'successor' to replace 'node' */
                         Node leftChild = node.left;
-                        successor.left_child = true;
                         successor.left = leftChild;
                         successor.balance = node.balance;
                         leftChild.xOffset += xPositionNode - xPositionSuccessor;
@@ -2230,8 +2091,9 @@ out length))
                 }
                 else
                 {
-                    node.right_child = false;
-                    right.left_child = true;
+                    // OR
+                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    node.right = Null;
                 }
                 right.left = node;
 
@@ -2295,8 +2157,9 @@ out length))
                 }
                 else
                 {
-                    node.left_child = false;
-                    left.right_child = true;
+                    // OR
+                    /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
+                    node.left = Null;
                 }
                 left.right = node;
 
@@ -2434,7 +2297,7 @@ out length))
                     offset += side == Side.X ? node.xOffset : node.yOffset;
                     stack.Push(new STuple<Node, /*[Widen]*/int, /*[Widen]*/int, /*[Widen]*/int>(node, offset, leftEdge, rightEdge));
                     rightEdge = offset;
-                    node = node.left_child ? node.left : Null;
+                    node = node.leftOrNull;
                 }
                 while (stack.Count != 0)
                 {
@@ -2447,13 +2310,13 @@ out length))
                     Check.Assert((offset >= leftEdge) && (offset < rightEdge), "range containment invariant");
 
                     leftEdge = offset + 1;
-                    node = node.right_child ? node.right : Null;
+                    node = node.rightOrNull;
                     while (node != Null)
                     {
                         offset += side == Side.X ? node.xOffset : node.yOffset;
                         stack.Push(new STuple<Node, /*[Widen]*/int, /*[Widen]*/int, /*[Widen]*/int>(node, offset, leftEdge, rightEdge));
                         rightEdge = offset;
-                        node = node.left_child ? node.left : Null;
+                        node = node.leftOrNull;
                     }
                 }
             }
@@ -2575,9 +2438,13 @@ out length))
 
         private int ActualDepth(Node node)
         {
-            int ld = node.left_child ? ActualDepth(node.left) : 0;
-            int rd = node.right_child ? ActualDepth(node.right) : 0;
-            return 1 + Math.Max(ld, rd);
+            if (node != Null)
+            {
+                int ld = ActualDepth(node.leftOrNull);
+                int rd = ActualDepth(node.rightOrNull);
+                return 1 + Math.Max(ld, rd);
+            }
+            return 0;
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2603,32 +2470,15 @@ out length))
         {
             if (node != Null)
             {
-                if (node.left_child)
-                {
-                    Node tmp = g_tree_node_previous(node);
-                    Check.Assert(tmp.right == node, "predecessor invariant");
-                }
 
-                if (node.right_child)
-                {
-                    Node tmp = g_tree_node_next(node);
-                    Check.Assert(tmp.left == node, "successor invariant");
-                }
-
-                int left_height = g_tree_node_height(node.left_child ? node.left : Null);
-                int right_height = g_tree_node_height(node.right_child ? node.right : Null);
+                int left_height = g_tree_node_height(node.leftOrNull);
+                int right_height = g_tree_node_height(node.rightOrNull);
 
                 int balance = right_height - left_height;
                 Check.Assert(balance == node.balance, "balance invariant");
 
-                if (node.left_child)
-                {
-                    g_tree_node_check(node.left);
-                }
-                if (node.right_child)
-                {
-                    g_tree_node_check(node.right);
-                }
+                g_tree_node_check(node.leftOrNull);
+                g_tree_node_check(node.rightOrNull);
             }
         }
 
@@ -2685,7 +2535,7 @@ out length))
                     xOffset += node.xOffset;
                     yOffset += node.yOffset;
                     stack.Push(new STuple<Node, /*[Widen]*/int, /*[Widen]*/int>(node, xOffset, yOffset));
-                    node = node.left_child ? node.left : Null;
+                    node = node.leftOrNull;
                 }
                 while (stack.Count != 0)
                 {
@@ -2698,13 +2548,13 @@ out length))
 
                     ranges[i++] = new /*[Widen]*/Range2MapEntry(new /*[Widen]*/Range(xOffset, 0), new /*[Widen]*/Range(yOffset, 0), value);
 
-                    node = node.right_child ? node.right : Null;
+                    node = node.rightOrNull;
                     while (node != Null)
                     {
                         xOffset += node.xOffset;
                         yOffset += node.yOffset;
                         stack.Push(new STuple<Node, /*[Widen]*/int, /*[Widen]*/int>(node, xOffset, yOffset));
-                        node = node.left_child ? node.left : Null;
+                        node = node.leftOrNull;
                     }
                 }
                 Check.Assert(i == ranges.Length, "count invariant");
@@ -3301,7 +3151,7 @@ out length))
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
 
 
@@ -3343,7 +3193,7 @@ out length))
             public bool MoveNext()
             {
                 Advance();
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
@@ -3358,8 +3208,8 @@ out length))
                     }
                     stackIndex = 0;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
+                    currentNode = Null;
+                    leadingNode = Null;
 
                     this.treeVersion = tree.version;
 
@@ -3391,7 +3241,7 @@ out length))
                     /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     /*[Widen]*/
                     int yPositionSuccessor = 0;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += node.xOffset;
                         yPosition += node.yOffset;
@@ -3456,12 +3306,12 @@ out length))
                                 yPositionLastGreaterAncestor = yPosition;
                             }
 
-                            node = node.left_child ? node.left : tree.Null;
+                            node = node.leftOrNull;
                         }
                         else
                         {
                             Debug.Assert(c >= 0);
-                            node = node.right_child ? node.right : tree.Null;
+                            node = node.rightOrNull;
                         }
                     }
 
@@ -3507,7 +3357,7 @@ out length))
                     currentXStart = nextXStart;
                     currentYStart = nextYStart;
 
-                    leadingNode = tree.Null;
+                    leadingNode = Null;
 
                     if (stackIndex == 0)
                     {
@@ -3532,13 +3382,13 @@ out length))
                     nextYStart = cursor.Item3;
 
                     Node node = forward
-                        ? (leadingNode.right_child ? leadingNode.right : tree.Null)
-                        : (leadingNode.left_child ? leadingNode.left : tree.Null);
+                        ? (leadingNode.rightOrNull)
+                        : (leadingNode.leftOrNull);
                     /*[Widen]*/
                     int xPosition = nextXStart;
                     /*[Widen]*/
                     int yPosition = nextYStart;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += node.xOffset;
                         yPosition += node.yOffset;
@@ -3548,8 +3398,8 @@ out length))
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition,
                             /*[Feature(Feature.Range2)]*/yPosition);
                         node = forward
-                            ? (node.left_child ? node.left : tree.Null)
-                            : (node.right_child ? node.right : tree.Null);
+                            ? (node.leftOrNull)
+                            : (node.rightOrNull);
                     }
                 }
             }

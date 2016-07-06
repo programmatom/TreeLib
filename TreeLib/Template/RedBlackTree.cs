@@ -238,7 +238,7 @@ namespace TreeLib
         }
 
         [Storage(Storage.Object)]
-        private readonly static NodeRef _Null = new NodeRef(null);
+        private static NodeRef Null { get { return new NodeRef(null); } }
 
         //
         // Array form data structure
@@ -305,7 +305,7 @@ namespace TreeLib
         }
 
         [Storage(Storage.Array)]
-        private readonly static NodeRef _Null = new NodeRef(unchecked((uint)-1));
+        private static NodeRef Null { get { return new NodeRef(unchecked((uint)-1)); } }
 
         [Storage(Storage.Array)]
         private const int ReservedElements = 0;
@@ -315,8 +315,6 @@ namespace TreeLib
         //
         // State for both array & object form
         //
-
-        private NodeRef Null { get { return RedBlackTree<KeyType, ValueType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private NodeRef root;
         [Count]
@@ -425,10 +423,10 @@ namespace TreeLib
             this.yExtent = original.yExtent;
 
             this.allocationMode = original.allocationMode;
-            this.freelist = this.Null;
+            this.freelist = Null;
             {
                 NodeRef nodeOriginal = original.freelist;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     nodeOriginal = nodes[nodeOriginal].left;
                     NodeRef nodeCopy = new NodeRef(new Node());
@@ -440,19 +438,19 @@ namespace TreeLib
             this.allocateCount = original.allocateCount;
 #endif
 
-            this.root = this.Null;
-            if (original.root != original.Null)
+            this.root = Null;
+            if (original.root != Null)
             {
                 Stack<STuple<NodeRef, NodeRef>> stack = new Stack<STuple<NodeRef, NodeRef>>();
 
                 NodeRef nodeOriginal = original.root;
                 NodeRef nodeThis = this.root;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     NodeRef nodeChild = new NodeRef(new Node());
-                    this.nodes[nodeChild].left = this.Null;
-                    this.nodes[nodeChild].right = this.Null;
-                    if (this.root == this.Null)
+                    this.nodes[nodeChild].left = Null;
+                    this.nodes[nodeChild].right = Null;
+                    if (this.root == Null)
                     {
                         this.root = nodeChild;
                     }
@@ -476,15 +474,15 @@ namespace TreeLib
                     this.nodes[nodeThis].yOffset = original.nodes[nodeOriginal].yOffset;
                     this.nodes[nodeThis].isRed = original.nodes[nodeOriginal].isRed;
 
-                    if (original.nodes[nodeOriginal].right != original.Null)
+                    if (original.nodes[nodeOriginal].right != Null)
                     {
                         bool first = true;
                         nodeOriginal = original.nodes[nodeOriginal].right;
-                        while (nodeOriginal != original.Null)
+                        while (nodeOriginal != Null)
                         {
                             NodeRef nodeChild = new NodeRef(new Node());
-                            this.nodes[nodeChild].left = this.Null;
-                            this.nodes[nodeChild].right = this.Null;
+                            this.nodes[nodeChild].left = Null;
+                            this.nodes[nodeChild].right = Null;
                             if (first)
                             {
                                 first = false;
@@ -4808,7 +4806,7 @@ namespace TreeLib
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
                         /*[Feature(Feature.Rank)]*/
                         Debug.Assert((forward && (nextXStart - currentXStart == 1))
@@ -4864,7 +4862,7 @@ namespace TreeLib
             public bool MoveNext()
             {
                 Advance();
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
@@ -4879,8 +4877,8 @@ namespace TreeLib
                     }
                     stackIndex = 0;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
+                    currentNode = Null;
+                    leadingNode = Null;
 
                     this.treeVersion = tree.version;
 
@@ -4912,7 +4910,7 @@ namespace TreeLib
                     /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     /*[Widen]*/
                     int yPositionSuccessor = 0;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += tree.nodes[node].xOffset;
                         yPosition += tree.nodes[node].yOffset;
@@ -5036,7 +5034,7 @@ namespace TreeLib
                     currentXStart = nextXStart;
                     currentYStart = nextYStart;
 
-                    leadingNode = tree.Null;
+                    leadingNode = Null;
 
                     if (stackIndex == 0)
                     {
@@ -5065,7 +5063,7 @@ namespace TreeLib
                     int xPosition = nextXStart;
                     /*[Widen]*/
                     int yPosition = nextYStart;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += tree.nodes[node].xOffset;
                         yPosition += tree.nodes[node].yOffset;

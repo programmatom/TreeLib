@@ -107,6 +107,8 @@ namespace TreeLibTest
             IMultiRankMap<KeyType, ValueType> tree,
             IEnumerable<Op<KeyType, ValueType>> sequence) where KeyType : IComparable<KeyType>
         {
+            long lastIter = IncrementIteration(true/*setLast*/);
+
             ValidateTree(tree);
             foreach (Op<KeyType, ValueType> op in sequence)
             {

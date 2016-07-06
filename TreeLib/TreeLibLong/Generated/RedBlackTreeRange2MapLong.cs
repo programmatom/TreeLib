@@ -104,13 +104,11 @@ namespace TreeLib
         }
 
         [Storage(Storage.Object)]
-        private readonly static Node _Null = null;
+        private static Node Null { get { return null; } }
 
         //
         // State for both array & object form
         //
-
-        private Node Null { get { return RedBlackTreeRange2MapLong<ValueType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private Node root;
         [Count]
@@ -182,10 +180,10 @@ namespace TreeLib
             this.yExtent = original.yExtent;
 
             this.allocationMode = original.allocationMode;
-            this.freelist = this.Null;
+            this.freelist = Null;
             {
                 Node nodeOriginal = original.freelist;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     nodeOriginal = nodeOriginal.left;
                     Node nodeCopy = new Node();
@@ -197,19 +195,19 @@ namespace TreeLib
             this.allocateCount = original.allocateCount;
 #endif
 
-            this.root = this.Null;
-            if (original.root != original.Null)
+            this.root = Null;
+            if (original.root != Null)
             {
                 Stack<STuple<Node, Node>> stack = new Stack<STuple<Node, Node>>();
 
                 Node nodeOriginal = original.root;
                 Node nodeThis = this.root;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     Node nodeChild = new Node();
-                    nodeChild.left = this.Null;
-                    nodeChild.right = this.Null;
-                    if (this.root == this.Null)
+                    nodeChild.left = Null;
+                    nodeChild.right = Null;
+                    if (this.root == Null)
                     {
                         this.root = nodeChild;
                     }
@@ -231,15 +229,15 @@ namespace TreeLib
                     nodeThis.yOffset = nodeOriginal.yOffset;
                     nodeThis.isRed = nodeOriginal.isRed;
 
-                    if (nodeOriginal.right != original.Null)
+                    if (nodeOriginal.right != Null)
                     {
                         bool first = true;
                         nodeOriginal = nodeOriginal.right;
-                        while (nodeOriginal != original.Null)
+                        while (nodeOriginal != Null)
                         {
                             Node nodeChild = new Node();
-                            nodeChild.left = this.Null;
-                            nodeChild.right = this.Null;
+                            nodeChild.left = Null;
+                            nodeChild.right = Null;
                             if (first)
                             {
                                 first = false;
@@ -3282,7 +3280,7 @@ namespace TreeLib
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
 
 
@@ -3333,7 +3331,7 @@ namespace TreeLib
             public bool MoveNext()
             {
                 Advance();
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
@@ -3348,8 +3346,8 @@ namespace TreeLib
                     }
                     stackIndex = 0;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
+                    currentNode = Null;
+                    leadingNode = Null;
 
                     this.treeVersion = tree.version;
 
@@ -3381,7 +3379,7 @@ namespace TreeLib
                     /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     /*[Widen]*/
                     long yPositionSuccessor = 0 ;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += node.xOffset;
                         yPosition += node.yOffset;
@@ -3497,7 +3495,7 @@ namespace TreeLib
                     currentXStart = nextXStart;
                     currentYStart = nextYStart;
 
-                    leadingNode = tree.Null;
+                    leadingNode = Null;
 
                     if (stackIndex == 0)
                     {
@@ -3526,7 +3524,7 @@ namespace TreeLib
                     long xPosition = nextXStart ;
                     /*[Widen]*/
                     long yPosition = nextYStart ;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += node.xOffset;
                         yPosition += node.yOffset;

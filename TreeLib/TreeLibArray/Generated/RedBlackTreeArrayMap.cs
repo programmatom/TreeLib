@@ -134,7 +134,7 @@ namespace TreeLib
         }
 
         [Storage(Storage.Array)]
-        private readonly static NodeRef _Null = new NodeRef(unchecked((uint)-1));
+        private static NodeRef Null { get { return new NodeRef(unchecked((uint)-1)); } }
 
         [Storage(Storage.Array)]
         private const int ReservedElements = 0;
@@ -144,8 +144,6 @@ namespace TreeLib
         //
         // State for both array & object form
         //
-
-        private NodeRef Null { get { return RedBlackTreeArrayMap<KeyType, ValueType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private NodeRef root;
         [Count]
@@ -2341,7 +2339,7 @@ uint countNew = checked(this.count + 1);
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
 
                         return new EntryMap<KeyType, ValueType>(
@@ -2370,7 +2368,7 @@ uint countNew = checked(this.count + 1);
             public bool MoveNext()
             {
                 Advance();
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
@@ -2385,15 +2383,15 @@ uint countNew = checked(this.count + 1);
                     }
                     stackIndex = 0;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
+                    currentNode = Null;
+                    leadingNode = Null;
 
                     this.treeVersion = tree.version;
 
                     // push search path to starting item
 
                     NodeRef node = tree.root;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
 
                         int c;
@@ -2456,7 +2454,7 @@ uint countNew = checked(this.count + 1);
                     this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
                     currentNode = leadingNode;
 
-                    leadingNode = tree.Null;
+                    leadingNode = Null;
 
                     if (stackIndex == 0)
                     {
@@ -2469,7 +2467,7 @@ uint countNew = checked(this.count + 1);
                     leadingNode = cursor.Item1;
 
                     NodeRef node = forward ? tree.nodes[leadingNode].right : tree.nodes[leadingNode].left;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
 
                         stack[stackIndex++] = new STuple<NodeRef>(

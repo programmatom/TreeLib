@@ -50,7 +50,7 @@ namespace TreeLibTest
         // Test iteration count and breaking
         //
 
-        public long iteration { get; private set; }
+        public long iteration { get; protected set; }
         private readonly long[] breakIterations = new long[0];
 
         protected long lastActionIteration;

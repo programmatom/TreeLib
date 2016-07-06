@@ -138,7 +138,7 @@ namespace TreeLib
         }
 
         [Storage(Storage.Array)]
-        private readonly static NodeRef _Null = new NodeRef(unchecked((uint)-1));
+        private static NodeRef Null { get { return new NodeRef(unchecked((uint)-1)); } }
 
         [Storage(Storage.Array)]
         private const int ReservedElements = 0;
@@ -148,8 +148,6 @@ namespace TreeLib
         //
         // State for both array & object form
         //
-
-        private NodeRef Null { get { return RedBlackTreeArrayRangeMap<ValueType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private NodeRef root;
         [Count]
@@ -2908,7 +2906,7 @@ uint countNew = checked(this.count + 1);
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
 
 
@@ -2952,7 +2950,7 @@ uint countNew = checked(this.count + 1);
             public bool MoveNext()
             {
                 Advance();
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
@@ -2967,8 +2965,8 @@ uint countNew = checked(this.count + 1);
                     }
                     stackIndex = 0;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
+                    currentNode = Null;
+                    leadingNode = Null;
 
                     this.treeVersion = tree.version;
 
@@ -2997,7 +2995,7 @@ uint countNew = checked(this.count + 1);
                     /*[Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     /*[Widen]*/
                     int yPositionSuccessor = 0;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += tree.nodes[node].xOffset;
 
@@ -3105,7 +3103,7 @@ uint countNew = checked(this.count + 1);
                     currentNode = leadingNode;
                     currentXStart = nextXStart;
 
-                    leadingNode = tree.Null;
+                    leadingNode = Null;
 
                     if (stackIndex == 0)
                     {
@@ -3129,7 +3127,7 @@ uint countNew = checked(this.count + 1);
                     NodeRef node = forward ? tree.nodes[leadingNode].right : tree.nodes[leadingNode].left;
                     /*[Widen]*/
                     int xPosition = nextXStart;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
                         xPosition += tree.nodes[node].xOffset;
 

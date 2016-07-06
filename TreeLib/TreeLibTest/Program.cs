@@ -498,7 +498,7 @@ namespace TreeLibTest
                         {
                             int i = Array.BinarySearch(ReportingIntervals, control.ReportingInterval);
                             i = i >= 0 ? i - 1 : ~i - 1;
-                            control.ReportingInterval = i >= 0 ? ReportingIntervals[i] : control.ReportingInterval / 2;
+                            control.ReportingInterval = Math.Max(i >= 0 ? ReportingIntervals[i] : control.ReportingInterval / 2, 1);
                         }
                     }
 

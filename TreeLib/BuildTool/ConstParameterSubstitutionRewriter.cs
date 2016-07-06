@@ -117,6 +117,7 @@ namespace BuildTool
             foreach (VariableDeclaratorSyntax variable in node.Declaration.Variables)
             {
                 ImmutableArray<ISymbol> symbols = semanticModel.LookupSymbols(variable.Identifier.Span.Start, null, variable.Identifier.Text);
+                symbols = symbols.RemoveAll(delegate (ISymbol candidate) { return candidate.Kind == SymbolKind.Property; });
                 if (symbols.Length != 1)
                 {
                     Debug.Assert(false);

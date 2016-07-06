@@ -163,6 +163,7 @@ namespace TreeLibTest
                 TestRedBlackHeight();
                 TestAVLHeight();
 
+                iteration = 0; // due to randomness, reset iteration to make subsequent tests reproducible
                 return true;
             }
             catch (Exception exception)

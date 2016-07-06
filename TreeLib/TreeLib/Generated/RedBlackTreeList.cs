@@ -90,13 +90,11 @@ namespace TreeLib
         }
 
         [Storage(Storage.Object)]
-        private readonly static Node _Null = null;
+        private static Node Null { get { return null; } }
 
         //
         // State for both array & object form
         //
-
-        private Node Null { get { return RedBlackTreeList<KeyType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private Node root;
         [Count]
@@ -196,10 +194,10 @@ namespace TreeLib
             this.count = original.count;
 
             this.allocationMode = original.allocationMode;
-            this.freelist = this.Null;
+            this.freelist = Null;
             {
                 Node nodeOriginal = original.freelist;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     nodeOriginal = nodeOriginal.left;
                     Node nodeCopy = new Node();
@@ -211,19 +209,19 @@ namespace TreeLib
             this.allocateCount = original.allocateCount;
 #endif
 
-            this.root = this.Null;
-            if (original.root != original.Null)
+            this.root = Null;
+            if (original.root != Null)
             {
                 Stack<STuple<Node, Node>> stack = new Stack<STuple<Node, Node>>();
 
                 Node nodeOriginal = original.root;
                 Node nodeThis = this.root;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     Node nodeChild = new Node();
-                    nodeChild.left = this.Null;
-                    nodeChild.right = this.Null;
-                    if (this.root == this.Null)
+                    nodeChild.left = Null;
+                    nodeChild.right = Null;
+                    if (this.root == Null)
                     {
                         this.root = nodeChild;
                     }
@@ -244,15 +242,15 @@ namespace TreeLib
                     nodeThis.key = nodeOriginal.key;
                     nodeThis.isRed = nodeOriginal.isRed;
 
-                    if (nodeOriginal.right != original.Null)
+                    if (nodeOriginal.right != Null)
                     {
                         bool first = true;
                         nodeOriginal = nodeOriginal.right;
-                        while (nodeOriginal != original.Null)
+                        while (nodeOriginal != Null)
                         {
                             Node nodeChild = new Node();
-                            nodeChild.left = this.Null;
-                            nodeChild.right = this.Null;
+                            nodeChild.left = Null;
+                            nodeChild.right = Null;
                             if (first)
                             {
                                 first = false;
@@ -2208,7 +2206,7 @@ namespace TreeLib
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
 
                         return new EntryList<KeyType>(
@@ -2234,7 +2232,7 @@ namespace TreeLib
             public bool MoveNext()
             {
                 Advance();
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
@@ -2249,15 +2247,15 @@ namespace TreeLib
                     }
                     stackIndex = 0;
 
-                    currentNode = tree.Null;
-                    leadingNode = tree.Null;
+                    currentNode = Null;
+                    leadingNode = Null;
 
                     this.treeVersion = tree.version;
 
                     // push search path to starting item
 
                     Node node = tree.root;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
 
                         int c;
@@ -2320,7 +2318,7 @@ namespace TreeLib
                     this.enumeratorVersion = unchecked(this.enumeratorVersion + 1);
                     currentNode = leadingNode;
 
-                    leadingNode = tree.Null;
+                    leadingNode = Null;
 
                     if (stackIndex == 0)
                     {
@@ -2333,7 +2331,7 @@ namespace TreeLib
                     leadingNode = cursor.Item1;
 
                     Node node = forward ? leadingNode.right : leadingNode.left;
-                    while (node != tree.Null)
+                    while (node != Null)
                     {
 
                         stack[stackIndex++] = new STuple<Node>(

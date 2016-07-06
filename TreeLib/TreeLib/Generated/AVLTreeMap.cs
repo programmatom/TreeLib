@@ -38,6 +38,7 @@ using TreeLib.Internal;
 //
 // This implementation is adapted from Glib's AVL tree: https://github.com/GNOME/glib/blob/master/glib/gtree.c
 // which is attributed to Maurizio Monge.
+// NOTE: this (and the original) is a threaded implementation
 //
 // An overview of AVL trees can be found here: https://en.wikipedia.org/wiki/AVL_tree
 //
@@ -79,7 +80,14 @@ namespace TreeLib
             public Node left, right;
 
             // tree is threaded: left_child/right_child indicate "non-null", if false, left/right point to predecessor/successor
+            [Feature(Feature.Dict)]
             public bool left_child, right_child;
+
+            [Feature(Feature.Dict)]
+            public Node leftOrNull { get { return left_child ? left : Null; } }
+            [Feature(Feature.Dict)]
+            public Node rightOrNull { get { return right_child ? right : Null; } }
+
             public sbyte balance;
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
@@ -89,13 +97,11 @@ namespace TreeLib
         }
 
         [Storage(Storage.Object)]
-        private readonly static Node _Null = null;
+        private static Node Null { get { return null; } }
 
         //
         // State for both array & object form
         //
-
-        private Node Null { get { return AVLTreeMap<KeyType, ValueType>._Null; } } // allow tree.Null or this.Null in all cases
 
         private Node root;
         [Count]
@@ -207,10 +213,10 @@ namespace TreeLib
             this.count = original.count;
 
             this.allocationMode = original.allocationMode;
-            this.freelist = this.Null;
+            this.freelist = Null;
             {
                 Node nodeOriginal = original.freelist;
-                while (nodeOriginal != original.Null)
+                while (nodeOriginal != Null)
                 {
                     nodeOriginal = nodeOriginal.left;
                     Node nodeCopy = new Node();
@@ -222,13 +228,17 @@ namespace TreeLib
             this.allocateCount = original.allocateCount;
 #endif
 
-            this.root = this.Null;
-            if (original.root != original.Null)
+            this.root = Null;
+            if (original.root != Null)
             {
 #if VALIDATE_CLONE_THREADING
+                /*[Feature(Feature.Dict)]*/
                 int originalNumber = 0;
+                /*[Feature(Feature.Dict)]*/
                 Dictionary<NodeRef, int> originalSequence = new Dictionary<NodeRef, int>();
+                /*[Feature(Feature.Dict)]*/
                 int thisNumber = 0;
+                /*[Feature(Feature.Dict)]*/
                 Dictionary<NodeRef, int> thisSequence = new Dictionary<NodeRef, int>();
 #endif
                 {
@@ -236,35 +246,39 @@ namespace TreeLib
 
                     Node nodeOriginal = original.root;
                     Node nodeThis = this.root;
-                    while (nodeOriginal != original.Null)
+                    while (nodeOriginal != Null)
                     {
                         Node nodeChild = new Node();
-                        nodeChild.left_child = false;
-                        nodeChild.left = this.Null; // never a predecessor on the initial left chain
-                        nodeChild.right_child = false;
-                        nodeChild.right = nodeThis;
+                        /*[Feature(Feature.Dict)]*/
+                        nodeChild.right = nodeThis; // forward thread
 
-                        if (this.root == this.Null)
+                        if (this.root == Null)
                         {
                             this.root = nodeChild;
                         }
                         else
                         {
+                            /*[Feature(Feature.Dict)]*/
                             nodeThis.left_child = true;
                             nodeThis.left = nodeChild;
                         }
 
-                        Node nodeControllingSuccessor = nodeThis;
+                        Node nodeControllingSuccessor = Null;
+                        /*[Feature(Feature.Dict)]*/
+                        nodeControllingSuccessor = nodeThis;
                         nodeThis = nodeChild;
                         stack.Push(new STuple<Node, Node, Node>(nodeThis, nodeOriginal, nodeControllingSuccessor));
-                        nodeOriginal = nodeOriginal.left_child ? nodeOriginal.left : original.Null;
+                        nodeOriginal = nodeOriginal.leftOrNull;
                     }
                     while (stack.Count != 0)
                     {
                         STuple<Node, Node, Node> t = stack.Pop();
                         nodeThis = t.Item1;
                         nodeOriginal = t.Item2;
-                        Node nodeControllingSuccessorThis = t.Item3;
+                        Node nodeControllingSuccessorThis = Null;
+                        /*[Feature(Feature.Dict)]*/
+                        nodeControllingSuccessorThis = t.Item3;
+                        /*[Feature(Feature.Dict)]*/
                         {
 #if VALIDATE_CLONE_THREADING
                             originalSequence.Add(nodeOriginal, ++originalNumber);
@@ -279,40 +293,47 @@ namespace TreeLib
                         if (nodeOriginal.right_child)
                         {
                             Node nodeChild = new Node();
-                            nodeChild.left_child = false;
-                            nodeChild.left = nodeThis;
-                            nodeChild.right_child = false;
-                            nodeChild.right = nodeControllingSuccessorThis;
+                            /*[Feature(Feature.Dict)]*/
+                            nodeChild.left = nodeThis; // back thread
+                            /*[Feature(Feature.Dict)]*/
+                            nodeChild.right = nodeControllingSuccessorThis; // forward thread
 
+                            /*[Feature(Feature.Dict)]*/
                             nodeThis.right_child = true;
                             nodeThis.right = nodeChild;
 
-                            Node nodeControllingPredecessor = nodeThis;
+                            Node nodeControllingPredecessor = Null;
+                            /*[Feature(Feature.Dict)]*/
+                            nodeControllingPredecessor = nodeThis;
 
                             nodeOriginal = nodeOriginal.right;
                             nodeThis = nodeChild;
                             stack.Push(new STuple<Node, Node, Node>(nodeThis, nodeOriginal, nodeControllingSuccessorThis));
 
-                            nodeOriginal = nodeOriginal.left_child ? nodeOriginal.left : original.Null;
-                            while (nodeOriginal != original.Null)
+                            nodeOriginal = nodeOriginal.leftOrNull;
+                            while (nodeOriginal != Null)
                             {
                                 nodeChild = new Node();
-                                nodeChild.left_child = false;
-                                nodeChild.left = nodeControllingPredecessor;
-                                nodeChild.right_child = false;
-                                nodeChild.right = nodeThis;
+                                /*[Feature(Feature.Dict)]*/
+                                nodeChild.left = nodeControllingPredecessor; // back thread
+                                /*[Feature(Feature.Dict)]*/
+                                nodeChild.right = nodeThis; // forward thread
 
+                                /*[Feature(Feature.Dict)]*/
                                 nodeThis.left_child = true;
                                 nodeThis.left = nodeChild;
 
-                                Node nodeControllingSuccessor = nodeThis;
+                                Node nodeControllingSuccessor = Null;
+                                /*[Feature(Feature.Dict)]*/
+                                nodeControllingSuccessor = nodeThis;
                                 nodeThis = nodeChild;
                                 stack.Push(new STuple<Node, Node, Node>(nodeThis, nodeOriginal, nodeControllingSuccessor));
-                                nodeOriginal = nodeOriginal.left_child ? nodeOriginal.left : original.Null;
+                                nodeOriginal = nodeOriginal.leftOrNull;
                             }
                         }
                     }
                 }
+                /*[Feature(Feature.Dict)]*/
                 {
 #if VALIDATE_CLONE_THREADING
                     Debug.Assert((ulong)thisSequence.Count == original.count);
@@ -395,18 +416,21 @@ namespace TreeLib
             // no need to do any work for DynamicDiscard mode
             if (allocationMode != AllocationMode.DynamicDiscard)
             {
-                // use threaded feature to traverse in O(1) per node with no stack
-
-                Node node = g_tree_first_node();
-
-                while (node != Null)
+                /*[Feature(Feature.Dict)]*/
                 {
-                    Node next = g_tree_node_next(node);
+                    // use threaded feature to traverse in O(1) per node with no stack
 
-                    this.count = unchecked(this.count - 1);
-                    g_node_free(node);
+                    Node node = g_tree_first_node();
 
-                    node = next;
+                    while (node != Null)
+                    {
+                        Node next = g_tree_node_next(node);
+
+                        this.count = unchecked(this.count - 1);
+                        g_node_free(node);
+
+                        node = next;
+                    }
                 }
 
                 Debug.Assert(this.count == 0);
@@ -937,8 +961,10 @@ namespace TreeLib
             node.key = key;
             node.value = value;
             node.left = Null;
+            /*[Feature(Feature.Dict)]*/
             node.left_child = false;
             node.right = Null;
+            /*[Feature(Feature.Dict)]*/
             node.right_child = false;
             node.balance = 0;
 
@@ -953,8 +979,10 @@ namespace TreeLib
             Debug.Assert(allocateCount == this.count);
 
             node.left = Null;
+            /*[Feature(Feature.Dict)]*/
             node.left_child = true;
             node.right = Null;
+            /*[Feature(Feature.Dict)]*/
             node.right_child = true;
             node.balance = SByte.MinValue;
 #endif
@@ -1152,6 +1180,7 @@ namespace TreeLib
             }
         }
 
+        [Feature(Feature.Dict)]
         private Node g_tree_node_previous(Node node)
         {
             Node tmp = node.left;
@@ -1167,6 +1196,7 @@ namespace TreeLib
             return tmp;
         }
 
+        [Feature(Feature.Dict)]
         private Node g_tree_node_next(Node node)
         {
             Node tmp = node.right;
@@ -1396,9 +1426,12 @@ namespace TreeLib
 
                     Node child = g_tree_node_new(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value);
 
-                    child.left = node.left;
-                    child.right = node;
+                    /*[Feature(Feature.Dict)]*/
+                    child.left = node.left; // back thread
+                    /*[Feature(Feature.Dict)]*/
+                    child.right = node; // forward thread
                     node.left = child;
+                    /*[Feature(Feature.Dict)]*/
                     node.left_child = true;
                     node.balance--;
                     this.count = countNew;
@@ -1425,9 +1458,12 @@ namespace TreeLib
 
                     Node child = g_tree_node_new(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/key, /*[Payload(Payload.Value)]*/value);
 
-                    child.right = node.right;
-                    child.left = node;
+                    /*[Feature(Feature.Dict)]*/
+                    child.right = node.right; // forward thread
+                    /*[Feature(Feature.Dict)]*/
+                    child.left = node; // back thread
                     node.right = child;
+                    /*[Feature(Feature.Dict)]*/
                     node.right_child = true;
                     node.balance++;
                     this.count = countNew;
@@ -1570,14 +1606,18 @@ namespace TreeLib
                         }
                         else if (left_node)
                         {
+                            /*[Feature(Feature.Dict)]*/
                             parent.left_child = false;
-                            parent.left = node.left;
+                            /*[Feature(Feature.Dict)]*/
+                            parent.left = node.left; // back thread
                             parent.balance++;
                         }
                         else
                         {
+                            /*[Feature(Feature.Dict)]*/
                             parent.right_child = false;
-                            parent.right = node.right;
+                            /*[Feature(Feature.Dict)]*/
+                            parent.right = node.right; // forward thread
                             parent.balance--;
                         }
                     }
@@ -1586,7 +1626,9 @@ namespace TreeLib
 
                         /*[Feature(Feature.Dict)]*/
                         successor = g_tree_node_next(node);
-                        successor.left = node.left;
+
+                        /*[Feature(Feature.Dict)]*/
+                        successor.left = node.left; // back thread
 
                         Node rightChild = node.right;
                         if (parent == Null)
@@ -1609,11 +1651,11 @@ namespace TreeLib
                 {
                     if (!node.right_child)
                     {
-                        Node predecessor;
-
                         /*[Feature(Feature.Dict)]*/
-                        predecessor = g_tree_node_previous(node);
-                        predecessor.right = node.right;
+                        {
+                            Node predecessor = g_tree_node_previous(node);
+                            predecessor.right = node.right; // forward thread
+                        }
 
                         Node leftChild = node.left;
                         if (parent == Null)
@@ -1638,8 +1680,8 @@ namespace TreeLib
                         Node successorParent = node;
                         int old_idx = ++idx;
 
-                        /* path[idx] == parent */
-                        /* find the immediately next node (and its parent) */
+                        // path[idx] == parent
+                        // find the immediately next node (and its parent)
                         while (successor.left_child)
                         {
                             path[++idx] = successorParent = successor;
@@ -1660,10 +1702,12 @@ namespace TreeLib
                             }
                             else
                             {
-                                successorParent.left_child = false;
+                                /*[Feature(Feature.Dict)]*/
+                                successorParent.left_child = false; // 'left' remains as back thread
                             }
                             successorParent.balance++;
 
+                            /*[Feature(Feature.Dict)]*/
                             successor.right_child = true;
                             successor.right = node.right;
                         }
@@ -1673,14 +1717,18 @@ namespace TreeLib
                         }
 
                         // set the predecessor's successor link to point to the right place
-                        while (predecessor.right_child)
+                        /*[Feature(Feature.Dict)]*/
                         {
-                            predecessor = predecessor.right;
+                            while (predecessor.right_child)
+                            {
+                                predecessor = predecessor.right;
+                            }
+                            predecessor.right = successor;
                         }
-                        predecessor.right = successor;
 
                         /* prepare 'successor' to replace 'node' */
                         Node leftChild = node.left;
+                        /*[Feature(Feature.Dict)]*/
                         successor.left_child = true;
                         successor.left = leftChild;
                         successor.balance = node.balance;
@@ -1818,7 +1866,9 @@ namespace TreeLib
                 }
                 else
                 {
+                    /*[Feature(Feature.Dict)]*/
                     node.right_child = false;
+                    /*[Feature(Feature.Dict)]*/
                     right.left_child = true;
                 }
                 right.left = node;
@@ -1868,7 +1918,9 @@ namespace TreeLib
                 }
                 else
                 {
+                    /*[Feature(Feature.Dict)]*/
                     node.left_child = false;
+                    /*[Feature(Feature.Dict)]*/
                     left.right_child = true;
                 }
                 left.right = node;
@@ -1906,7 +1958,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private Node g_tree_find_node(KeyType key)
+        private Node g_tree_find_node(KeyType key) // TODO: consolidate with Find()
         {
             Node node = root;
             if (node == Null)
@@ -2123,9 +2175,13 @@ namespace TreeLib
 
         private int ActualDepth(Node node)
         {
-            int ld = node.left_child ? ActualDepth(node.left) : 0;
-            int rd = node.right_child ? ActualDepth(node.right) : 0;
-            return 1 + Math.Max(ld, rd);
+            if (node != Null)
+            {
+                int ld = ActualDepth(node.leftOrNull);
+                int rd = ActualDepth(node.rightOrNull);
+                return 1 + Math.Max(ld, rd);
+            }
+            return 0;
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2151,32 +2207,27 @@ namespace TreeLib
         {
             if (node != Null)
             {
+                /*[Feature(Feature.Dict)]*/
                 if (node.left_child)
                 {
                     Node tmp = g_tree_node_previous(node);
                     Check.Assert(tmp.right == node, "predecessor invariant");
                 }
-
+                /*[Feature(Feature.Dict)]*/
                 if (node.right_child)
                 {
                     Node tmp = g_tree_node_next(node);
                     Check.Assert(tmp.left == node, "successor invariant");
                 }
 
-                int left_height = g_tree_node_height(node.left_child ? node.left : Null);
-                int right_height = g_tree_node_height(node.right_child ? node.right : Null);
+                int left_height = g_tree_node_height(node.leftOrNull);
+                int right_height = g_tree_node_height(node.rightOrNull);
 
                 int balance = right_height - left_height;
                 Check.Assert(balance == node.balance, "balance invariant");
 
-                if (node.left_child)
-                {
-                    g_tree_node_check(node.left);
-                }
-                if (node.right_child)
-                {
-                    g_tree_node_check(node.right);
-                }
+                g_tree_node_check(node.leftOrNull);
+                g_tree_node_check(node.rightOrNull);
             }
         }
 
@@ -2688,7 +2739,7 @@ namespace TreeLib
             {
                 get
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
                         return new EntryMap<KeyType, ValueType>(
                             /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
@@ -2756,7 +2807,7 @@ namespace TreeLib
                 }
                 else
                 {
-                    if (currentNode != tree.Null)
+                    if (currentNode != Null)
                     {
                         if (forward)
                         {
@@ -2769,14 +2820,14 @@ namespace TreeLib
                     }
                 }
 
-                return currentNode != tree.Null;
+                return currentNode != Null;
             }
 
             public void Reset()
             {
                 this.treeVersion = tree.version;
 
-                this.currentNode = tree.Null;
+                this.currentNode = Null;
                 this.started = false;
             }
 

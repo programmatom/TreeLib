@@ -442,8 +442,12 @@ namespace BuildTool
                     {
                         string[] ignorable = new string[]
                         {
+                            // these errors arise due to multiple versions of something before reduction
                             "CS0535", // 'class' does not implement interface member 'member'
                             "CS0738", // 'class' does not implement interface member 'member' - not matching return type
+                            "CS0102", // X already contains a definition for Y
+                            "CS0229", // Ambiguity between X and Y
+                            "CS0119", // X is a type, which is not valid in the given context [property vs. field]
                         };
                         List<Diagnostic> errors = new List<Diagnostic>(semanticModel.GetDiagnostics().Where(delegate (Diagnostic candidate) { return (candidate.Severity >= DiagnosticSeverity.Error) && !(Array.IndexOf(ignorable, candidate.Id) >= 0); }));
                         string[] linesForErrors = root.ToFullString().Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
