@@ -46,7 +46,8 @@ namespace TreeLib
         public KeyType Key { get { return key; } }
 
 
-        public EntryList(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key)
+        public EntryList(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key)
         {
             this.key = key;
         }

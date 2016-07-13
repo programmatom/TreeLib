@@ -347,7 +347,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool TrySetOrAddInternal(            KeyType key,            [Feature(Feature.RankMulti)][Const(1, Feature.Dict, Feature.Rank)][SuppressConst(Feature.RankMulti)][Widen]int rankCount,            bool updateExisting)
+        private bool TrySetOrAddInternal(
+            KeyType key,            [Feature(Feature.RankMulti)][Const(1, Feature.Dict, Feature.Rank)][SuppressConst(Feature.RankMulti)][Widen]int rankCount,            bool updateExisting)
         {
             unchecked
             {
@@ -438,7 +439,8 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool TrySetOrRemoveInternal(            KeyType key,            bool updateExisting)
+        private bool TrySetOrRemoveInternal(
+            KeyType key,            bool updateExisting)
         {
             unchecked
             {

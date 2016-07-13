@@ -336,7 +336,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank)]
-        private bool PredicateAddRemoveOverrideCore(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool PredicateAddRemoveOverrideCore(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             uint version = this.version;
 
@@ -366,7 +367,8 @@ uint savedCount = this.count;
 
         [Feature(Feature.Dict, Feature.Rank)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool PredicateAddRemoveOverride(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool PredicateAddRemoveOverride(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             bool predicateExists = false;
             /*[Payload(Payload.Value)]*/
@@ -385,7 +387,8 @@ uint savedCount = this.count;
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool TrySetOrAddInternal(            KeyType key,            [Payload(Payload.Value)]ValueType value,            bool updateExisting,[Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool TrySetOrAddInternal(
+            KeyType key,            [Payload(Payload.Value)]ValueType value,            bool updateExisting,[Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             unchecked
             {
@@ -512,7 +515,8 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private bool TrySetOrRemoveInternal(            KeyType key,            bool updateExisting,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool TrySetOrRemoveInternal(
+            KeyType key,            bool updateExisting,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             unchecked
             {

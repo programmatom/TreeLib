@@ -1281,7 +1281,8 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+        private bool NearestLess(
+            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -1345,7 +1346,8 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+        private bool NearestGreater(
+            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -1410,7 +1412,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank)]
-        private bool PredicateAddRemoveOverrideCore(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool PredicateAddRemoveOverrideCore(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             uint version = this.version;
 
@@ -1445,7 +1448,8 @@ namespace TreeLib
 
         [Feature(Feature.Dict, Feature.Rank)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool PredicateAddRemoveOverride(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool PredicateAddRemoveOverride(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             bool predicateExists = false;
             /*[Payload(Payload.Value)]*/
@@ -1468,7 +1472,8 @@ namespace TreeLib
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool InsertUpdateInternal(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             Debug.Assert((true) || (add != update));
 
@@ -1691,7 +1696,8 @@ namespace TreeLib
 
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void ShiftRightOfPath(            [Widen] long position,            [Widen] long xAdjust)
+        private void ShiftRightOfPath(
+            [Widen] long position,            [Widen] long xAdjust)
         {
             unchecked
             {
@@ -1727,7 +1733,8 @@ namespace TreeLib
             }
         }
 
-        private bool DeleteInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool DeleteInternal(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             unchecked
             {
@@ -2002,7 +2009,8 @@ namespace TreeLib
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xOffsetMatchSuccessor,            Node parentOfsuccessor)
+        private void ReplaceNode(
+            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xOffsetMatchSuccessor,            Node parentOfsuccessor)
         {
             unchecked
             {
@@ -2177,7 +2185,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti)]
-        private bool Find(            KeyType key,            out Node match,            [Widen] out long xPositionMatch)
+        private bool Find(
+            KeyType key,            out Node match,            [Widen] out long xPositionMatch)
         {
             unchecked
             {
@@ -2236,7 +2245,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool FindPosition(            [Widen] long position,            out Node lastLessEqual,            [Widen] out long xPositionLastLessEqual)
+        private bool FindPosition(
+            [Widen] long position,            out Node lastLessEqual,            [Widen] out long xPositionLastLessEqual)
         {
             unchecked
             {
@@ -3204,7 +3214,7 @@ namespace TreeLib
             [Widen]
             private long currentXStart, nextXStart;
 
-            private STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
+            private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
             public FastEnumerator(RedBlackTreeRankMapLong<KeyType, ValueType> tree,bool forward)
@@ -3274,7 +3284,7 @@ namespace TreeLib
                     int stackSize = EstimateMaxDepth(tree.count);
                     if ((stack == null) || (stackSize > stack.Length))
                     {
-                        stack = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[
+                        stack = new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[
                             stackSize];
                     }
                     stackIndex = 0;
@@ -3308,7 +3318,7 @@ namespace TreeLib
 
                         if ( (forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack[stackIndex++] = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
+                            stack[stackIndex++] = new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
                                 node,
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition);
                         }
@@ -3370,7 +3380,7 @@ namespace TreeLib
                         return;
                     }
 
-                    STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long> cursor
+                    STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long> cursor
                         = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
@@ -3383,7 +3393,7 @@ namespace TreeLib
                     {
                         xPosition += node.xOffset;
 
-                        stack[stackIndex++] = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
+                        stack[stackIndex++] = new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
                             node,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition);
                         node = forward ? node.left : node.right;

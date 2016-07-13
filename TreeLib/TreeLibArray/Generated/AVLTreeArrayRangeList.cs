@@ -937,7 +937,8 @@ out length))
             return tmp;
         }
 
-        private bool NearestLess(            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestLess(
+            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             unchecked
             {
@@ -1004,7 +1005,8 @@ out length))
             }
         }
 
-        private bool NearestGreater(            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestGreater(
+            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             unchecked
             {
@@ -1084,7 +1086,8 @@ out length))
         }
 
         // NOTE: replace mode does *not* adjust for xLength/yLength!
-        private bool g_tree_insert_internal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
+        private bool g_tree_insert_internal(
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
         {
             unchecked
             {
@@ -1320,7 +1323,8 @@ uint countNew = checked(this.count + 1);
             }
         }
 
-        private bool g_tree_remove_internal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position)
+        private bool g_tree_remove_internal(
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position)
         {
             unchecked
             {
@@ -1639,7 +1643,8 @@ uint countNew = checked(this.count + 1);
 
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void ShiftRightOfPath(            [Widen] int position,            [Widen] int xAdjust)
+        private void ShiftRightOfPath(
+            [Widen] int position,            [Widen] int xAdjust)
         {
             unchecked
             {
@@ -1857,7 +1862,8 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool FindPosition(            [Widen] int position,            out NodeRef lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength)
+        private bool FindPosition(
+            [Widen] int position,            out NodeRef lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength)
         {
             unchecked
             {

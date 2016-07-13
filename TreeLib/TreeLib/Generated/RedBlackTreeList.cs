@@ -767,7 +767,8 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
+        private bool NearestLess(
+            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -824,7 +825,8 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
+        private bool NearestGreater(
+            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -882,7 +884,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank)]
-        private bool PredicateAddRemoveOverrideCore(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        private bool PredicateAddRemoveOverrideCore(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             uint version = this.version;
 
@@ -920,7 +923,8 @@ namespace TreeLib
 
         [Feature(Feature.Dict, Feature.Rank)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool PredicateAddRemoveOverride(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        private bool PredicateAddRemoveOverride(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             bool predicateExists = false;
             /*[Payload(Payload.None)]*/
@@ -942,7 +946,8 @@ namespace TreeLib
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        private bool InsertUpdateInternal(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             Debug.Assert((true) || (add != update));
 
@@ -1104,7 +1109,8 @@ namespace TreeLib
             return true;
         }
 
-        private bool DeleteInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+        private bool DeleteInternal(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             unchecked
             {
@@ -1329,7 +1335,8 @@ namespace TreeLib
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(            Node match,            Node parentOfMatch,            Node successor,            Node parentOfsuccessor)
+        private void ReplaceNode(
+            Node match,            Node parentOfMatch,            Node successor,            Node parentOfsuccessor)
         {
             unchecked
             {

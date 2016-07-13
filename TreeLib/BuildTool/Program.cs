@@ -421,7 +421,7 @@ namespace BuildTool
                     // types (such as Node) to reduce the number of errors, allowing compilation to generate a more complete
                     // semantic model, therefore enabling better semantic replacements, rather than syntactical replacements
                     // which are fragile.
-                    root = new ReassociateDirectiveTriviaRewriter().Visit(root);
+                    root = new NormalizeTriviaRewriter().Visit(root);
                     root = new SelectFacetRewriter(Array.FindAll(config.facetAxes, delegate (FacetList candidate) { return String.Equals(candidate.axisTag, "Storage"); })).Visit(root);
                     // change Count integer width
                     if ((config.flags & CFlags.DowngradeCountToUint) != 0)

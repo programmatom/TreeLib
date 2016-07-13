@@ -880,7 +880,8 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(            out NodeRef nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
+        private bool NearestLess(
+            out NodeRef nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
         {
             NodeRef lastLess = Null;
             /*[Widen]*/
@@ -937,7 +938,8 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(            out NodeRef nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
+        private bool NearestGreater(
+            out NodeRef nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
         {
             NodeRef lastGreater = Null;
             /*[Widen]*/
@@ -995,7 +997,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Dict, Feature.Rank)]
-        private bool PredicateAddRemoveOverrideCore(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool PredicateAddRemoveOverrideCore(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             uint version = this.version;
 
@@ -1025,7 +1028,8 @@ uint savedCount = this.count;
 
         [Feature(Feature.Dict, Feature.Rank)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool PredicateAddRemoveOverride(            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool PredicateAddRemoveOverride(
+            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.Value)]ref ValueType value,            [Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             bool predicateExists = false;
             /*[Payload(Payload.Value)]*/
@@ -1048,7 +1052,8 @@ uint savedCount = this.count;
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool InsertUpdateInternal(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             Debug.Assert((true) || (add != update));
 
@@ -1210,7 +1215,8 @@ uint countNew = checked(this.count + 1);
             return true;
         }
 
-        private bool DeleteInternal(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
+        private bool DeleteInternal(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.Value)]UpdatePredicate<KeyType, ValueType> predicateMap)
         {
             unchecked
             {
@@ -1433,7 +1439,8 @@ uint countNew = checked(this.count + 1);
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(            NodeRef match,            NodeRef parentOfMatch,            NodeRef successor,            NodeRef parentOfsuccessor)
+        private void ReplaceNode(
+            NodeRef match,            NodeRef parentOfMatch,            NodeRef successor,            NodeRef parentOfsuccessor)
         {
             unchecked
             {

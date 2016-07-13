@@ -1144,7 +1144,8 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestLess(
+            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -1206,7 +1207,8 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+        private bool NearestGreater(
+            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -1273,7 +1275,8 @@ namespace TreeLib
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            [Feature(Feature.Range2)][Widen] int yLength,            bool add,            bool update)
+        private bool InsertUpdateInternal(
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            [Feature(Feature.Range2)][Widen] int yLength,            bool add,            bool update)
         {
             Debug.Assert(add != update);
 
@@ -1512,7 +1515,8 @@ namespace TreeLib
 
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void ShiftRightOfPath(            [Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Widen] int xAdjust,            [Feature(Feature.Range2)][Widen] int yAdjust)
+        private void ShiftRightOfPath(
+            [Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Widen] int xAdjust,            [Feature(Feature.Range2)][Widen] int yAdjust)
         {
             unchecked
             {
@@ -1555,7 +1559,8 @@ namespace TreeLib
             }
         }
 
-        private bool DeleteInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)][Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)][SuppressConst(Feature.Range2)] Side side)
+        private bool DeleteInternal(
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)][Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)][SuppressConst(Feature.Range2)] Side side)
         {
             unchecked
             {
@@ -1842,7 +1847,8 @@ namespace TreeLib
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            [Feature(Feature.Range2)][Widen] int yOffsetMatchSuccessor,            Node parentOfsuccessor)
+        private void ReplaceNode(
+            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            [Feature(Feature.Range2)][Widen] int yOffsetMatchSuccessor,            Node parentOfsuccessor)
         {
             unchecked
             {
@@ -2002,7 +2008,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool FindPosition(            [Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            out Node lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.Range2)][Widen] out int yPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength,            [Feature(Feature.Range2)][Widen] out int yLength)
+        private bool FindPosition(
+            [Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            out Node lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.Range2)][Widen] out int yPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength,            [Feature(Feature.Range2)][Widen] out int yLength)
         {
             unchecked
             {

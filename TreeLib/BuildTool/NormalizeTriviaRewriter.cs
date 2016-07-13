@@ -21,6 +21,7 @@
 */
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -33,8 +34,92 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace BuildTool
 {
-    public class NormalizeSeparatedListTrivia
+    public class NormalizeTriviaRewriter : CSharpSyntaxRewriter
     {
+        public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
+        {
+            node = NormalizeArgumentList(node);
+            node = (ArgumentListSyntax)base.VisitArgumentList(node);
+            return node;
+        }
+
+        public override SyntaxNode VisitTypeArgumentList(TypeArgumentListSyntax node)
+        {
+            node = NormalizeTypeArgumentList(node);
+            node = (TypeArgumentListSyntax)base.VisitTypeArgumentList(node);
+            return node;
+        }
+
+        public override SyntaxNode VisitParameterList(ParameterListSyntax node)
+        {
+            node = NormalizeParameterList(node);
+            node = (ParameterListSyntax)base.VisitParameterList(node);
+            return node;
+        }
+
+        public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            for (int i = 0; i < node.Members.Count - 1; i++)
+            {
+                while (true)
+                {
+                    int index = node.Members[i + 1].GetLeadingTrivia().IndexOf(SyntaxKind.EndIfDirectiveTrivia);
+                    if (index < 0)
+                    {
+                        break;
+                    }
+                    node = node.WithMembers(
+                        node.Members.RemoveAt(i).Insert(
+                            i,
+                            node.Members[i].WithTrailingTrivia(
+                                node.Members[i].GetTrailingTrivia().Add(node.Members[i + 1].GetLeadingTrivia()[index]))));
+                    node = node.WithMembers(
+                        node.Members.RemoveAt(i + 1).Insert(
+                            i + 1,
+                            node.Members[i + 1].WithLeadingTrivia(
+                                node.Members[i + 1].GetLeadingTrivia().RemoveAt(index))));
+                }
+            }
+
+            node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
+
+            return node;
+        }
+
+        public override SyntaxNode VisitStructDeclaration(StructDeclarationSyntax node)
+        {
+            for (int i = 0; i < node.Members.Count - 1; i++)
+            {
+                while (true)
+                {
+                    int index = node.Members[i + 1].GetLeadingTrivia().IndexOf(SyntaxKind.EndIfDirectiveTrivia);
+                    if (index < 0)
+                    {
+                        break;
+                    }
+                    node = node.WithMembers(
+                        node.Members.RemoveAt(i).Insert(
+                            i,
+                            node.Members[i].WithTrailingTrivia(
+                                node.Members[i].GetTrailingTrivia().Add(node.Members[i + 1].GetLeadingTrivia()[index]))));
+                    node = node.WithMembers(
+                        node.Members.RemoveAt(i + 1).Insert(
+                            i + 1,
+                            node.Members[i + 1].WithLeadingTrivia(
+                                node.Members[i + 1].GetLeadingTrivia().RemoveAt(index))));
+                }
+            }
+
+            node = (StructDeclarationSyntax)base.VisitStructDeclaration(node);
+
+            return node;
+        }
+
+
+        //
+        // Helpers
+        //
+
         // All this rigamarole is because Roslyn associates trivia in an actual argument list with the delimiters
         // rather than the arguments. It would make more sense to associate it with arguments, since a comment leading
         // or trailing the argument almost always applies to the argument [e.g. foo(a, b, true/*replace*/) or simulating
@@ -42,7 +127,7 @@ namespace BuildTool
         // processing, this normalizes trivia by moving any trivia on delimiters to the appropriate argument.
         // (NOTE: Roslyn associates comments on multi-line argument lists with arguments, so it's behavior is actually
         // inconsistent! Normalization helps that too.)
-        public static ArgumentListSyntax NormalizeArgumentList(ArgumentListSyntax node)
+        private static ArgumentListSyntax NormalizeArgumentList(ArgumentListSyntax node)
         {
             int count = node.Arguments.Count;
 
@@ -135,7 +220,7 @@ namespace BuildTool
 
         // Since TypeArgumentListSyntax and ArgumentListSyntax do not share a common base class with argument
         // access, it's easiest to just write the code out again.
-        public static TypeArgumentListSyntax NormalizeTypeArgumentList(TypeArgumentListSyntax node)
+        private static TypeArgumentListSyntax NormalizeTypeArgumentList(TypeArgumentListSyntax node)
         {
             int count = node.Arguments.Count;
 
@@ -255,7 +340,7 @@ namespace BuildTool
             return candidate.IsKind(SyntaxKind.MultiLineCommentTrivia);
         }
 
-        public static ParameterListSyntax NormalizeParameterList(ParameterListSyntax node)
+        private static ParameterListSyntax NormalizeParameterList(ParameterListSyntax node)
         {
             int count = node.Parameters.Count;
 

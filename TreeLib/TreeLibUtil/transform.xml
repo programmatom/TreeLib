@@ -16,5 +16,8 @@
         <flags>
             <flag>WidenInt</flag>
         </flags>
+        <syntacticRenames>
+            <rename from="EntryRangeMap" to="EntryRangeMapLong" />
+        </syntacticRenames>
     </config>
 </configs>

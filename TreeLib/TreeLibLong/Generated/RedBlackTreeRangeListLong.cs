@@ -933,7 +933,8 @@ namespace TreeLib
         }
 
 
-        private bool NearestLess(            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+        private bool NearestLess(
+            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -994,7 +995,8 @@ namespace TreeLib
             return false;
         }
 
-        private bool NearestGreater(            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+        private bool NearestGreater(
+            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -1060,7 +1062,8 @@ namespace TreeLib
         // If key is preset and update==true, value is replaced.
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
-        private bool InsertUpdateInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            bool add,            bool update)
+        private bool InsertUpdateInternal(
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            bool add,            bool update)
         {
             Debug.Assert(add != update);
 
@@ -1271,7 +1274,8 @@ namespace TreeLib
 
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void ShiftRightOfPath(            [Widen] long position,            [Widen] long xAdjust)
+        private void ShiftRightOfPath(
+            [Widen] long position,            [Widen] long xAdjust)
         {
             unchecked
             {
@@ -1307,7 +1311,8 @@ namespace TreeLib
             }
         }
 
-        private bool DeleteInternal(            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position)
+        private bool DeleteInternal(
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position)
         {
             unchecked
             {
@@ -1556,7 +1561,8 @@ namespace TreeLib
         }
 
         // Replace the matching node with its successor.
-        private void ReplaceNode(            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xOffsetMatchSuccessor,            Node parentOfsuccessor)
+        private void ReplaceNode(
+            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xOffsetMatchSuccessor,            Node parentOfsuccessor)
         {
             unchecked
             {
@@ -1711,7 +1717,8 @@ namespace TreeLib
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool FindPosition(            [Widen] long position,            out Node lastLessEqual,            [Widen] out long xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long xLength)
+        private bool FindPosition(
+            [Widen] long position,            out Node lastLessEqual,            [Widen] out long xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long xLength)
         {
             unchecked
             {
@@ -2698,7 +2705,7 @@ namespace TreeLib
             [Widen]
             private long previousXStart;
 
-            private STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
+            private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
             public FastEnumerator(RedBlackTreeRangeListLong tree,bool forward)
@@ -2776,7 +2783,7 @@ namespace TreeLib
                     int stackSize = EstimateMaxDepth(tree.count);
                     if ((stack == null) || (stackSize > stack.Length))
                     {
-                        stack = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[
+                        stack = new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[
                             stackSize];
                     }
                     stackIndex = 0;
@@ -2848,7 +2855,7 @@ namespace TreeLib
 
                         if (!foundMatch1 && (forward && (c <= 0)) || (!forward && (c >= 0)))
                         {
-                            stack[stackIndex++] = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
+                            stack[stackIndex++] = new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
                                 node,
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition);
                         }
@@ -2934,7 +2941,7 @@ namespace TreeLib
                         return;
                     }
 
-                    STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long> cursor
+                    STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long> cursor
                         = stack[--stackIndex];
 
                     leadingNode = cursor.Item1;
@@ -2947,7 +2954,7 @@ namespace TreeLib
                     {
                         xPosition += node.xOffset;
 
-                        stack[stackIndex++] = new STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
+                        stack[stackIndex++] = new STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>(
                             node,
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/xPosition);
                         node = forward ? node.left : node.right;

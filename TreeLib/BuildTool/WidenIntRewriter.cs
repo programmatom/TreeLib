@@ -104,7 +104,8 @@ namespace BuildTool
 
         public override SyntaxNode VisitGenericName(GenericNameSyntax node)
         {
-            node = (GenericNameSyntax)base.VisitGenericName(node);
+            node = node.WithTypeArgumentList((TypeArgumentListSyntax)VisitTypeArgumentList(node.TypeArgumentList));
+            // Don't call base.VisitGenericName(), since VisitIdentifierName() may double-widen identifier
 
             if (AttributeMatchUtil.HasTriviaAnnotationSimple(node.GetLeadingTrivia(), WidenAttributeName))
             {
@@ -191,13 +192,6 @@ namespace BuildTool
             return node;
         }
 
-        public override SyntaxNode VisitParameterList(ParameterListSyntax node)
-        {
-            node = NormalizeSeparatedListTrivia.NormalizeParameterList(node);
-            node = (ParameterListSyntax)base.VisitParameterList(node);
-            return node;
-        }
-
 
         // Trivia pseudo-attributes
 
@@ -261,7 +255,6 @@ namespace BuildTool
         {
             node = (TypeArgumentListSyntax)base.VisitTypeArgumentList(node);
 
-            node = NormalizeSeparatedListTrivia.NormalizeTypeArgumentList(node);
             int i = 0;
             foreach (TypeSyntax type in node.Arguments)
             {

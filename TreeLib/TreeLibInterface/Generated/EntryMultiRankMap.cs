@@ -107,7 +107,8 @@ namespace TreeLib
         ISetValue<ValueType> IGetEnumeratorSetValueInfo<ValueType>.SetValueCallack { get { return enumerator; } }
 
 
-        public EntryMultiRankMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
+        public EntryMultiRankMap(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
         {
             this.key = key;
             this.value = value;
@@ -119,7 +120,8 @@ namespace TreeLib
         }
 
         [Payload(Payload.Value)]
-        public EntryMultiRankMap(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
+        public EntryMultiRankMap(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
         {
             this.key = key;
             this.value = value;
@@ -132,8 +134,8 @@ namespace TreeLib
 
         public override bool Equals(object obj)
         {
-            EntryMultiRankMap</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ KeyType, /*[Payload(Payload.Value)]*/ ValueType> other
-                = (EntryMultiRankMap</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/ KeyType, /*[Payload(Payload.Value)]*/ ValueType>)obj;
+            EntryMultiRankMap</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/KeyType, /*[Payload(Payload.Value)]*/ValueType> other
+                = (EntryMultiRankMap</*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/KeyType, /*[Payload(Payload.Value)]*/ValueType>)obj;
 
             int keyOrder = 0;
             keyOrder = Comparer<KeyType>.Default.Compare(this.key, other.key);

@@ -107,7 +107,8 @@ namespace TreeLib
         ISetValue<ValueType> IGetEnumeratorSetValueInfo<ValueType>.SetValueCallack { get { return enumerator; } }
 
 
-        public EntryMultiRankMapLong(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
+        public EntryMultiRankMapLong(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
         {
             this.key = key;
             this.value = value;
@@ -119,7 +120,8 @@ namespace TreeLib
         }
 
         [Payload(Payload.Value)]
-        public EntryMultiRankMapLong(            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
+        public EntryMultiRankMapLong(
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
         {
             this.key = key;
             this.value = value;

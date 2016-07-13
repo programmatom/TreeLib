@@ -46,7 +46,7 @@ namespace TreeLib
         /*[Widen]*/IReadOnlyListLong<T>,
         /*[Widen]*/IReadOnlyCollectionLong<T>,
         IEnumerable<T>,
-        /*[Widen]*/IChunkedEnumerableLong</*[Widen]*/EntryRangeMapLong<T[]>>,
+        /*[Widen]*/IChunkedEnumerableLong<EntryRangeMapLong<T[]>>,
         IHugeListValidation
     {
         private const int DefaultMaxBlockSize = 512;
@@ -987,7 +987,7 @@ namespace TreeLib
 
                 /*[Widen]*/
                 long j = externalOffset ;
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
                 {
                     /*[Widen]*/
                     long offset = index - segmentEntry.Start ;
@@ -1165,7 +1165,7 @@ namespace TreeLib
                 long start ;
                 tree.NearestLessOrEqual(index, out start);
 
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
                 {
                     int offset = unchecked((int)(index - segmentEntry.Start));
 
@@ -1227,7 +1227,7 @@ namespace TreeLib
                 long start ;
                 tree.NearestLessOrEqual(index, out start);
 
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
                 {
                     int offset = unchecked((int)(index - segmentEntry.Start));
 
@@ -1315,7 +1315,7 @@ namespace TreeLib
                 long start ;
                 tree.NearestLessOrEqual(index, out start);
 
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(start))
                 {
                     int offset = unchecked((int)(index - segmentEntry.Start));
 
@@ -1414,7 +1414,7 @@ namespace TreeLib
                     throw new ArgumentOutOfRangeException();
                 }
 
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(end, false/*forward*/))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(end, false/*forward*/))
                 {
                     int offset = unchecked((int)(end - segmentEntry.Start));
 
@@ -1484,7 +1484,7 @@ namespace TreeLib
                     throw new ArgumentOutOfRangeException();
                 }
 
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(end, false/*forward*/))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(end, false/*forward*/))
                 {
                     int offset = unchecked((int)(end - segmentEntry.Start));
 
@@ -1581,7 +1581,7 @@ namespace TreeLib
                     throw new ArgumentOutOfRangeException();
                 }
 
-                foreach (/*[Widen]*/EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(end, false/*forward*/))
+                foreach (EntryRangeMapLong<T[]> segmentEntry in tree.GetFastEnumerable(end, false/*forward*/))
                 {
                     int offset = unchecked((int)(end - segmentEntry.Start));
 
@@ -1729,8 +1729,7 @@ namespace TreeLib
             private long listOffset;
             [Widen]
             private long listCount;
-            private readonly IEnumerator</*[Widen]*/EntryRangeMapLong<T[]>> enumerator;
-            [Widen]
+            private readonly IEnumerator<EntryRangeMapLong<T[]>> enumerator;
             private EntryRangeMapLong<T[]> current;
 
             public HugeListProvider([Widen]IHugeListLong<T> list,[Widen]long listOffset,[Widen]long listCount)
@@ -2310,7 +2309,7 @@ namespace TreeLib
         /// <returns>Enumerable object that visits array chunks (segments) from beginning in forward order</returns>
         /// <remarks>Be sure to use the Length field of the enumeration entry object rather than the length of the
         /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
-        public IEnumerable</*[Widen]*/EntryRangeMapLong<T[]>> GetEnumerableChunked()
+        public IEnumerable<EntryRangeMapLong<T[]>> GetEnumerableChunked()
         {
             return new ChunkedEnumerableSurrogate(this, -2/*default start*/, true/*forward*/);
         }
@@ -2327,7 +2326,7 @@ namespace TreeLib
         /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
         /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
         /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
-        public IEnumerable</*[Widen]*/EntryRangeMapLong<T[]>> GetEnumerableChunked([Widen] long start)
+        public IEnumerable<EntryRangeMapLong<T[]>> GetEnumerableChunked([Widen] long start)
         {
             if (start < 0)
             {
@@ -2353,7 +2352,7 @@ namespace TreeLib
         /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
         /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
         /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
-        public IEnumerable</*[Widen]*/EntryRangeMapLong<T[]>> GetEnumerableChunked(bool forward)
+        public IEnumerable<EntryRangeMapLong<T[]>> GetEnumerableChunked(bool forward)
         {
             return new ChunkedEnumerableSurrogate(this, -2/*default start*/, forward);
         }
@@ -2371,7 +2370,7 @@ namespace TreeLib
         /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
         /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
         /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
-        public IEnumerable</*[Widen]*/EntryRangeMapLong<T[]>> GetEnumerableChunked([Widen] long start,bool forward)
+        public IEnumerable<EntryRangeMapLong<T[]>> GetEnumerableChunked([Widen] long start,bool forward)
         {
             if (forward)
             {
@@ -2401,9 +2400,8 @@ namespace TreeLib
 
         private class Enumerator : IEnumerator<T>
         {
-            private readonly IEnumerator</*[Widen]*/EntryRangeMapLong<T[]>> inner;
+            private readonly IEnumerator<EntryRangeMapLong<T[]>> inner;
             private readonly HugeListLong<T> list;
-            [Widen]
             private EntryRangeMapLong<T[]> current;
             private int offset;
             private bool started, valid;
@@ -2473,7 +2471,7 @@ namespace TreeLib
             }
         }
 
-        private class ChunkedEnumerableSurrogate : IEnumerable</*[Widen]*/EntryRangeMapLong<T[]>>
+        private class ChunkedEnumerableSurrogate : IEnumerable<EntryRangeMapLong<T[]>>
         {
             private readonly HugeListLong<T> list;
             [Widen]
@@ -2487,7 +2485,7 @@ namespace TreeLib
                 this.forward = forward;
             }
 
-            public IEnumerator</*[Widen]*/EntryRangeMapLong<T[]>> GetEnumerator()
+            public IEnumerator<EntryRangeMapLong<T[]>> GetEnumerator()
             {
                 return new ChunkedEnumerator(list, start, forward);
             }
@@ -2498,9 +2496,9 @@ namespace TreeLib
             }
         }
 
-        private class ChunkedEnumerator : IEnumerator</*[Widen]*/EntryRangeMapLong<T[]>>
+        private class ChunkedEnumerator : IEnumerator<EntryRangeMapLong<T[]>>
         {
-            private readonly IEnumerator</*[Widen]*/EntryRangeMapLong<T[]>> inner;
+            private readonly IEnumerator<EntryRangeMapLong<T[]>> inner;
             private readonly HugeListLong<T> list;
             private uint version;
 
@@ -2529,15 +2527,13 @@ namespace TreeLib
                 Reset();
             }
 
-            [Widen]
             public EntryRangeMapLong<T[]> Current
             {
                 get
                 {
-                    /*[Widen]*/
                     EntryRangeMapLong<T[]> innerCurrent = inner.Current;
                     // rebuild struct without SetValue() callback info
-                    return new /*[Widen]*/EntryRangeMapLong<T[]>(innerCurrent.Value, innerCurrent.Start, innerCurrent.Length);
+                    return new EntryRangeMapLong<T[]>(innerCurrent.Value, innerCurrent.Start, innerCurrent.Length);
                 }
             }
 
@@ -2584,7 +2580,7 @@ namespace TreeLib
 
             /*[Widen]*/
             long currentStartIndexSegmentCount = -1 ;
-            foreach (/*[Widen]*/EntryRangeMapLong<T[]> segment in tree)
+            foreach (EntryRangeMapLong<T[]> segment in tree)
             {
                 Debug.Assert(segment.Start == start); // tree correctness
 
@@ -2672,7 +2668,7 @@ namespace TreeLib
                     long currentStartIndexSegmentCount = -1 ;
 
                     StringBuilder line = new StringBuilder();
-                    foreach (/*[Widen]*/EntryRangeMapLong<T[]> segment in tree)
+                    foreach (EntryRangeMapLong<T[]> segment in tree)
                     {
                         Debug.Assert(segment.Start == start); // tree correctness
 

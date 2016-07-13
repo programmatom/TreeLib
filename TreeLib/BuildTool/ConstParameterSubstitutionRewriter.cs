@@ -292,7 +292,6 @@ namespace BuildTool
             SyntaxNode originalNode = node;
             SeparatedSyntaxList<ArgumentSyntax> originalArguments = node.Arguments;
             node = (ArgumentListSyntax)base.VisitArgumentList(node);
-            node = NormalizeSeparatedListTrivia.NormalizeArgumentList(node);
 
             bool changed = false;
             for (int i = 0; i < node.Arguments.Count; i++)
