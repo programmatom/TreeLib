@@ -89,7 +89,10 @@ namespace TreeLib
 
 
         public EntryRange2List(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            [Feature(Feature.Range2)][Widen] int yStart,            [Feature(Feature.Range2)][Widen] int yLength)
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
+            [Feature(Feature.Range2)][Widen] int yStart,
+            [Feature(Feature.Range2)][Widen] int yLength)
         {
             this.xStart = xStart;
             this.xLength = xLength;

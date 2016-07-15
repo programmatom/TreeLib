@@ -51,7 +51,7 @@ namespace TreeLib
     /// </summary>
     
     /// <summary>
-    /// Represents a ordered key collection, augmented with rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
@@ -155,7 +155,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public AVLTreeRankList([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity,AllocationMode allocationMode)
+        public AVLTreeRankList([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity, AllocationMode allocationMode)
         {
             this.comparer = comparer;
             this.root = Null;
@@ -181,7 +181,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public AVLTreeRankList(uint capacity,AllocationMode allocationMode)
+        public AVLTreeRankList(uint capacity, AllocationMode allocationMode)
             : this(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/Comparer<KeyType>.Default, capacity, allocationMode)
         {
         }
@@ -419,7 +419,7 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         [Payload(Payload.None)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKey(KeyType key,out KeyType keyOut)
+        public bool TryGetKey(KeyType key, out KeyType keyOut)
         {
             Node node = g_tree_find_node(key);
             if (node != Null)
@@ -621,7 +621,7 @@ namespace TreeLib
         /// <param name="nearestKey">highest key less than or equal to provided key</param>
         /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
             /*[Widen]*/
             int nearestStart;
@@ -676,7 +676,7 @@ namespace TreeLib
         /// <param name="nearestKey">highest key less than the provided key</param>
         /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLess(KeyType key,out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
         {
             /*[Widen]*/
             int nearestStart;
@@ -731,7 +731,7 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
         /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
             /*[Widen]*/
             int nearestStart;
@@ -786,7 +786,7 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreater(KeyType key,out KeyType nearestKey)
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
         {
             /*[Widen]*/
             int nearestStart;
@@ -906,7 +906,7 @@ namespace TreeLib
         /// <returns>the key located at that index</returns>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKeyByRank([Widen] int rank,out KeyType key)
+        public bool TryGetKeyByRank([Widen] int rank, out KeyType key)
         {
             if (rank < 0)
             {
@@ -997,7 +997,7 @@ out xPosition))
         /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        public int AdjustCount(KeyType key,[Widen] int countAdjust)
+        public int AdjustCount(KeyType key, [Widen] int countAdjust)
         {
             unchecked
             {
@@ -1190,7 +1190,12 @@ out xPosition))
         }
 
         private bool NearestLess(
-            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
+            bool orEqual)
         {
             unchecked
             {
@@ -1261,7 +1266,12 @@ out xPosition))
         }
 
         private bool NearestGreater(
-            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
+            bool orEqual)
         {
             unchecked
             {
@@ -1345,7 +1355,10 @@ out xPosition))
 
         [Feature(Feature.Dict, Feature.Rank)]
         private bool PredicateAddRemoveOverrideCore(
-            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            bool initial,
+            bool resident,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,
+            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             uint version = this.version;
 
@@ -1388,7 +1401,10 @@ out xPosition))
         [Feature(Feature.Dict, Feature.Rank)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool PredicateAddRemoveOverride(
-            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            bool initial,
+            bool resident,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,
+            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             bool predicateExists = false;
             /*[Payload(Payload.None)]*/
@@ -1407,7 +1423,12 @@ out xPosition))
 
         // NOTE: replace mode does *not* adjust for xLength/yLength!
         private bool g_tree_insert_internal(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
+            bool add,
+            bool update,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             unchecked
             {
@@ -1667,7 +1688,9 @@ out xPosition))
         }
 
         private bool g_tree_remove_internal(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             unchecked
             {
@@ -2006,7 +2029,8 @@ out xPosition))
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private void ShiftRightOfPath(
-            [Widen] int position,            [Widen] int xAdjust)
+            [Widen] int position,
+            [Widen] int xAdjust)
         {
             unchecked
             {
@@ -2262,7 +2286,9 @@ out xPosition))
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool Find(
-            KeyType key,            out Node match,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xPositionMatch)
+            KeyType key,
+            out Node match,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xPositionMatch)
         {
             unchecked
             {
@@ -2333,7 +2359,9 @@ out xPosition))
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private bool FindPosition(
-            [Widen] int position,            out Node lastLessEqual,            [Widen] out int xPositionLastLessEqual)
+            [Widen] int position,
+            out Node lastLessEqual,
+            [Widen] out int xPositionLastLessEqual)
         {
             unchecked
             {
@@ -2827,7 +2855,7 @@ out xPosition))
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryRankList<KeyType>> GetEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryRankList<KeyType>> GetEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward); // default
         }
@@ -2854,7 +2882,7 @@ out xPosition))
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryRankList<KeyType>> GetFastEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryRankList<KeyType>> GetFastEnumerable(KeyType startAt, bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, forward);
         }
@@ -2881,7 +2909,7 @@ out xPosition))
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryRankList<KeyType>> GetRobustEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryRankList<KeyType>> GetRobustEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward);
         }
@@ -2902,7 +2930,7 @@ out xPosition))
 
             // Construction
 
-            public RobustEnumerableSurrogate(AVLTreeRankList<KeyType> tree,bool forward)
+            public RobustEnumerableSurrogate(AVLTreeRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2912,7 +2940,7 @@ out xPosition))
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerableSurrogate(AVLTreeRankList<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerableSurrogate(AVLTreeRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2952,7 +2980,7 @@ out xPosition))
 
             // Construction
 
-            public FastEnumerableSurrogate(AVLTreeRankList<KeyType> tree,bool forward)
+            public FastEnumerableSurrogate(AVLTreeRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2962,7 +2990,7 @@ out xPosition))
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerableSurrogate(AVLTreeRankList<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerableSurrogate(AVLTreeRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3014,7 +3042,7 @@ out xPosition))
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
 
-            public RobustEnumerator(AVLTreeRankList<KeyType> tree,bool forward)
+            public RobustEnumerator(AVLTreeRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3023,7 +3051,7 @@ out xPosition))
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerator(AVLTreeRankList<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerator(AVLTreeRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3151,7 +3179,7 @@ out xPosition))
             private STuple<Node, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(AVLTreeRankList<KeyType> tree,bool forward)
+            public FastEnumerator(AVLTreeRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3160,7 +3188,7 @@ out xPosition))
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerator(AVLTreeRankList<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerator(AVLTreeRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

@@ -150,7 +150,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public AVLTreeRangeListLong(uint capacity,AllocationMode allocationMode)
+        public AVLTreeRangeListLong(uint capacity, AllocationMode allocationMode)
         {
             this.root = Null;
 
@@ -986,7 +986,10 @@ out length))
         }
 
         private bool NearestLess(
-            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,
+            bool orEqual)
         {
             unchecked
             {
@@ -1054,7 +1057,10 @@ out length))
         }
 
         private bool NearestGreater(
-            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,
+            bool orEqual)
         {
             unchecked
             {
@@ -1135,7 +1141,10 @@ out length))
 
         // NOTE: replace mode does *not* adjust for xLength/yLength!
         private bool g_tree_insert_internal(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            bool add,            bool update)
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,
+            bool add,
+            bool update)
         {
             unchecked
             {
@@ -1694,7 +1703,8 @@ out length))
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private void ShiftRightOfPath(
-            [Widen] long position,            [Widen] long xAdjust)
+            [Widen] long position,
+            [Widen] long xAdjust)
         {
             unchecked
             {
@@ -1913,7 +1923,10 @@ out length))
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private bool FindPosition(
-            [Widen] long position,            out Node lastLessEqual,            [Widen] out long xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long xLength)
+            [Widen] long position,
+            out Node lastLessEqual,
+            [Widen] out long xPositionLastLessEqual,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long xLength)
         {
             unchecked
             {
@@ -2489,7 +2502,7 @@ out length))
 
             // Construction
 
-            public RobustEnumerableSurrogate(AVLTreeRangeListLong tree,bool forward)
+            public RobustEnumerableSurrogate(AVLTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2541,7 +2554,7 @@ out length))
 
             // Construction
 
-            public FastEnumerableSurrogate(AVLTreeRangeListLong tree,bool forward)
+            public FastEnumerableSurrogate(AVLTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2610,7 +2623,7 @@ out length))
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(AVLTreeRangeListLong tree,bool forward)
+            public RobustEnumerator(AVLTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2776,7 +2789,7 @@ out length))
             private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(AVLTreeRangeListLong tree,bool forward)
+            public FastEnumerator(AVLTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

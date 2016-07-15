@@ -37,9 +37,9 @@ namespace BuildTool
     {
         public static bool HasAttributeSimple(SyntaxList<AttributeListSyntax> attributeLists, string attributeName)
         {
-            foreach (var attributeList in attributeLists)
+            foreach (AttributeListSyntax attributeList in attributeLists)
             {
-                foreach (var attribute in attributeList.Attributes)
+                foreach (AttributeSyntax attribute in attributeList.Attributes)
                 {
                     IdentifierNameSyntax identifierName;
                     if ((identifierName = attribute.Name as IdentifierNameSyntax) != null)
@@ -92,9 +92,9 @@ namespace BuildTool
         public static FindResult TestAttributes(SyntaxList<AttributeListSyntax> attributeLists, FacetList[] facetAxes)
         {
             List<KeyValuePair<string, string>> exclusion = new List<KeyValuePair<string, string>>();
-            foreach (var attributeList in attributeLists)
+            foreach (AttributeListSyntax attributeList in attributeLists)
             {
-                foreach (var attribute in attributeList.Attributes)
+                foreach (AttributeSyntax attribute in attributeList.Attributes)
                 {
                     IdentifierNameSyntax identifierName;
                     if ((identifierName = attribute.Name as IdentifierNameSyntax) != null)
@@ -102,7 +102,7 @@ namespace BuildTool
                         if (String.Equals(identifierName.Identifier.Text, "Exclude"))
                         {
                             bool allMatch = true;
-                            foreach (var attributeArgument in attribute.ArgumentList.Arguments)
+                            foreach (AttributeArgumentSyntax attributeArgument in attribute.ArgumentList.Arguments)
                             {
                                 MemberAccessExpressionSyntax attributeArgumentEnumTag;
                                 if ((attributeArgumentEnumTag = attributeArgument.Expression as MemberAccessExpressionSyntax) != null)
@@ -136,9 +136,9 @@ namespace BuildTool
 
             foreach (FacetList facetAxis in facetAxes)
             {
-                foreach (var attributeList in attributeLists)
+                foreach (AttributeListSyntax attributeList in attributeLists)
                 {
-                    foreach (var attribute in attributeList.Attributes)
+                    foreach (AttributeSyntax attribute in attributeList.Attributes)
                     {
                         IdentifierNameSyntax identifierName;
                         if ((identifierName = attribute.Name as IdentifierNameSyntax) != null)
@@ -151,7 +151,7 @@ namespace BuildTool
                                 }
 
                                 bool found = false;
-                                foreach (var attributeArgument in attribute.ArgumentList.Arguments)
+                                foreach (AttributeArgumentSyntax attributeArgument in attribute.ArgumentList.Arguments)
                                 {
                                     MemberAccessExpressionSyntax attributeArgumentEnumTag;
                                     if ((attributeArgumentEnumTag = attributeArgument.Expression as MemberAccessExpressionSyntax) != null)

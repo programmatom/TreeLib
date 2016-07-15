@@ -41,9 +41,9 @@ namespace BuildTool
         public static bool HasArrayIndexingAttribute(SemanticModel semanticModel, SyntaxList<AttributeListSyntax> attributeLists, out ISymbol subst)
         {
             subst = null;
-            foreach (var attributeList in attributeLists)
+            foreach (AttributeListSyntax attributeList in attributeLists)
             {
-                foreach (var attribute in attributeList.Attributes)
+                foreach (AttributeSyntax attribute in attributeList.Attributes)
                 {
                     IdentifierNameSyntax identifierName;
                     if ((identifierName = attribute.Name as IdentifierNameSyntax) != null)

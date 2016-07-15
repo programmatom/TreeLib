@@ -129,7 +129,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public RedBlackTreeList([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity,AllocationMode allocationMode)
+        public RedBlackTreeList([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity, AllocationMode allocationMode)
         {
             this.comparer = comparer;
             this.root = Null;
@@ -155,7 +155,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public RedBlackTreeList(uint capacity,AllocationMode allocationMode)
+        public RedBlackTreeList(uint capacity, AllocationMode allocationMode)
             : this(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/Comparer<KeyType>.Default, capacity, allocationMode)
         {
         }
@@ -390,7 +390,7 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         [Payload(Payload.None)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKey(KeyType key,out KeyType keyOut)
+        public bool TryGetKey(KeyType key, out KeyType keyOut)
         {
             Node node = FindNode(key);
             if (node != Null)
@@ -616,7 +616,7 @@ namespace TreeLib
         /// <param name="nearestKey">highest key less than or equal to provided key</param>
         /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
             Node nearestNode;
             return NearestLess(
@@ -634,7 +634,7 @@ namespace TreeLib
         /// <param name="nearestKey">highest key less than the provided key</param>
         /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLess(KeyType key,out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
         {
             Node nearestNode;
             return NearestLess(
@@ -652,7 +652,7 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
         /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
             Node nearestNode;
             return NearestGreater(
@@ -670,7 +670,7 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreater(KeyType key,out KeyType nearestKey)
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
         {
             Node nearestNode;
             return NearestGreater(
@@ -768,7 +768,10 @@ namespace TreeLib
 
 
         private bool NearestLess(
-            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,
+            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -826,7 +829,10 @@ namespace TreeLib
         }
 
         private bool NearestGreater(
-            out Node nearestNode,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] out KeyType nearestKey,
+            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -885,7 +891,10 @@ namespace TreeLib
 
         [Feature(Feature.Dict, Feature.Rank)]
         private bool PredicateAddRemoveOverrideCore(
-            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            bool initial,
+            bool resident,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,
+            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             uint version = this.version;
 
@@ -924,7 +933,10 @@ namespace TreeLib
         [Feature(Feature.Dict, Feature.Rank)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool PredicateAddRemoveOverride(
-            bool initial,            bool resident,            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            bool initial,
+            bool resident,
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]ref KeyType key,
+            [Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             bool predicateExists = false;
             /*[Payload(Payload.None)]*/
@@ -947,7 +959,10 @@ namespace TreeLib
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
         private bool InsertUpdateInternal(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            bool add,            bool update,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            bool add,
+            bool update,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             Debug.Assert((true) || (add != update));
 
@@ -1110,7 +1125,8 @@ namespace TreeLib
         }
 
         private bool DeleteInternal(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Dict, Feature.Rank)][Payload(Payload.None)]UpdatePredicate<KeyType> predicateList)
         {
             unchecked
             {
@@ -1336,7 +1352,10 @@ namespace TreeLib
 
         // Replace the matching node with its successor.
         private void ReplaceNode(
-            Node match,            Node parentOfMatch,            Node successor,            Node parentOfsuccessor)
+            Node match,
+            Node parentOfMatch,
+            Node successor,
+            Node parentOfsuccessor)
         {
             unchecked
             {
@@ -1378,7 +1397,7 @@ namespace TreeLib
 
         // Replace the child of a parent node. 
         // If the parent node is null, replace the root.        
-        private void ReplaceChildOfNodeOrRoot(Node parent,Node child,Node newChild)
+        private void ReplaceChildOfNodeOrRoot(Node parent,Node child, Node newChild)
         {
             if (parent != Null)
             {
@@ -1397,7 +1416,7 @@ namespace TreeLib
             }
         }
 
-        private Node GetSibling(Node node,Node parent)
+        private Node GetSibling(Node node, Node parent)
         {
             if (parent.left == node)
             {
@@ -1410,7 +1429,7 @@ namespace TreeLib
         // It doesn't matter if we keep grandParent and greatGrantParent up-to-date 
         // because we won't need to split again in the next node.
         // By the time we need to split again, everything will be correctly set.
-        private void InsertionBalance(Node current,ref Node parent,Node grandParent,Node greatGrandParent)
+        private void InsertionBalance(Node current,ref Node parent,Node grandParent, Node greatGrandParent)
         {
             Debug.Assert(grandParent != Null, "Grand parent cannot be null here!");
             bool parentIsOnRight = (grandParent.right == parent);
@@ -1462,7 +1481,7 @@ namespace TreeLib
             return (node != Null && node.isRed);
         }
 
-        private void Merge2Nodes(Node parent,Node child1,Node child2)
+        private void Merge2Nodes(Node parent,Node child1, Node child2)
         {
             Debug.Assert(IsRed(parent), "parent must be red");
             // combing two 2-nodes into a 4-node
@@ -1557,7 +1576,7 @@ namespace TreeLib
             LeftRightRotation = 4,
         }
 
-        private TreeRotation RotationNeeded(Node parent,Node current,Node sibling)
+        private TreeRotation RotationNeeded(Node parent,Node current, Node sibling)
         {
             Debug.Assert(IsRed(sibling.left) || IsRed(sibling.right), "sibling must have at least one red child");
             if (IsRed(sibling.left))
@@ -1725,7 +1744,7 @@ namespace TreeLib
             return (root == Null) ? 0 : (1 + Math.Max(ActualMaxDepth(root.left), ActualMaxDepth(root.right)));
         }
 
-        private void ActualMinDepth(Node root,int depth,ref int min)
+        private void ActualMinDepth(Node root,int depth, ref int min)
         {
             if (root == Null)
             {
@@ -1875,7 +1894,7 @@ namespace TreeLib
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryList<KeyType>> GetEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryList<KeyType>> GetEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward); // default
         }
@@ -1902,7 +1921,7 @@ namespace TreeLib
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryList<KeyType>> GetFastEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryList<KeyType>> GetFastEnumerable(KeyType startAt, bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, forward);
         }
@@ -1929,7 +1948,7 @@ namespace TreeLib
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryList<KeyType>> GetRobustEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward);
         }
@@ -1950,7 +1969,7 @@ namespace TreeLib
 
             // Construction
 
-            public RobustEnumerableSurrogate(RedBlackTreeList<KeyType> tree,bool forward)
+            public RobustEnumerableSurrogate(RedBlackTreeList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -1960,7 +1979,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerableSurrogate(RedBlackTreeList<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerableSurrogate(RedBlackTreeList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2000,7 +2019,7 @@ namespace TreeLib
 
             // Construction
 
-            public FastEnumerableSurrogate(RedBlackTreeList<KeyType> tree,bool forward)
+            public FastEnumerableSurrogate(RedBlackTreeList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2010,7 +2029,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerableSurrogate(RedBlackTreeList<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerableSurrogate(RedBlackTreeList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2060,7 +2079,7 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
 
-            public RobustEnumerator(RedBlackTreeList<KeyType> tree,bool forward)
+            public RobustEnumerator(RedBlackTreeList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2069,7 +2088,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerator(RedBlackTreeList<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerator(RedBlackTreeList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2189,7 +2208,7 @@ namespace TreeLib
             private STuple<Node>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(RedBlackTreeList<KeyType> tree,bool forward)
+            public FastEnumerator(RedBlackTreeList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2198,7 +2217,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerator(RedBlackTreeList<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerator(RedBlackTreeList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

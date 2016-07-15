@@ -144,7 +144,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public SplayTreeRangeMapLong(uint capacity,AllocationMode allocationMode)
+        public SplayTreeRangeMapLong(uint capacity, AllocationMode allocationMode)
         {
             this.root = Nil;
 
@@ -877,7 +877,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestLess([Widen] long position,[Widen] out long nearestStart,bool orEqual)
+        private bool NearestLess([Widen] long position,[Widen] out long nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1005,7 +1005,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestGreater([Widen] long position,[Widen] out long nearestStart,bool orEqual)
+        private bool NearestGreater([Widen] long position,[Widen] out long nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1892,7 +1892,7 @@ namespace TreeLib
 
             // Construction
 
-            public RobustEnumerableSurrogate(SplayTreeRangeMapLong<ValueType> tree,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeRangeMapLong<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -1944,7 +1944,7 @@ namespace TreeLib
 
             // Construction
 
-            public FastEnumerableSurrogate(SplayTreeRangeMapLong<ValueType> tree,bool forward)
+            public FastEnumerableSurrogate(SplayTreeRangeMapLong<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2014,7 +2014,7 @@ namespace TreeLib
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(SplayTreeRangeMapLong<ValueType> tree,bool forward)
+            public RobustEnumerator(SplayTreeRangeMapLong<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2165,7 +2165,7 @@ namespace TreeLib
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -2220,7 +2220,7 @@ namespace TreeLib
             private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(SplayTreeRangeMapLong<ValueType> tree,bool forward)
+            public FastEnumerator(SplayTreeRangeMapLong<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2493,7 +2493,7 @@ namespace TreeLib
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

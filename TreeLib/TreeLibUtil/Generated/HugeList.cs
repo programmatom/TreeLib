@@ -123,7 +123,7 @@ namespace TreeLib
         /// <exception cref="ArgumentNullException">storage is null</exception>
         /// <exception cref="ArgumentException">storage is not empty</exception>
         /// <exception cref="ArgumentOutOfRangeException">maxBlockSize is less than 1</exception>
-        public HugeList([Widen]IRangeMap<T[]> storage,int maxBlockSize)
+        public HugeList([Widen]IRangeMap<T[]> storage, int maxBlockSize)
             : this(storage)
         {
             if (maxBlockSize < 1)
@@ -192,7 +192,7 @@ namespace TreeLib
         /// does not have a default constructor, or fails to implement IRangeMap&lt;T%gt;, or IRangeMapLong&lt;T%gt; in the case
         /// of HugeListLong</exception>
         /// <exception cref="ArgumentOutOfRangeException">maxBlockSize is less than 1</exception>
-        public HugeList(Type treeType,int maxBlockSize)
+        public HugeList(Type treeType, int maxBlockSize)
             : this(treeType)
         {
             if (maxBlockSize < 1)
@@ -248,7 +248,7 @@ namespace TreeLib
         /// <param name="index">index of the item in the collection to insert before</param>
         /// <param name="count">number of default-valued items to insert</param>
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
-        public void InsertRangeDefault([Widen]int index,[Widen]int count)
+        public void InsertRangeDefault([Widen]int index, [Widen]int count)
         {
             InsertRangeInternal(index, null, count);
         }
@@ -264,7 +264,7 @@ namespace TreeLib
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
         /// <exception cref="ArgumentException">index, count, or offset exceeds the length of the collection or array</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
-        public void InsertRange([Widen]int index,T[] items,[Widen]int offset,[Widen]int count)
+        public void InsertRange([Widen]int index,T[] items,[Widen]int offset, [Widen]int count)
         {
             InsertRangeInternal(index, new ArrayProvider(items, offset, count), count);
         }
@@ -280,7 +280,7 @@ namespace TreeLib
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
         /// <exception cref="ArgumentException">index, count, or offset exceeds the length of the collection or array</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
-        public void InsertRange([Widen]int index,[Widen]IHugeList<T> items,[Widen]int offset,[Widen]int count)
+        public void InsertRange([Widen]int index,[Widen]IHugeList<T> items,[Widen]int offset, [Widen]int count)
         {
             InsertRangeInternal(index, new HugeListProvider(items, offset, count), count);
         }
@@ -294,7 +294,7 @@ namespace TreeLib
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
         /// <exception cref="ArgumentException">index exceeds the length of the collection or</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
-        public void InsertRange([Widen]int index,T[] items)
+        public void InsertRange([Widen]int index, T[] items)
         {
             if (items == null)
             {
@@ -313,7 +313,7 @@ namespace TreeLib
         /// <exception cref="ArgumentOutOfRangeException">any of the arguments are negative</exception>
         /// <exception cref="ArgumentException">index exceeds the length of the collection or</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
-        public void InsertRange([Widen]int index,IEnumerable<T> collection)
+        public void InsertRange([Widen]int index, IEnumerable<T> collection)
         {
             unchecked
             {
@@ -339,7 +339,7 @@ namespace TreeLib
             }
         }
 
-        public void Insert([Widen]int index,T item)
+        public void Insert([Widen]int index, T item)
         {
             InsertRange(index, new T[1] { item });
         }
@@ -395,7 +395,7 @@ namespace TreeLib
         /// <param name="count">the number of items to remove</param>
         /// <exception cref="ArgumentOutOfRangeException">index or count is less than 0</exception>
         /// <exception cref="ArgumentException">index or count would exceed the end of the collection</exception>
-        public void RemoveRange([Widen]int index,[Widen]int count)
+        public void RemoveRange([Widen]int index, [Widen]int count)
         {
             unchecked
             {
@@ -744,7 +744,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">index and count would exceed the end of the collection or
         /// offset and count2 would exceed the end of 'items'</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
-        public void ReplaceRange([Widen]int index,[Widen]int count,T[] items,[Widen]int offset,[Widen]int count2)
+        public void ReplaceRange([Widen]int index,[Widen]int count,T[] items,[Widen]int offset, [Widen]int count2)
         {
             unchecked
             {
@@ -788,7 +788,7 @@ namespace TreeLib
         /// <exception cref="ArgumentOutOfRangeException">any of the index parameters are less than 0</exception>
         /// <exception cref="ArgumentException">index and count would exceed the end of the collection</exception>
         /// <exception cref="ArgumentNullException">'items' is null</exception>
-        public void ReplaceRange([Widen]int index,[Widen]int count,T[] items)
+        public void ReplaceRange([Widen]int index,[Widen]int count, T[] items)
         {
             ReplaceRange(index, count, items, 0, items.Length);
         }
@@ -812,7 +812,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">index and count would exceed the end of the collection or
         /// arrayIndex and count would exceed the end of 'array'</exception>
         /// <exception cref="ArgumentNullException">'array' is null</exception>
-        public void CopyTo([Widen]int index,T[] array,[Widen]int arrayIndex,[Widen]int count)
+        public void CopyTo([Widen]int index,T[] array,[Widen]int arrayIndex, [Widen]int count)
         {
             if (array == null)
             {
@@ -835,12 +835,12 @@ namespace TreeLib
                 CopyToBatchHelper);
         }
 
-        private static void CopyToBatchHelper(T[] v,[Widen]int vOffset,T[] x,[Widen]int xOffset,[Widen]int count1)
+        private static void CopyToBatchHelper(T[] v,[Widen]int vOffset,T[] x,[Widen]int xOffset, [Widen]int count1)
         {
             Array.Copy(v, vOffset, x, xOffset, count1);
         }
 
-        public void CopyTo(T[] items,[Widen]int arrayIndex)
+        public void CopyTo(T[] items, [Widen]int arrayIndex)
         {
             CopyTo(0, items, arrayIndex, Math.Min(items.Length - arrayIndex, Count));
         }
@@ -868,7 +868,7 @@ namespace TreeLib
         /// <param name="op">the callback function</param>
         /// <exception cref="ArgumentOutOfRangeException">index or count are less than 0</exception>
         /// <exception cref="ArgumentException">index or count would exceed the end of the collection</exception>
-        public void IterateRange([Widen]int index,T[] external,[Widen]int externalOffset,[Widen]int count,IterateOperator<T> op)
+        public void IterateRange([Widen]int index,T[] external,[Widen]int externalOffset,[Widen]int count, IterateOperator<T> op)
         {
             unchecked
             {
@@ -878,7 +878,7 @@ namespace TreeLib
                     externalOffset,
                     count,
                     // must declare anonymous delegate because 'op' is captured
-                    delegate (T[] v,/*[Widen]*/int vOffset,T[] x,/*[Widen]*/int xOffset,/*[Widen]*/int count1)
+                    delegate (T[] v,/*[Widen]*/int vOffset,T[] x,/*[Widen]*/int xOffset, /*[Widen]*/int count1)
                     {
                         if (x != null)
                         {
@@ -910,7 +910,7 @@ namespace TreeLib
         /// <param name="op">the callback function</param>
         /// <exception cref="ArgumentOutOfRangeException">index or count are less than 0</exception>
         /// <exception cref="ArgumentException">index or count would exceed the end of the collection</exception>
-        public void IterateRangeBatch([Widen]int index,T[] external,[Widen]int externalOffset,[Widen]int count,[Widen]IterateOperatorBatch<T> op)
+        public void IterateRangeBatch([Widen]int index,T[] external,[Widen]int externalOffset,[Widen]int count, [Widen]IterateOperatorBatch<T> op)
         {
             unchecked
             {
@@ -981,7 +981,7 @@ namespace TreeLib
         /// <exception cref="InvalidOperationException">comparer is null and there is no Comparer&lt;T&gt;.Default
         /// available for type T</exception>
         [Widen]
-        public int BinarySearch([Widen]int start,[Widen]int count,T value,IComparer<T> comparer,bool multi)
+        public int BinarySearch([Widen]int start,[Widen]int count,T value,IComparer<T> comparer, bool multi)
         {
             unchecked
             {
@@ -1048,7 +1048,7 @@ namespace TreeLib
         /// <exception cref="InvalidOperationException">comparer is null and there is no Comparer&lt;T&gt;.Default
         /// available for type T</exception>
         [Widen]
-        public int BinarySearch([Widen]int start,[Widen]int count,T value,IComparer<T> comparer)
+        public int BinarySearch([Widen]int start,[Widen]int count,T value, IComparer<T> comparer)
         {
             return BinarySearch(start, count, value, comparer, false/*multi*/);
         }
@@ -1066,7 +1066,7 @@ namespace TreeLib
         /// <exception cref="InvalidOperationException">comparer is null and there is no Comparer&lt;T&gt;.Default
         /// available for type T</exception>
         [Widen]
-        public int BinarySearch(T item,IComparer<T> comparer)
+        public int BinarySearch(T item, IComparer<T> comparer)
         {
             return BinarySearch(0, Count, item, comparer, false/*multi*/);
         }
@@ -1098,7 +1098,7 @@ namespace TreeLib
         /// <exception cref="ArgumentNullException">values is null</exception>
         /// <exception cref="InvalidOperationException">there is no Comparer&lt;T&gt;.Default available for type T</exception>
         [Widen]
-        public int IndexOfAny(T[] values,[Widen]int index,[Widen]int count)
+        public int IndexOfAny(T[] values,[Widen]int index, [Widen]int count)
         {
             unchecked
             {
@@ -1164,7 +1164,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start or count would exceed the end of the collection</exception>
         /// <exception cref="InvalidOperationException">there is no Comparer&lt;T&gt;.Default available for type T</exception>
         [Widen]
-        public int IndexOf(T value,[Widen]int index,[Widen]int count)
+        public int IndexOf(T value,[Widen]int index, [Widen]int count)
         {
             unchecked
             {
@@ -1217,7 +1217,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start is greater than the size of the collection</exception>
         /// <exception cref="InvalidOperationException">there is no Comparer&lt;T&gt;.Default available for type T</exception>
         [Widen]
-        public int IndexOf(T value,[Widen]int start)
+        public int IndexOf(T value, [Widen]int start)
         {
             return IndexOf(value, start, Count - start);
         }
@@ -1242,7 +1242,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start or count would exceed the end of the collection</exception>
         /// <exception cref="ArgumentNullException">match is null</exception>
         [Widen]
-        public int FindIndex([Widen]int index,[Widen]int count,Predicate<T> match)
+        public int FindIndex([Widen]int index,[Widen]int count, Predicate<T> match)
         {
             unchecked
             {
@@ -1314,7 +1314,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start greater than the size of the collection</exception>
         /// <exception cref="ArgumentNullException">match is null</exception>
         [Widen]
-        public int FindIndex([Widen]int startIndex,Predicate<T> match)
+        public int FindIndex([Widen]int startIndex, Predicate<T> match)
         {
             return FindIndex(startIndex, Count - startIndex, match);
         }
@@ -1333,7 +1333,7 @@ namespace TreeLib
         /// <exception cref="ArgumentNullException">values is null</exception>
         /// <exception cref="InvalidOperationException">there is no Comparer&lt;T&gt;.Default available for type T</exception>
         [Widen]
-        public int LastIndexOfAny(T[] values,[Widen]int end,[Widen]int count)
+        public int LastIndexOfAny(T[] values,[Widen]int end, [Widen]int count)
         {
             unchecked
             {
@@ -1407,7 +1407,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start or count exceeds the bounds of the collection</exception>
         /// <exception cref="InvalidOperationException">there is no Comparer&lt;T&gt;.Default available for type T</exception>
         [Widen]
-        public int LastIndexOf(T value,[Widen]int end,[Widen]int count)
+        public int LastIndexOf(T value,[Widen]int end, [Widen]int count)
         {
             unchecked
             {
@@ -1468,7 +1468,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start exceeds the bounds of the collection</exception>
         /// <exception cref="InvalidOperationException">there is no Comparer&lt;T&gt;.Default available for type T</exception>
         [Widen]
-        public int LastIndexOf(T value,[Widen]int index)
+        public int LastIndexOf(T value, [Widen]int index)
         {
             unchecked
             {
@@ -1506,7 +1506,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start or count exceeds the bounds of the collection</exception>
         /// <exception cref="ArgumentNullException">match is null</exception>
         [Widen]
-        public int FindLastIndex([Widen]int end,[Widen]int count,Predicate<T> match)
+        public int FindLastIndex([Widen]int end,[Widen]int count, Predicate<T> match)
         {
             unchecked
             {
@@ -1566,7 +1566,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">start exceeds the bounds of the collection</exception>
         /// <exception cref="ArgumentNullException">match is null</exception>
         [Widen]
-        public int FindLastIndex([Widen]int startIndex,Predicate<T> match)
+        public int FindLastIndex([Widen]int startIndex, Predicate<T> match)
         {
             unchecked
             {
@@ -1618,7 +1618,7 @@ namespace TreeLib
         {
             [Widen]
             public abstract int Count { get; }
-            public abstract void Take(T[] array,int arrayOffset,int count);
+            public abstract void Take(T[] array,int arrayOffset, int count);
         }
 
         private sealed class ArrayProvider : Provider
@@ -1629,7 +1629,7 @@ namespace TreeLib
             [Widen]
             private int dataCount;
 
-            public ArrayProvider(T[] data,[Widen]int dataOffset,[Widen]int dataCount)
+            public ArrayProvider(T[] data,[Widen]int dataOffset, [Widen]int dataCount)
             {
                 if (data == null)
                 {
@@ -1649,7 +1649,7 @@ namespace TreeLib
                 this.dataCount = dataCount;
             }
 
-            public override void Take(T[] array,int arrayOffset,int count)
+            public override void Take(T[] array,int arrayOffset, int count)
             {
                 Debug.Assert((arrayOffset >= 0) && (count >= 0)
                     && unchecked((/*[Widen]*/uint)arrayOffset + (/*[Widen]*/uint)count <= (/*[Widen]*/uint)array.Length));
@@ -1674,7 +1674,7 @@ namespace TreeLib
             private readonly IEnumerator<EntryRangeMap<T[]>> enumerator;
             private EntryRangeMap<T[]> current;
 
-            public HugeListProvider([Widen]IHugeList<T> list,[Widen]int listOffset,[Widen]int listCount)
+            public HugeListProvider([Widen]IHugeList<T> list,[Widen]int listOffset, [Widen]int listCount)
             {
                 if (list == null)
                 {
@@ -1695,7 +1695,7 @@ namespace TreeLib
                 this.enumerator = list.GetEnumerableChunked(listOffset).GetEnumerator();
             }
 
-            public override void Take(T[] array,int arrayOffset,int count)
+            public override void Take(T[] array,int arrayOffset, int count)
             {
                 Debug.Assert((arrayOffset >= 0) && (count >= 0)
                     && unchecked((/*[Widen]*/uint)arrayOffset + (/*[Widen]*/uint)count <= (/*[Widen]*/uint)array.Length));
@@ -1722,7 +1722,7 @@ namespace TreeLib
             public override int Count { get { return listCount; } }
         }
 
-        private void InsertRangeInternal([Widen]int index,Provider source/*optional*/,[Widen]int count)
+        private void InsertRangeInternal([Widen]int index,Provider source/*optional*/, [Widen]int count)
         {
             unchecked
             {
@@ -2084,7 +2084,7 @@ namespace TreeLib
             }
         }
 
-        private T[] Select([Widen]int index,out int offset,out int count)
+        private T[] Select([Widen]int index,out int offset, out int count)
         {
             if (unchecked((/*[Widen]*/uint)index >= (/*[Widen]*/uint)tree.GetExtent()))
             {
@@ -2215,7 +2215,7 @@ namespace TreeLib
             }
         }
 
-        private void CopyFrom([Widen]int index,T[] array,[Widen]int arrayIndex,[Widen]int count)
+        private void CopyFrom([Widen]int index,T[] array,[Widen]int arrayIndex, [Widen]int count)
         {
             Debug.Assert(array != null);
             IterateRangeBatch(
@@ -2223,7 +2223,7 @@ namespace TreeLib
                 array,
                 arrayIndex,
                 count,
-                delegate (T[] v,/*[Widen]*/int vOffset,T[] x,/*[Widen]*/int xOffset,/*[Widen]*/int count1)
+                delegate (T[] v,/*[Widen]*/int vOffset,T[] x,/*[Widen]*/int xOffset, /*[Widen]*/int count1)
                 {
                     Array.Copy(x, xOffset, v, vOffset, count1);
                 });
@@ -2312,7 +2312,7 @@ namespace TreeLib
         /// array contained in the Value field fo the entry object, since the array may contain unused padding.</remarks>
         /// <exception cref="ArgumentOutOfRangeException">start is less than zero</exception>
         /// <exception cref="ArgumentException">start is greater than the number of items in the list</exception>
-        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked([Widen] int start,bool forward)
+        public IEnumerable<EntryRangeMap<T[]>> GetEnumerableChunked([Widen] int start, bool forward)
         {
             if (forward)
             {
@@ -2420,7 +2420,7 @@ namespace TreeLib
             private readonly int start; // -1 == default (beginning or end, depending on value of forward)
             private readonly bool forward;
 
-            public ChunkedEnumerableSurrogate(HugeList<T> list,[Widen]int start,bool forward)
+            public ChunkedEnumerableSurrogate(HugeList<T> list,[Widen]int start, bool forward)
             {
                 this.list = list;
                 this.start = start;
@@ -2444,7 +2444,7 @@ namespace TreeLib
             private readonly HugeList<T> list;
             private uint version;
 
-            public ChunkedEnumerator(HugeList<T> list,[Widen]int start/*-2==default*/,bool forward)
+            public ChunkedEnumerator(HugeList<T> list,[Widen]int start/*-2==default*/, bool forward)
             {
                 this.list = list;
 

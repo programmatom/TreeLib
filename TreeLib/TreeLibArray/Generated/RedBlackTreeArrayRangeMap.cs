@@ -115,12 +115,12 @@ namespace TreeLib
                 return nodeRef.node;
             }
 
-            public static bool operator ==(NodeRef left,NodeRef right)
+            public static bool operator ==(NodeRef left, NodeRef right)
             {
                 return left.node == right.node;
             }
 
-            public static bool operator !=(NodeRef left,NodeRef right)
+            public static bool operator !=(NodeRef left, NodeRef right)
             {
                 return left.node != right.node;
             }
@@ -177,7 +177,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
-        public RedBlackTreeArrayRangeMap(uint capacity,AllocationMode allocationMode)
+        public RedBlackTreeArrayRangeMap(uint capacity, AllocationMode allocationMode)
         {
             if (allocationMode == AllocationMode.DynamicDiscard)
             {
@@ -1017,7 +1017,7 @@ namespace TreeLib
         // Array allocation
 
         [Storage(Storage.Array)]
-        private NodeRef Allocate([Payload(Payload.Value)] ValueType value,bool isRed)
+        private NodeRef Allocate([Payload(Payload.Value)] ValueType value, bool isRed)
         {
             if (freelist == Null)
             {
@@ -1083,7 +1083,10 @@ namespace TreeLib
 
 
         private bool NearestLess(
-            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+            out NodeRef nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
+            bool orEqual)
         {
             NodeRef lastLess = Null;
             /*[Widen]*/
@@ -1145,7 +1148,10 @@ namespace TreeLib
         }
 
         private bool NearestGreater(
-            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+            out NodeRef nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
+            bool orEqual)
         {
             NodeRef lastGreater = Null;
             /*[Widen]*/
@@ -1212,7 +1218,11 @@ namespace TreeLib
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
         private bool InsertUpdateInternal(
-            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            bool add,            bool update)
+            [Payload(Payload.Value)] ValueType value,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
+            bool add,
+            bool update)
         {
             Debug.Assert(add != update);
 
@@ -1427,7 +1437,8 @@ uint countNew = checked(this.count + 1);
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private void ShiftRightOfPath(
-            [Widen] int position,            [Widen] int xAdjust)
+            [Widen] int position,
+            [Widen] int xAdjust)
         {
             unchecked
             {
@@ -1714,7 +1725,11 @@ uint countNew = checked(this.count + 1);
 
         // Replace the matching node with its successor.
         private void ReplaceNode(
-            NodeRef match,            NodeRef parentOfMatch,            NodeRef successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            NodeRef parentOfsuccessor)
+            NodeRef match,
+            NodeRef parentOfMatch,
+            NodeRef successor,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,
+            NodeRef parentOfsuccessor)
         {
             unchecked
             {
@@ -1775,7 +1790,7 @@ uint countNew = checked(this.count + 1);
 
         // Replace the child of a parent node. 
         // If the parent node is null, replace the root.        
-        private void ReplaceChildOfNodeOrRoot(NodeRef parent,NodeRef child,NodeRef newChild)
+        private void ReplaceChildOfNodeOrRoot(NodeRef parent,NodeRef child, NodeRef newChild)
         {
             if (parent != Null)
             {
@@ -1794,7 +1809,7 @@ uint countNew = checked(this.count + 1);
             }
         }
 
-        private NodeRef GetSibling(NodeRef node,NodeRef parent)
+        private NodeRef GetSibling(NodeRef node, NodeRef parent)
         {
             if (nodes[parent].left == node)
             {
@@ -1807,7 +1822,7 @@ uint countNew = checked(this.count + 1);
         // It doesn't matter if we keep grandParent and greatGrantParent up-to-date 
         // because we won't need to split again in the next node.
         // By the time we need to split again, everything will be correctly set.
-        private void InsertionBalance(NodeRef current,ref NodeRef parent,NodeRef grandParent,NodeRef greatGrandParent)
+        private void InsertionBalance(NodeRef current,ref NodeRef parent,NodeRef grandParent, NodeRef greatGrandParent)
         {
             Debug.Assert(grandParent != Null, "Grand parent cannot be null here!");
             bool parentIsOnRight = (nodes[grandParent].right == parent);
@@ -1859,7 +1874,7 @@ uint countNew = checked(this.count + 1);
             return (node != Null && nodes[node].isRed);
         }
 
-        private void Merge2Nodes(NodeRef parent,NodeRef child1,NodeRef child2)
+        private void Merge2Nodes(NodeRef parent,NodeRef child1, NodeRef child2)
         {
             Debug.Assert(IsRed(parent), "parent must be red");
             // combing two 2-nodes into a 4-node
@@ -1870,7 +1885,10 @@ uint countNew = checked(this.count + 1);
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private bool FindPosition(
-            [Widen] int position,            out NodeRef lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength)
+            [Widen] int position,
+            out NodeRef lastLessEqual,
+            [Widen] out int xPositionLastLessEqual,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength)
         {
             unchecked
             {
@@ -2049,7 +2067,7 @@ uint countNew = checked(this.count + 1);
             LeftRightRotation = 4,
         }
 
-        private TreeRotation RotationNeeded(NodeRef parent,NodeRef current,NodeRef sibling)
+        private TreeRotation RotationNeeded(NodeRef parent,NodeRef current, NodeRef sibling)
         {
             Debug.Assert(IsRed(nodes[sibling].left) || IsRed(nodes[sibling].right), "sibling must have at least one red child");
             if (IsRed(nodes[sibling].left))
@@ -2268,7 +2286,7 @@ uint countNew = checked(this.count + 1);
             return (root == Null) ? 0 : (1 + Math.Max(ActualMaxDepth(nodes[root].left), ActualMaxDepth(nodes[root].right)));
         }
 
-        private void ActualMinDepth(NodeRef root,int depth,ref int min)
+        private void ActualMinDepth(NodeRef root,int depth, ref int min)
         {
             if (root == Null)
             {
@@ -2573,7 +2591,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public RobustEnumerableSurrogate(RedBlackTreeArrayRangeMap<ValueType> tree,bool forward)
+            public RobustEnumerableSurrogate(RedBlackTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2625,7 +2643,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public FastEnumerableSurrogate(RedBlackTreeArrayRangeMap<ValueType> tree,bool forward)
+            public FastEnumerableSurrogate(RedBlackTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2695,7 +2713,7 @@ uint countNew = checked(this.count + 1);
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(RedBlackTreeArrayRangeMap<ValueType> tree,bool forward)
+            public RobustEnumerator(RedBlackTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2840,7 +2858,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -2889,7 +2907,7 @@ uint countNew = checked(this.count + 1);
             private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(RedBlackTreeArrayRangeMap<ValueType> tree,bool forward)
+            public FastEnumerator(RedBlackTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3147,7 +3165,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

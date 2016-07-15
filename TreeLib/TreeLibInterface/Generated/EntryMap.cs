@@ -82,7 +82,10 @@ namespace TreeLib
 
 
         public EntryMap(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Payload(Payload.Value)] ValueType value,
+            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,
+            [Payload(Payload.Value)] uint version)
         {
             this.key = key;
             this.value = value;
@@ -93,7 +96,8 @@ namespace TreeLib
 
         [Payload(Payload.Value)]
         public EntryMap(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Payload(Payload.Value)] ValueType value)
         {
             this.key = key;
             this.value = value;

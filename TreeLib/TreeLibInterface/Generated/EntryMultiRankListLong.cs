@@ -73,7 +73,9 @@ namespace TreeLib
 
 
         public EntryMultiRankListLong(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xStart,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength)
         {
             this.key = key;
             this.xStart = xStart;

@@ -237,9 +237,27 @@ namespace BuildTool
                 // to be stripped may cause processing errors (e.g. because they contain a generic type reference to a type
                 // parameter that is being eliminated). Therefore, do the work ourselves using base.VisitParameter(parameter)
                 // on each.
+                bool hasTrailingSeparator = i < node.Parameters.Count - 1;
+                bool hasLeadingSeparator = i > 0;
+                SyntaxToken originalSeparator = hasTrailingSeparator
+                    ? node.Parameters.GetSeparator(i)
+                    : (hasLeadingSeparator
+                        ? node.Parameters.GetSeparator(i - 1)
+                        : SyntaxFactory.MissingToken(SyntaxKind.CommaToken));
+                SeparatedSyntaxList<ParameterSyntax> parameters = node.Parameters
+                    .RemoveAt(i)
+                    .Insert(i, (ParameterSyntax)base.VisitParameter(parameter).WithTriviaFrom(node.Parameters[i]));
+                if (hasTrailingSeparator)
+                {
+                    parameters = parameters.ReplaceSeparator(parameters.GetSeparator(i), originalSeparator);
+                }
+                else if (hasLeadingSeparator)
+                {
+                    parameters = parameters.ReplaceSeparator(parameters.GetSeparator(i - 1), originalSeparator);
+                }
                 node = node.Update(
                     node.OpenParenToken,
-                    node.Parameters.RemoveAt(i).Insert(i, (ParameterSyntax)base.VisitParameter(parameter).WithTriviaFrom(node.Parameters[i])),
+                    parameters,
                     node.CloseParenToken);
                 i++;
             }
@@ -443,7 +461,7 @@ namespace BuildTool
                     SimpleBaseTypeSyntax baseType;
                     if ((baseType = baseType1 as SimpleBaseTypeSyntax) != null)
                     {
-                        //foreach (var x in baseType.GetLeadingTrivia())
+                        //foreach (SyntaxTrivia x in baseType.GetLeadingTrivia())
                         //{
                         //    Console.WriteLine(x.ToFullString());
                         //}

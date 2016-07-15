@@ -149,7 +149,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public SplayTreeRange2ListLong(uint capacity,AllocationMode allocationMode)
+        public SplayTreeRange2ListLong(uint capacity, AllocationMode allocationMode)
         {
             this.root = Nil;
 
@@ -316,7 +316,7 @@ namespace TreeLib
         /// <param name="side">the side (X or Y) to which the specified index applies</param>
         /// <returns>true if there is a range starting at the specified index</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool Contains([Widen] long start,[Feature(Feature.Range2)] Side side)
+        public bool Contains([Widen] long start, [Feature(Feature.Range2)] Side side)
         {
             if (root != Nil)
             {
@@ -450,7 +450,7 @@ namespace TreeLib
         /// <param name="side">the side (X or Y) to which the start index applies</param>
         /// <returns>true if a range pair was successfully deleted</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TryDelete([Widen] long start,[Feature(Feature.Range2)] Side side)
+        public bool TryDelete([Widen] long start, [Feature(Feature.Range2)] Side side)
         {
             unchecked
             {
@@ -517,7 +517,7 @@ namespace TreeLib
         /// <param name="length">the length of the range from the specified side (X or Y)</param>
         /// <returns>true if a range was found starting at the specified index</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TryGetLength([Widen] long start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out long length)
+        public bool TryGetLength([Widen] long start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] out long length)
         {
             unchecked
             {
@@ -555,7 +555,7 @@ namespace TreeLib
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         /// <exception cref="OverflowException">the sum of lengths on the specified side would have exceeded Int64.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySetLength([Widen] long start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long length)
+        public bool TrySetLength([Widen] long start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] long length)
         {
             if (length <= 0)
             {
@@ -771,7 +771,7 @@ namespace TreeLib
         /// <param name="side">the side (X or Y) to which the start index applies</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void Delete([Widen] long start,[Feature(Feature.Range2)] Side side)
+        public void Delete([Widen] long start, [Feature(Feature.Range2)] Side side)
         {
             if (!TryDelete(start, /*[Feature(Feature.Range2)]*/side))
             {
@@ -790,7 +790,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        public long GetLength([Widen] long start,[Feature(Feature.Range2)] Side side)
+        public long GetLength([Widen] long start, [Feature(Feature.Range2)] Side side)
         {
             /*[Widen]*/
             long length ;
@@ -813,7 +813,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         /// <exception cref="OverflowException">the sum of lengths on the specified side would have exceeded Int64.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void SetLength([Widen] long start,[Feature(Feature.Range2)] Side side,[Widen] long length)
+        public void SetLength([Widen] long start,[Feature(Feature.Range2)] Side side, [Widen] long length)
         {
             if (!TrySetLength(start, /*[Feature(Feature.Range2)]*/side, length))
             {
@@ -878,7 +878,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestLess([Widen] long position,[Feature(Feature.Range2)] [Const(Side.X, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out long nearestStart,bool orEqual)
+        private bool NearestLess([Widen] long position,[Feature(Feature.Range2)] [Const(Side.X, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out long nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -956,7 +956,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
-        public bool NearestLessOrEqual([Widen] long position,[Feature(Feature.Range2)] Side side,[Widen] out long nearestStart)
+        public bool NearestLessOrEqual([Widen] long position,[Feature(Feature.Range2)] Side side, [Widen] out long nearestStart)
         {
             return NearestLess(position, /*[Feature(Feature.Range2)]*/side, out nearestStart, true/*orEqual*/);
         }
@@ -1008,13 +1008,13 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index less than the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestLessByRank", Feature.RankMulti)]
-        public bool NearestLess([Widen] long position,[Feature(Feature.Range2)] Side side,[Widen] out long nearestStart)
+        public bool NearestLess([Widen] long position,[Feature(Feature.Range2)] Side side, [Widen] out long nearestStart)
         {
             return NearestLess(position, /*[Feature(Feature.Range2)]*/side, out nearestStart, false/*orEqual*/);
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestGreater([Widen] long position,[Feature(Feature.Range2)] [Const(Side.X, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out long nearestStart,bool orEqual)
+        private bool NearestGreater([Widen] long position,[Feature(Feature.Range2)] [Const(Side.X, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out long nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1090,7 +1090,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
-        public bool NearestGreaterOrEqual([Widen] long position,[Feature(Feature.Range2)] Side side,[Widen] out long nearestStart)
+        public bool NearestGreaterOrEqual([Widen] long position,[Feature(Feature.Range2)] Side side, [Widen] out long nearestStart)
         {
             return NearestGreater(position, /*[Feature(Feature.Range2)]*/side, out nearestStart, true/*orEqual*/);
         }
@@ -1142,7 +1142,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestGreaterByRank", Feature.RankMulti)]
-        public bool NearestGreater([Widen] long position,[Feature(Feature.Range2)] Side side,[Widen] out long nearestStart)
+        public bool NearestGreater([Widen] long position,[Feature(Feature.Range2)] Side side, [Widen] out long nearestStart)
         {
             return NearestGreater(position, /*[Feature(Feature.Range2)]*/side, out nearestStart, false/*orEqual*/);
         }
@@ -1163,7 +1163,7 @@ namespace TreeLib
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        public long AdjustLength([Widen] long startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xAdjust,[Feature(Feature.Range2)] [Widen] long yAdjust)
+        public long AdjustLength([Widen] long startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] long xAdjust, [Feature(Feature.Range2)] [Widen] long yAdjust)
         {
             unchecked
             {
@@ -1345,13 +1345,13 @@ namespace TreeLib
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Widen]
-        private long Start(Node n,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        private long Start(Node n, [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return side == Side.X ? n.xOffset : n.yOffset;
         }
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private void Splay2(ref Node root,[Widen] long position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        private void Splay2(ref Node root,[Widen] long position, [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             unchecked
             {
@@ -1879,7 +1879,7 @@ namespace TreeLib
         /// <param name="side">The side (X or Y) to which the index pertains</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2ListLong> GetEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public IEnumerable<EntryRange2ListLong> GetEnumerable([Widen] long startAt, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/); // default
         }
@@ -1896,7 +1896,7 @@ namespace TreeLib
         /// from the last range through decreasing start indexes</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2ListLong> GetEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        public IEnumerable<EntryRange2ListLong> GetEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward); // default
         }
@@ -1910,7 +1910,7 @@ namespace TreeLib
         /// <param name="side">The side (X or Y) to which the index pertains</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2ListLong> GetFastEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public IEnumerable<EntryRange2ListLong> GetFastEnumerable([Widen] long startAt, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return new FastEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/);
         }
@@ -1927,7 +1927,7 @@ namespace TreeLib
         /// from the last range through decreasing start indexes</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2ListLong> GetFastEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        public IEnumerable<EntryRange2ListLong> GetFastEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward);
         }
@@ -1941,7 +1941,7 @@ namespace TreeLib
         /// <param name="side">The side (X or Y) to which the index pertains</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2ListLong> GetRobustEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public IEnumerable<EntryRange2ListLong> GetRobustEnumerable([Widen] long startAt, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/);
         }
@@ -1958,7 +1958,7 @@ namespace TreeLib
         /// from the last range through decreasing start indexes</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2ListLong> GetRobustEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        public IEnumerable<EntryRange2ListLong> GetRobustEnumerable([Widen] long startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward);
         }
@@ -1982,7 +1982,7 @@ namespace TreeLib
 
             // Construction
 
-            public RobustEnumerableSurrogate(SplayTreeRange2ListLong tree,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeRange2ListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -1993,7 +1993,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public RobustEnumerableSurrogate(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2038,7 +2038,7 @@ namespace TreeLib
 
             // Construction
 
-            public FastEnumerableSurrogate(SplayTreeRange2ListLong tree,bool forward)
+            public FastEnumerableSurrogate(SplayTreeRange2ListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2049,7 +2049,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public FastEnumerableSurrogate(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public FastEnumerableSurrogate(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2110,7 +2110,7 @@ namespace TreeLib
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(SplayTreeRange2ListLong tree,bool forward)
+            public RobustEnumerator(SplayTreeRange2ListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2119,7 +2119,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public RobustEnumerator(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public RobustEnumerator(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2314,7 +2314,7 @@ namespace TreeLib
             private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long,/*[Feature(Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(SplayTreeRange2ListLong tree,bool forward)
+            public FastEnumerator(SplayTreeRange2ListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2323,7 +2323,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public FastEnumerator(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public FastEnumerator(SplayTreeRange2ListLong tree,[Widen] long startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

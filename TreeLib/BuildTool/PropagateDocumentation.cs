@@ -233,7 +233,7 @@ namespace BuildTool
                     trivia.Add(one);
                 }
             }
-            return new SyntaxTriviaList().AddRange(trivia);
+            return SyntaxTriviaList.Empty.AddRange(trivia);
         }
 
         private static string GetStringForBaseTypeComparison(BaseTypeSyntax baseType)

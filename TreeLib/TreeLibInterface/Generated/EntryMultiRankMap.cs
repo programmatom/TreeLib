@@ -108,7 +108,12 @@ namespace TreeLib
 
 
         public EntryMultiRankMap(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Payload(Payload.Value)] ValueType value,
+            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,
+            [Payload(Payload.Value)] uint version,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
         {
             this.key = key;
             this.value = value;
@@ -121,7 +126,10 @@ namespace TreeLib
 
         [Payload(Payload.Value)]
         public EntryMultiRankMap(
-            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
+            [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] KeyType key,
+            [Payload(Payload.Value)] ValueType value,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength)
         {
             this.key = key;
             this.value = value;

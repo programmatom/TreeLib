@@ -135,8 +135,8 @@ namespace BuildTool
             SyntaxTriviaList[] argumentTriviasTrailing = new SyntaxTriviaList[count];
             for (int j = 0; j < count; j++)
             {
-                argumentTriviasLeading[j] = new SyntaxTriviaList();
-                argumentTriviasTrailing[j] = new SyntaxTriviaList();
+                argumentTriviasLeading[j] = SyntaxTriviaList.Empty;
+                argumentTriviasTrailing[j] = SyntaxTriviaList.Empty;
             }
 
             if (count > 0)
@@ -177,20 +177,18 @@ namespace BuildTool
             DetectMultiLineArgumentList(node.Arguments, out multiline, out indent);
 
             // strip all trivia
-            node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(new SyntaxTriviaList()));
-            node = node.WithCloseParenToken(node.CloseParenToken.WithLeadingTrivia(new SyntaxTriviaList()));
+            node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(SyntaxTriviaList.Empty));
+            node = node.WithCloseParenToken(node.CloseParenToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
             for (int j = 0; j < count - 1; j++)
             {
                 node = node.WithArguments(
                     node.Arguments.ReplaceSeparator(
                         node.Arguments.GetSeparator(j),
-                        node.Arguments.GetSeparator(j).WithLeadingTrivia(new SyntaxTriviaList()).WithTrailingTrivia(new SyntaxTriviaList())));
+                        node.Arguments.GetSeparator(j).WithLeadingTrivia(SyntaxTriviaList.Empty).WithTrailingTrivia(SyntaxTriviaList.Empty)));
             }
 
             // reformat
-            SyntaxTriviaList delimiterTrailing = multiline
-                ? new SyntaxTriviaList().Add(SyntaxFactory.EndOfLine(Environment.NewLine)).Add(SyntaxFactory.Whitespace(new string(' ', indent)))
-                : new SyntaxTriviaList().Add(SyntaxFactory.Space);
+            SyntaxTriviaList delimiterTrailing = CreateDelimiterTrailer(multiline, indent);
             if (multiline)
             {
                 node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(delimiterTrailing));
@@ -228,8 +226,8 @@ namespace BuildTool
             SyntaxTriviaList[] argumentTriviasTrailing = new SyntaxTriviaList[count];
             for (int j = 0; j < count; j++)
             {
-                argumentTriviasLeading[j] = new SyntaxTriviaList();
-                argumentTriviasTrailing[j] = new SyntaxTriviaList();
+                argumentTriviasLeading[j] = SyntaxTriviaList.Empty;
+                argumentTriviasTrailing[j] = SyntaxTriviaList.Empty;
             }
 
             if (count > 0)
@@ -270,20 +268,18 @@ namespace BuildTool
             DetectMultiLineArgumentList(node.Arguments, out multiline, out indent);
 
             // strip all trivia
-            node = node.WithLessThanToken(node.LessThanToken.WithTrailingTrivia(new SyntaxTriviaList()));
-            node = node.WithGreaterThanToken(node.GreaterThanToken.WithLeadingTrivia(new SyntaxTriviaList()));
+            node = node.WithLessThanToken(node.LessThanToken.WithTrailingTrivia(SyntaxTriviaList.Empty));
+            node = node.WithGreaterThanToken(node.GreaterThanToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
             for (int j = 0; j < count - 1; j++)
             {
                 node = node.WithArguments(
                     node.Arguments.ReplaceSeparator(
                         node.Arguments.GetSeparator(j),
-                        node.Arguments.GetSeparator(j).WithLeadingTrivia(new SyntaxTriviaList()).WithTrailingTrivia(new SyntaxTriviaList())));
+                        node.Arguments.GetSeparator(j).WithLeadingTrivia(SyntaxTriviaList.Empty).WithTrailingTrivia(SyntaxTriviaList.Empty)));
             }
 
             // reformat
-            SyntaxTriviaList delimiterTrailing = multiline
-                ? new SyntaxTriviaList().Add(SyntaxFactory.EndOfLine(Environment.NewLine)).Add(SyntaxFactory.Whitespace(new string(' ', indent)))
-                : new SyntaxTriviaList().Add(SyntaxFactory.Space);
+            SyntaxTriviaList delimiterTrailing = CreateDelimiterTrailer(multiline, indent);
             if (multiline)
             {
                 node = node.WithLessThanToken(node.LessThanToken.WithTrailingTrivia(delimiterTrailing));
@@ -340,6 +336,14 @@ namespace BuildTool
             return candidate.IsKind(SyntaxKind.MultiLineCommentTrivia);
         }
 
+        private static SyntaxTriviaList CreateDelimiterTrailer(bool multiline, int indent)
+        {
+            SyntaxTriviaList delimiterTrailing = multiline
+                ? SyntaxTriviaList.Create(SyntaxFactory.EndOfLine(Environment.NewLine)).Add(SyntaxFactory.Whitespace(new string(' ', indent)))
+                : SyntaxTriviaList.Create(SyntaxFactory.Space);
+            return delimiterTrailing;
+        }
+
         private static ParameterListSyntax NormalizeParameterList(ParameterListSyntax node)
         {
             int count = node.Parameters.Count;
@@ -348,8 +352,8 @@ namespace BuildTool
             SyntaxTriviaList[] argumentTriviasTrailing = new SyntaxTriviaList[count];
             for (int j = 0; j < count; j++)
             {
-                argumentTriviasLeading[j] = new SyntaxTriviaList();
-                argumentTriviasTrailing[j] = new SyntaxTriviaList();
+                argumentTriviasLeading[j] = SyntaxTriviaList.Empty;
+                argumentTriviasTrailing[j] = SyntaxTriviaList.Empty;
             }
 
             if (count > 0)
@@ -390,20 +394,18 @@ namespace BuildTool
             DetectMultiLineArgumentList(node.Parameters, out multiline, out indent);
 
             // strip all trivia
-            node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(new SyntaxTriviaList()));
-            node = node.WithCloseParenToken(node.CloseParenToken.WithLeadingTrivia(new SyntaxTriviaList()));
+            node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(SyntaxTriviaList.Empty));
+            node = node.WithCloseParenToken(node.CloseParenToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
             for (int j = 0; j < count - 1; j++)
             {
                 node = node.WithParameters(
                     node.Parameters.ReplaceSeparator(
                         node.Parameters.GetSeparator(j),
-                        node.Parameters.GetSeparator(j).WithLeadingTrivia(new SyntaxTriviaList()).WithTrailingTrivia(new SyntaxTriviaList())));
+                        node.Parameters.GetSeparator(j).WithLeadingTrivia(SyntaxTriviaList.Empty).WithTrailingTrivia(SyntaxTriviaList.Empty)));
             }
 
             // reformat
-            SyntaxTriviaList delimiterTrailing = multiline
-                ? new SyntaxTriviaList().Add(SyntaxFactory.EndOfLine(Environment.NewLine)).Add(SyntaxFactory.Whitespace(new string(' ', indent)))
-                : new SyntaxTriviaList().Add(SyntaxFactory.Space);
+            SyntaxTriviaList delimiterTrailing = CreateDelimiterTrailer(multiline, indent);
             if (multiline)
             {
                 node = node.WithOpenParenToken(node.OpenParenToken.WithTrailingTrivia(delimiterTrailing));

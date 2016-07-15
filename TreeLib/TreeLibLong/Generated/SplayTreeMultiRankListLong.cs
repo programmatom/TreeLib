@@ -50,7 +50,7 @@ namespace TreeLib
     /// </summary>
     
     /// <summary>
-    /// Represents a ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array. Each key also has a count
     /// associated with it, which models sorted arrays containing multiple instances of a key. It is equivalent to the number of times
     /// the key appears in the array. Rank index values account for such multiple occurrences. In this case, the rank
@@ -148,7 +148,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public SplayTreeMultiRankListLong([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity,AllocationMode allocationMode)
+        public SplayTreeMultiRankListLong([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity, AllocationMode allocationMode)
         {
             this.comparer = comparer;
             this.root = Nil;
@@ -174,7 +174,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public SplayTreeMultiRankListLong(uint capacity,AllocationMode allocationMode)
+        public SplayTreeMultiRankListLong(uint capacity, AllocationMode allocationMode)
             : this(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/Comparer<KeyType>.Default, capacity, allocationMode)
         {
         }
@@ -352,7 +352,9 @@ namespace TreeLib
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool TrySetOrAddInternal(
-            KeyType key,            [Feature(Feature.RankMulti)][Const(1, Feature.Dict, Feature.Rank)][SuppressConst(Feature.RankMulti)][Widen]long rankCount,            bool updateExisting)
+            KeyType key,
+            [Feature(Feature.RankMulti)][Const(1, Feature.Dict, Feature.Rank)][SuppressConst(Feature.RankMulti)][Widen]long rankCount,
+            bool updateExisting)
         {
             unchecked
             {
@@ -449,7 +451,8 @@ namespace TreeLib
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool TrySetOrRemoveInternal(
-            KeyType key,            bool updateExisting)
+            KeyType key,
+            bool updateExisting)
         {
             unchecked
             {
@@ -530,7 +533,7 @@ namespace TreeLib
         /// <returns>true if they key was found</returns>
         [Payload(Payload.None)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKey(KeyType key,out KeyType keyOut)
+        public bool TryGetKey(KeyType key, out KeyType keyOut)
         {
             if (root != Nil)
             {
@@ -707,7 +710,7 @@ namespace TreeLib
         /// <param name="nearestKey">highest key less than or equal to provided key</param>
         /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
             return NearestLess(key, out nearestKey, true/*orEqual*/);
         }
@@ -722,7 +725,7 @@ namespace TreeLib
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank, [Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
             rank = 0;
             rankCount = 0;
@@ -746,7 +749,7 @@ namespace TreeLib
         /// <param name="nearestKey">highest key less than the provided key</param>
         /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLess(KeyType key,out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
         {
             return NearestLess(key, out nearestKey, false/*orEqual*/);
         }
@@ -761,7 +764,7 @@ namespace TreeLib
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestLess(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        public bool NearestLess(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank, [Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
             rank = 0;
             rankCount = 0;
@@ -809,7 +812,7 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
         /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
             return NearestGreater(key, out nearestKey, true/*orEqual*/);
         }
@@ -824,7 +827,7 @@ namespace TreeLib
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank, [Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
             rank = this.xExtent;
             rankCount = 0;
@@ -848,7 +851,7 @@ namespace TreeLib
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreater(KeyType key,out KeyType nearestKey)
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
         {
             return NearestGreater(key, out nearestKey, false/*orEqual*/);
         }
@@ -863,7 +866,7 @@ namespace TreeLib
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out long rank, [Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
             rank = this.xExtent;
             rankCount = 0;
@@ -908,7 +911,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestLess([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,bool orEqual)
+        private bool NearestLess([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1038,7 +1041,7 @@ namespace TreeLib
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestGreater([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart,bool orEqual)
+        private bool NearestGreater([Widen] long position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out long nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1218,7 +1221,7 @@ namespace TreeLib
         /// this key if the collection were converted to a sorted array</param>
         /// <returns>true if they key was found</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool TryGet(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        public bool TryGet(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out long rank, [Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
             unchecked
             {
@@ -1304,7 +1307,7 @@ namespace TreeLib
         /// <returns>true if there is an element at the the specified index and it corresponds to the first in the virtual
         /// ordered sequence of multiple instances in an equivalent sorted array</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKeyByRank([Widen] long rank,out KeyType key)
+        public bool TryGetKeyByRank([Widen] long rank, out KeyType key)
         {
             unchecked
             {
@@ -1376,7 +1379,7 @@ namespace TreeLib
         /// this key if the collection were converted to a sorted array</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public void Get(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out long rank,[Feature(Feature.RankMulti)][Widen] out long rankCount)
+        public void Get(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out long rank, [Feature(Feature.RankMulti)][Widen] out long rankCount)
         {
             if (!TryGet(key, /*[Payload(Payload.None)]*/out keyOut, out rank, /*[Feature(Feature.RankMulti)]*/out rankCount))
             {
@@ -1438,7 +1441,7 @@ namespace TreeLib
         /// <exception cref="OverflowException">the sum of counts would have exceeded Int64.MaxValue</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        public long AdjustCount(KeyType key,[Widen] long countAdjust)
+        public long AdjustCount(KeyType key, [Widen] long countAdjust)
         {
             unchecked
             {
@@ -1672,14 +1675,14 @@ namespace TreeLib
                 this.fixedResult = fixedResult;
             }
 
-            public int Compare(KeyType x,KeyType y)
+            public int Compare(KeyType x, KeyType y)
             {
                 return fixedResult;
             }
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private void Splay(ref Node root,KeyType leftComparand,IComparer<KeyType> comparer)
+        private void Splay(ref Node root,KeyType leftComparand, IComparer<KeyType> comparer)
         {
             unchecked
             {
@@ -2327,7 +2330,7 @@ namespace TreeLib
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryMultiRankListLong<KeyType>> GetEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryMultiRankListLong<KeyType>> GetEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward); // default
         }
@@ -2354,7 +2357,7 @@ namespace TreeLib
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryMultiRankListLong<KeyType>> GetFastEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryMultiRankListLong<KeyType>> GetFastEnumerable(KeyType startAt, bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, forward);
         }
@@ -2381,7 +2384,7 @@ namespace TreeLib
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryMultiRankListLong<KeyType>> GetRobustEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryMultiRankListLong<KeyType>> GetRobustEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward);
         }
@@ -2402,7 +2405,7 @@ namespace TreeLib
 
             // Construction
 
-            public RobustEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2412,7 +2415,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2452,7 +2455,7 @@ namespace TreeLib
 
             // Construction
 
-            public FastEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree,bool forward)
+            public FastEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2462,7 +2465,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerableSurrogate(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2512,7 +2515,7 @@ namespace TreeLib
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
 
-            public RobustEnumerator(SplayTreeMultiRankListLong<KeyType> tree,bool forward)
+            public RobustEnumerator(SplayTreeMultiRankListLong<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2521,7 +2524,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerator(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerator(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2664,7 +2667,7 @@ namespace TreeLib
             private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(SplayTreeMultiRankListLong<KeyType> tree,bool forward)
+            public FastEnumerator(SplayTreeMultiRankListLong<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2673,7 +2676,7 @@ namespace TreeLib
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerator(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerator(SplayTreeMultiRankListLong<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

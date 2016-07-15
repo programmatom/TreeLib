@@ -134,7 +134,7 @@ namespace TreeLib
         /// </param>
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         [Storage(Storage.Object)]
-        public RedBlackTreeRangeListLong(uint capacity,AllocationMode allocationMode)
+        public RedBlackTreeRangeListLong(uint capacity, AllocationMode allocationMode)
         {
             this.root = Null;
 
@@ -934,7 +934,10 @@ namespace TreeLib
 
 
         private bool NearestLess(
-            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,
+            bool orEqual)
         {
             Node lastLess = Null;
             /*[Widen]*/
@@ -996,7 +999,10 @@ namespace TreeLib
         }
 
         private bool NearestGreater(
-            out Node nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,            bool orEqual)
+            out Node nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long nearestStart,
+            bool orEqual)
         {
             Node lastGreater = Null;
             /*[Widen]*/
@@ -1063,7 +1069,10 @@ namespace TreeLib
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
         private bool InsertUpdateInternal(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,            bool add,            bool update)
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long position,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xLength,
+            bool add,
+            bool update)
         {
             Debug.Assert(add != update);
 
@@ -1275,7 +1284,8 @@ namespace TreeLib
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private void ShiftRightOfPath(
-            [Widen] long position,            [Widen] long xAdjust)
+            [Widen] long position,
+            [Widen] long xAdjust)
         {
             unchecked
             {
@@ -1562,7 +1572,11 @@ namespace TreeLib
 
         // Replace the matching node with its successor.
         private void ReplaceNode(
-            Node match,            Node parentOfMatch,            Node successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xOffsetMatchSuccessor,            Node parentOfsuccessor)
+            Node match,
+            Node parentOfMatch,
+            Node successor,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] long xOffsetMatchSuccessor,
+            Node parentOfsuccessor)
         {
             unchecked
             {
@@ -1623,7 +1637,7 @@ namespace TreeLib
 
         // Replace the child of a parent node. 
         // If the parent node is null, replace the root.        
-        private void ReplaceChildOfNodeOrRoot(Node parent,Node child,Node newChild)
+        private void ReplaceChildOfNodeOrRoot(Node parent,Node child, Node newChild)
         {
             if (parent != Null)
             {
@@ -1642,7 +1656,7 @@ namespace TreeLib
             }
         }
 
-        private Node GetSibling(Node node,Node parent)
+        private Node GetSibling(Node node, Node parent)
         {
             if (parent.left == node)
             {
@@ -1655,7 +1669,7 @@ namespace TreeLib
         // It doesn't matter if we keep grandParent and greatGrantParent up-to-date 
         // because we won't need to split again in the next node.
         // By the time we need to split again, everything will be correctly set.
-        private void InsertionBalance(Node current,ref Node parent,Node grandParent,Node greatGrandParent)
+        private void InsertionBalance(Node current,ref Node parent,Node grandParent, Node greatGrandParent)
         {
             Debug.Assert(grandParent != Null, "Grand parent cannot be null here!");
             bool parentIsOnRight = (grandParent.right == parent);
@@ -1707,7 +1721,7 @@ namespace TreeLib
             return (node != Null && node.isRed);
         }
 
-        private void Merge2Nodes(Node parent,Node child1,Node child2)
+        private void Merge2Nodes(Node parent,Node child1, Node child2)
         {
             Debug.Assert(IsRed(parent), "parent must be red");
             // combing two 2-nodes into a 4-node
@@ -1718,7 +1732,10 @@ namespace TreeLib
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private bool FindPosition(
-            [Widen] long position,            out Node lastLessEqual,            [Widen] out long xPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long xLength)
+            [Widen] long position,
+            out Node lastLessEqual,
+            [Widen] out long xPositionLastLessEqual,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out long xLength)
         {
             unchecked
             {
@@ -1897,7 +1914,7 @@ namespace TreeLib
             LeftRightRotation = 4,
         }
 
-        private TreeRotation RotationNeeded(Node parent,Node current,Node sibling)
+        private TreeRotation RotationNeeded(Node parent,Node current, Node sibling)
         {
             Debug.Assert(IsRed(sibling.left) || IsRed(sibling.right), "sibling must have at least one red child");
             if (IsRed(sibling.left))
@@ -2113,7 +2130,7 @@ namespace TreeLib
             return (root == Null) ? 0 : (1 + Math.Max(ActualMaxDepth(root.left), ActualMaxDepth(root.right)));
         }
 
-        private void ActualMinDepth(Node root,int depth,ref int min)
+        private void ActualMinDepth(Node root,int depth, ref int min)
         {
             if (root == Null)
             {
@@ -2417,7 +2434,7 @@ namespace TreeLib
 
             // Construction
 
-            public RobustEnumerableSurrogate(RedBlackTreeRangeListLong tree,bool forward)
+            public RobustEnumerableSurrogate(RedBlackTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2469,7 +2486,7 @@ namespace TreeLib
 
             // Construction
 
-            public FastEnumerableSurrogate(RedBlackTreeRangeListLong tree,bool forward)
+            public FastEnumerableSurrogate(RedBlackTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2537,7 +2554,7 @@ namespace TreeLib
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(RedBlackTreeRangeListLong tree,bool forward)
+            public RobustEnumerator(RedBlackTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2708,7 +2725,7 @@ namespace TreeLib
             private STuple<Node,/*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/long>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(RedBlackTreeRangeListLong tree,bool forward)
+            public FastEnumerator(RedBlackTreeRangeListLong tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

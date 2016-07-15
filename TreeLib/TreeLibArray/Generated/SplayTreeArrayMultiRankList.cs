@@ -50,7 +50,7 @@ namespace TreeLib
     /// </summary>
     
     /// <summary>
-    /// Represents a ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array. Each key also has a count
     /// associated with it, which models sorted arrays containing multiple instances of a key. It is equivalent to the number of times
     /// the key appears in the array. Rank index values account for such multiple occurrences. In this case, the rank
@@ -108,12 +108,12 @@ namespace TreeLib
                 return nodeRef.node;
             }
 
-            public static bool operator ==(NodeRef left,NodeRef right)
+            public static bool operator ==(NodeRef left, NodeRef right)
             {
                 return left.node == right.node;
             }
 
-            public static bool operator !=(NodeRef left,NodeRef right)
+            public static bool operator !=(NodeRef left, NodeRef right)
             {
                 return left.node != right.node;
             }
@@ -179,7 +179,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
-        public SplayTreeArrayMultiRankList([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity,AllocationMode allocationMode)
+        public SplayTreeArrayMultiRankList([Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)] IComparer<KeyType> comparer,uint capacity, AllocationMode allocationMode)
         {
             if (allocationMode == AllocationMode.DynamicDiscard)
             {
@@ -209,7 +209,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public SplayTreeArrayMultiRankList(uint capacity,AllocationMode allocationMode)
+        public SplayTreeArrayMultiRankList(uint capacity, AllocationMode allocationMode)
             : this(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/Comparer<KeyType>.Default, capacity, allocationMode)
         {
         }
@@ -348,7 +348,9 @@ namespace TreeLib
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool TrySetOrAddInternal(
-            KeyType key,            [Feature(Feature.RankMulti)][Const(1, Feature.Dict, Feature.Rank)][SuppressConst(Feature.RankMulti)][Widen]int rankCount,            bool updateExisting)
+            KeyType key,
+            [Feature(Feature.RankMulti)][Const(1, Feature.Dict, Feature.Rank)][SuppressConst(Feature.RankMulti)][Widen]int rankCount,
+            bool updateExisting)
         {
             unchecked
             {
@@ -440,7 +442,8 @@ uint countNew = checked(this.count + 1);
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
         private bool TrySetOrRemoveInternal(
-            KeyType key,            bool updateExisting)
+            KeyType key,
+            bool updateExisting)
         {
             unchecked
             {
@@ -521,7 +524,7 @@ uint countNew = checked(this.count + 1);
         /// <returns>true if they key was found</returns>
         [Payload(Payload.None)]
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKey(KeyType key,out KeyType keyOut)
+        public bool TryGetKey(KeyType key, out KeyType keyOut)
         {
             if (root != Nil)
             {
@@ -697,7 +700,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="nearestKey">highest key less than or equal to provided key</param>
         /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestLessOrEqual(KeyType key, out KeyType nearestKey)
         {
             return NearestLess(key, out nearestKey, true/*orEqual*/);
         }
@@ -712,7 +715,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key less than or equal to the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank,[Feature(Feature.RankMulti)][Widen] out int rankCount)
+        public bool NearestLessOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank, [Feature(Feature.RankMulti)][Widen] out int rankCount)
         {
             rank = 0;
             rankCount = 0;
@@ -736,7 +739,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="nearestKey">highest key less than the provided key</param>
         /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestLess(KeyType key,out KeyType nearestKey)
+        public bool NearestLess(KeyType key, out KeyType nearestKey)
         {
             return NearestLess(key, out nearestKey, false/*orEqual*/);
         }
@@ -751,7 +754,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key less than the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestLess(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank,[Feature(Feature.RankMulti)][Widen] out int rankCount)
+        public bool NearestLess(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank, [Feature(Feature.RankMulti)][Widen] out int rankCount)
         {
             rank = 0;
             rankCount = 0;
@@ -799,7 +802,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="nearestKey">lowest key greater than or equal to provided key</param>
         /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey)
+        public bool NearestGreaterOrEqual(KeyType key, out KeyType nearestKey)
         {
             return NearestGreater(key, out nearestKey, true/*orEqual*/);
         }
@@ -814,7 +817,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key greater than or equal to the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank,[Feature(Feature.RankMulti)][Widen] out int rankCount)
+        public bool NearestGreaterOrEqual(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank, [Feature(Feature.RankMulti)][Widen] out int rankCount)
         {
             rank = this.xExtent;
             rankCount = 0;
@@ -838,7 +841,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="nearestKey">lowest key greater than the provided key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreater(KeyType key,out KeyType nearestKey)
+        public bool NearestGreater(KeyType key, out KeyType nearestKey)
         {
             return NearestGreater(key, out nearestKey, false/*orEqual*/);
         }
@@ -853,7 +856,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="count">the count of the returned key</param>
         /// <returns>true if there was a key greater than the provided key</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank,[Feature(Feature.RankMulti)][Widen] out int rankCount)
+        public bool NearestGreater(KeyType key,out KeyType nearestKey,[Feature(Feature.Rank, Feature.RankMulti)][Widen] out int rank, [Feature(Feature.RankMulti)][Widen] out int rankCount)
         {
             rank = this.xExtent;
             rankCount = 0;
@@ -898,7 +901,7 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestLess([Widen] int position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out int nearestStart,bool orEqual)
+        private bool NearestLess([Widen] int position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out int nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1028,7 +1031,7 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestGreater([Widen] int position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out int nearestStart,bool orEqual)
+        private bool NearestGreater([Widen] int position,[Feature(Feature.RankMulti)] out KeyType nearestKey,[Widen] out int nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1208,7 +1211,7 @@ uint countNew = checked(this.count + 1);
         /// this key if the collection were converted to a sorted array</param>
         /// <returns>true if they key was found</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool TryGet(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out int rank,[Feature(Feature.RankMulti)][Widen] out int rankCount)
+        public bool TryGet(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out int rank, [Feature(Feature.RankMulti)][Widen] out int rankCount)
         {
             unchecked
             {
@@ -1294,7 +1297,7 @@ uint countNew = checked(this.count + 1);
         /// <returns>true if there is an element at the the specified index and it corresponds to the first in the virtual
         /// ordered sequence of multiple instances in an equivalent sorted array</returns>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public bool TryGetKeyByRank([Widen] int rank,out KeyType key)
+        public bool TryGetKeyByRank([Widen] int rank, out KeyType key)
         {
             unchecked
             {
@@ -1366,7 +1369,7 @@ uint countNew = checked(this.count + 1);
         /// this key if the collection were converted to a sorted array</param>
         /// <exception cref="ArgumentException">the key is not present in the collection</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
-        public void Get(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out int rank,[Feature(Feature.RankMulti)][Widen] out int rankCount)
+        public void Get(KeyType key,[Payload(Payload.None)] out KeyType keyOut,[Widen] out int rank, [Feature(Feature.RankMulti)][Widen] out int rankCount)
         {
             if (!TryGet(key, /*[Payload(Payload.None)]*/out keyOut, out rank, /*[Feature(Feature.RankMulti)]*/out rankCount))
             {
@@ -1428,7 +1431,7 @@ uint countNew = checked(this.count + 1);
         /// <exception cref="OverflowException">the sum of counts would have exceeded Int32.MaxValue</exception>
         [Feature(Feature.Rank, Feature.RankMulti)]
         [Widen]
-        public int AdjustCount(KeyType key,[Widen] int countAdjust)
+        public int AdjustCount(KeyType key, [Widen] int countAdjust)
         {
             unchecked
             {
@@ -1642,14 +1645,14 @@ uint countNew = checked(this.count + 1);
                 this.fixedResult = fixedResult;
             }
 
-            public int Compare(KeyType x,KeyType y)
+            public int Compare(KeyType x, KeyType y)
             {
                 return fixedResult;
             }
         }
 
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        private void Splay(ref NodeRef root,KeyType leftComparand,IComparer<KeyType> comparer)
+        private void Splay(ref NodeRef root,KeyType leftComparand, IComparer<KeyType> comparer)
         {
             unchecked
             {
@@ -2297,7 +2300,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryMultiRankList<KeyType>> GetEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryMultiRankList<KeyType>> GetEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward); // default
         }
@@ -2324,7 +2327,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryMultiRankList<KeyType>> GetFastEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryMultiRankList<KeyType>> GetFastEnumerable(KeyType startAt, bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, forward);
         }
@@ -2351,7 +2354,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="forward">True to move from first to last in sort order; False to move backwards, from last to first, in sort order</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-        public IEnumerable<EntryMultiRankList<KeyType>> GetRobustEnumerable(KeyType startAt,bool forward)
+        public IEnumerable<EntryMultiRankList<KeyType>> GetRobustEnumerable(KeyType startAt, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, forward);
         }
@@ -2372,7 +2375,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public RobustEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2382,7 +2385,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2422,7 +2425,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public FastEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree,bool forward)
+            public FastEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2432,7 +2435,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerableSurrogate(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2482,7 +2485,7 @@ uint countNew = checked(this.count + 1);
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
             private KeyType currentKey;
 
-            public RobustEnumerator(SplayTreeArrayMultiRankList<KeyType> tree,bool forward)
+            public RobustEnumerator(SplayTreeArrayMultiRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2491,7 +2494,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public RobustEnumerator(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey,bool forward)
+            public RobustEnumerator(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2634,7 +2637,7 @@ uint countNew = checked(this.count + 1);
             private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(SplayTreeArrayMultiRankList<KeyType> tree,bool forward)
+            public FastEnumerator(SplayTreeArrayMultiRankList<KeyType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2643,7 +2646,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]
-            public FastEnumerator(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey,bool forward)
+            public FastEnumerator(SplayTreeArrayMultiRankList<KeyType> tree,KeyType startKey, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;

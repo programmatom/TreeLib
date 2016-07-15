@@ -78,7 +78,7 @@ namespace TreeLib
     //
 
     /// <summary>
-    /// Represents a ordered key-value mapping.
+    /// Represents an ordered key-value mapping.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
     /// <typeparam name="ValueType">Type of value associated with each entry.</typeparam>
@@ -458,7 +458,7 @@ namespace TreeLib
     //
 
     /// <summary>
-    /// Represents a ordered key-value mapping, augmented with rank information. The rank of a key-value pair is the index it would
+    /// Represents an ordered key-value mapping, augmented with rank information. The rank of a key-value pair is the index it would
     /// be located in if all the key-value pairs in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
@@ -750,7 +750,7 @@ namespace TreeLib
     }
 
     /// <summary>
-    /// Represents a ordered key collection, augmented with rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
@@ -988,7 +988,7 @@ namespace TreeLib
     }
 
     /// <summary>
-    /// Represents a ordered key-value mapping, augmented with rank information. The rank of a key-value pair is the index it would
+    /// Represents an ordered key-value mapping, augmented with rank information. The rank of a key-value pair is the index it would
     /// be located in if all the key-value pairs in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
@@ -1280,7 +1280,7 @@ namespace TreeLib
     }
 
     /// <summary>
-    /// Represents a ordered key collection, augmented with rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array.
     /// </summary>
     /// <typeparam name="KeyType">Type of key used to index collection. Must be comparable.</typeparam>
@@ -1523,7 +1523,7 @@ namespace TreeLib
     //
 
     /// <summary>
-    /// Represents a ordered key-value mapping, augmented with multi-rank information. The rank of a key-value pair is the index it would
+    /// Represents an ordered key-value mapping, augmented with multi-rank information. The rank of a key-value pair is the index it would
     /// be located in if all the key-value pairs in the tree were placed into a sorted array. Each key-value pair also has a count
     /// associated with it, which models sorted arrays containing multiple instances of a key. It is equivalent to the number of times
     /// the key-value pair appears in the array. Rank index values account for such multiple occurrences. In this case, the rank
@@ -1948,7 +1948,7 @@ namespace TreeLib
     }
 
     /// <summary>
-    /// Represents a ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array. Each key also has a count
     /// associated with it, which models sorted arrays containing multiple instances of a key. It is equivalent to the number of times
     /// the key appears in the array. Rank index values account for such multiple occurrences. In this case, the rank
@@ -2310,7 +2310,7 @@ namespace TreeLib
     }
 
     /// <summary>
-    /// Represents a ordered key-value mapping, augmented with multi-rank information. The rank of a key-value pair is the index it would
+    /// Represents an ordered key-value mapping, augmented with multi-rank information. The rank of a key-value pair is the index it would
     /// be located in if all the key-value pairs in the tree were placed into a sorted array. Each key-value pair also has a count
     /// associated with it, which models sorted arrays containing multiple instances of a key. It is equivalent to the number of times
     /// the key-value pair appears in the array. Rank index values account for such multiple occurrences. In this case, the rank
@@ -2736,7 +2736,7 @@ namespace TreeLib
     }
 
     /// <summary>
-    /// Represents a ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
+    /// Represents an ordered key collection, augmented with multi-rank information. The rank of a key is the index it would
     /// be located in if all the keys in the tree were placed into a sorted array. Each key also has a count
     /// associated with it, which models sorted arrays containing multiple instances of a key. It is equivalent to the number of times
     /// the key appears in the array. Rank index values account for such multiple occurrences. In this case, the rank

@@ -107,12 +107,12 @@ namespace TreeLib
                 return nodeRef.node;
             }
 
-            public static bool operator ==(NodeRef left,NodeRef right)
+            public static bool operator ==(NodeRef left, NodeRef right)
             {
                 return left.node == right.node;
             }
 
-            public static bool operator !=(NodeRef left,NodeRef right)
+            public static bool operator !=(NodeRef left, NodeRef right)
             {
                 return left.node != right.node;
             }
@@ -175,7 +175,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
-        public SplayTreeArrayRangeMap(uint capacity,AllocationMode allocationMode)
+        public SplayTreeArrayRangeMap(uint capacity, AllocationMode allocationMode)
         {
             if (allocationMode == AllocationMode.DynamicDiscard)
             {
@@ -868,7 +868,7 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestLess([Widen] int position,[Widen] out int nearestStart,bool orEqual)
+        private bool NearestLess([Widen] int position,[Widen] out int nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -996,7 +996,7 @@ uint countNew = checked(this.count + 1);
         }
 
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        private bool NearestGreater([Widen] int position,[Widen] out int nearestStart,bool orEqual)
+        private bool NearestGreater([Widen] int position,[Widen] out int nearestStart, bool orEqual)
         {
             if (root != Nil)
             {
@@ -1863,7 +1863,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public RobustEnumerableSurrogate(SplayTreeArrayRangeMap<ValueType> tree,bool forward)
+            public RobustEnumerableSurrogate(SplayTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -1915,7 +1915,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public FastEnumerableSurrogate(SplayTreeArrayRangeMap<ValueType> tree,bool forward)
+            public FastEnumerableSurrogate(SplayTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -1985,7 +1985,7 @@ uint countNew = checked(this.count + 1);
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(SplayTreeArrayRangeMap<ValueType> tree,bool forward)
+            public RobustEnumerator(SplayTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2136,7 +2136,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -2191,7 +2191,7 @@ uint countNew = checked(this.count + 1);
             private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(SplayTreeArrayRangeMap<ValueType> tree,bool forward)
+            public FastEnumerator(SplayTreeArrayRangeMap<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2464,7 +2464,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {

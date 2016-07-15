@@ -124,7 +124,13 @@ namespace TreeLib
 
 
         public EntryRange2Map(
-            [Payload(Payload.Value)] ValueType value,            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,            [Payload(Payload.Value)] uint version,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            [Feature(Feature.Range2)][Widen] int yStart,            [Feature(Feature.Range2)][Widen] int yLength)
+            [Payload(Payload.Value)] ValueType value,
+            [Payload(Payload.Value)] ISetValue<ValueType> enumerator,
+            [Payload(Payload.Value)] uint version,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
+            [Feature(Feature.Range2)][Widen] int yStart,
+            [Feature(Feature.Range2)][Widen] int yLength)
         {
             this.value = value;
             this.xStart = xStart;
@@ -138,7 +144,11 @@ namespace TreeLib
 
         [Payload(Payload.Value)]
         public EntryRange2Map(
-            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            [Feature(Feature.Range2)][Widen] int yStart,            [Feature(Feature.Range2)][Widen] int yLength)
+            [Payload(Payload.Value)] ValueType value,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xStart,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
+            [Feature(Feature.Range2)][Widen] int yStart,
+            [Feature(Feature.Range2)][Widen] int yLength)
         {
             this.value = value;
             this.xStart = xStart;

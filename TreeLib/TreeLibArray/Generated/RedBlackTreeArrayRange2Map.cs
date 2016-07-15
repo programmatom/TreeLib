@@ -121,12 +121,12 @@ namespace TreeLib
                 return nodeRef.node;
             }
 
-            public static bool operator ==(NodeRef left,NodeRef right)
+            public static bool operator ==(NodeRef left, NodeRef right)
             {
                 return left.node == right.node;
             }
 
-            public static bool operator !=(NodeRef left,NodeRef right)
+            public static bool operator !=(NodeRef left, NodeRef right)
             {
                 return left.node != right.node;
             }
@@ -186,7 +186,7 @@ namespace TreeLib
         /// <param name="allocationMode">The allocation mode (see capacity)</param>
         /// <exception cref="ArgumentException">an allocation mode of DynamicDiscard was specified</exception>
         [Storage(Storage.Array)]
-        public RedBlackTreeArrayRange2Map(uint capacity,AllocationMode allocationMode)
+        public RedBlackTreeArrayRange2Map(uint capacity, AllocationMode allocationMode)
         {
             if (allocationMode == AllocationMode.DynamicDiscard)
             {
@@ -321,7 +321,7 @@ namespace TreeLib
         /// <param name="side">the side (X or Y) to which the specified index applies</param>
         /// <returns>true if there is a range starting at the specified index</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool Contains([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public bool Contains([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             NodeRef node;
             /*[Widen]*/
@@ -351,7 +351,7 @@ namespace TreeLib
         /// <returns>true if the range was successfully inserted</returns>
         /// <exception cref="OverflowException">the sum of lengths would have exceeded Int32.MaxValue on either side</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TryInsert([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength,[Payload(Payload.Value)] ValueType value)
+        public bool TryInsert([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength, [Payload(Payload.Value)] ValueType value)
         {
             if (start < 0)
             {
@@ -386,7 +386,7 @@ namespace TreeLib
         /// <param name="side">the side (X or Y) to which the start index applies</param>
         /// <returns>true if a range pair was successfully deleted</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TryDelete([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public bool TryDelete([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return DeleteInternal(
                 start,
@@ -403,7 +403,7 @@ namespace TreeLib
         /// <param name="length">the length of the range from the specified side (X or Y)</param>
         /// <returns>true if a range was found starting at the specified index</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TryGetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int length)
+        public bool TryGetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] out int length)
         {
             NodeRef node;
             /*[Widen]*/
@@ -431,7 +431,7 @@ namespace TreeLib
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         /// <exception cref="OverflowException">the sum of lengths on the specified side would have exceeded Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int length)
+        public bool TrySetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int length)
         {
             if (length <= 0)
             {
@@ -487,7 +487,7 @@ namespace TreeLib
         /// <returns>true if a range was found starting at the specified index on the specified side</returns>
         [Payload(Payload.Value)]
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TryGetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,out ValueType value)
+        public bool TryGetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, out ValueType value)
         {
             NodeRef node;
             /*[Widen]*/
@@ -515,7 +515,7 @@ namespace TreeLib
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         [Payload(Payload.Value)]
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,ValueType value)
+        public bool TrySetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, ValueType value)
         {
             NodeRef node;
             /*[Widen]*/
@@ -545,7 +545,7 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <returns>true if a range was found starting at the specified index and updated</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
-        public bool TryGet([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength,[Payload(Payload.Value)] out ValueType value)
+        public bool TryGet([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength, [Payload(Payload.Value)] out ValueType value)
         {
             NodeRef node;
             /*[Widen]*/
@@ -582,7 +582,7 @@ namespace TreeLib
         /// start was not found or the sum of lengths would have exceeded Int32.MaxValue</returns>
         [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
-        public bool TrySet([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength,[Payload(Payload.Value)] ValueType value)
+        public bool TrySet([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength, [Payload(Payload.Value)] ValueType value)
         {
             if (xLength < 0)
             {
@@ -643,7 +643,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         /// <exception cref="OverflowException">the sum of lengths would have exceeded Int32.MaxValue on either side</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void Insert([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength,[Payload(Payload.Value)] ValueType value)
+        public void Insert([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength, [Payload(Payload.Value)] ValueType value)
         {
             if (!TryInsert(start, /*[Feature(Feature.Range2)]*/side, xLength, /*[Feature(Feature.Range2)]*/yLength, /*[Payload(Payload.Value)]*/value))
             {
@@ -660,7 +660,7 @@ namespace TreeLib
         /// <param name="side">the side (X or Y) to which the start index applies</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void Delete([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public void Delete([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             if (!TryDelete(start, /*[Feature(Feature.Range2)]*/side))
             {
@@ -679,7 +679,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        public int GetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public int GetLength([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             /*[Widen]*/
             int length;
@@ -702,7 +702,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         /// <exception cref="OverflowException">the sum of lengths on the specified side would have exceeded Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void SetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int length)
+        public void SetLength([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] int length)
         {
             if (!TrySetLength(start, /*[Feature(Feature.Range2)]*/side, length))
             {
@@ -721,7 +721,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Payload(Payload.Value)]
         [Feature(Feature.Range, Feature.Range2)]
-        public ValueType GetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public ValueType GetValue([Widen] int start, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             ValueType value;
             if (!TryGetValue(start, /*[Feature(Feature.Range2)]*/side, out value))
@@ -742,7 +742,7 @@ namespace TreeLib
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Payload(Payload.Value)]
         [Feature(Feature.Range, Feature.Range2)]
-        public void SetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,ValueType value)
+        public void SetValue([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, ValueType value)
         {
             if (!TrySetValue(start, /*[Feature(Feature.Range2)]*/side, value))
             {
@@ -763,7 +763,7 @@ namespace TreeLib
         /// <param name="value">out parameter receiving the value associated with the range</param>
         /// <exception cref="ArgumentException">there is no range starting at the specified index on the specified side</exception>
         [Feature(Feature.Range, Feature.Range2)]
-        public void Get([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength,[Payload(Payload.Value)] out ValueType value)
+        public void Get([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength, [Payload(Payload.Value)] out ValueType value)
         {
             if (!TryGet(start, /*[Feature(Feature.Range2)]*/side, /*[Feature(Feature.Range2)]*/out otherStart, out xLength, /*[Feature(Feature.Range2)]*/out yLength, /*[Payload(Payload.Value)]*/out value))
             {
@@ -787,7 +787,7 @@ namespace TreeLib
         /// <exception cref="OverflowException">sum of lengths would have exceeded Int32.MaxValue</exception>
         [Exclude(Feature.Range, Payload.None)]
         [Feature(Feature.Range, Feature.Range2)]
-        public void Set([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength,[Payload(Payload.Value)] ValueType value)
+        public void Set([Widen] int start,[Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xLength,[Feature(Feature.Range2)][Widen] int yLength, [Payload(Payload.Value)] ValueType value)
         {
             if (!TrySet(start, /*[Feature(Feature.Range2)]*/side, xLength, /*[Feature(Feature.Range2)]*/yLength, /*[Payload(Payload.Value)]*/value))
             {
@@ -824,7 +824,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
-        public bool NearestLessOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart)
+        public bool NearestLessOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestLess(
@@ -855,7 +855,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index less than or equal to the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestLessOrEqualByRank", Feature.RankMulti)]
-        public bool NearestLessOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength,[Payload(Payload.Value)] out ValueType value)
+        public bool NearestLessOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength, [Payload(Payload.Value)] out ValueType value)
         {
             otherStart = 0;
             xLength = 0;
@@ -891,7 +891,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index less than the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestLessByRank", Feature.RankMulti)]
-        public bool NearestLess([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart)
+        public bool NearestLess([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestLess(
@@ -921,7 +921,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index less than the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestLessByRank", Feature.RankMulti)]
-        public bool NearestLess([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength,[Payload(Payload.Value)] out ValueType value)
+        public bool NearestLess([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength, [Payload(Payload.Value)] out ValueType value)
         {
             otherStart = 0;
             xLength = 0;
@@ -957,7 +957,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
-        public bool NearestGreaterOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart)
+        public bool NearestGreaterOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestGreater(
@@ -987,7 +987,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index greater than or equal to the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestGreaterOrEqualByRank", Feature.RankMulti)]
-        public bool NearestGreaterOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength,[Payload(Payload.Value)] out ValueType value)
+        public bool NearestGreaterOrEqual([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength, [Payload(Payload.Value)] out ValueType value)
         {
             otherStart = side == Side.X ? this.yExtent : this.xExtent;
             xLength = 0;
@@ -1023,7 +1023,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestGreaterByRank", Feature.RankMulti)]
-        public bool NearestGreater([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart)
+        public bool NearestGreater([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, [Widen] out int nearestStart)
         {
             NodeRef nearestNode;
             return NearestGreater(
@@ -1053,7 +1053,7 @@ namespace TreeLib
         /// <returns>true if a range was found with a starting index greater than the specified index</returns>
         [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)]
         [Rename("NearestGreaterByRank", Feature.RankMulti)]
-        public bool NearestGreater([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength,[Payload(Payload.Value)] out ValueType value)
+        public bool NearestGreater([Widen] int position,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] out int nearestStart,[Feature(Feature.Range2)][Widen] out int otherStart,[Widen] out int xLength,[Feature(Feature.Range2)][Widen] out int yLength, [Payload(Payload.Value)] out ValueType value)
         {
             otherStart = side == Side.X ? this.yExtent : this.xExtent;
             xLength = 0;
@@ -1090,7 +1090,7 @@ namespace TreeLib
         /// <exception cref="OverflowException">the X or Y extent would become larger than Int32.MaxValue</exception>
         [Feature(Feature.Range, Feature.Range2)]
         [Widen]
-        public int AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust,[Feature(Feature.Range2)] [Widen] int yAdjust)
+        public int AdjustLength([Widen] int startIndex,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,[Widen] int xAdjust, [Feature(Feature.Range2)] [Widen] int yAdjust)
         {
             unchecked
             {
@@ -1159,7 +1159,7 @@ namespace TreeLib
         // Array allocation
 
         [Storage(Storage.Array)]
-        private NodeRef Allocate([Payload(Payload.Value)] ValueType value,bool isRed)
+        private NodeRef Allocate([Payload(Payload.Value)] ValueType value, bool isRed)
         {
             if (freelist == Null)
             {
@@ -1226,7 +1226,11 @@ namespace TreeLib
 
 
         private bool NearestLess(
-            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+            out NodeRef nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
+            bool orEqual)
         {
             NodeRef lastLess = Null;
             /*[Widen]*/
@@ -1289,7 +1293,11 @@ namespace TreeLib
         }
 
         private bool NearestGreater(
-            out NodeRef nearestNode,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,            bool orEqual)
+            out NodeRef nearestNode,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int nearestStart,
+            bool orEqual)
         {
             NodeRef lastGreater = Null;
             /*[Widen]*/
@@ -1357,7 +1365,13 @@ namespace TreeLib
         // Returns true if a node was added or if add==false and a node was updated.
         // NOTE: update mode does *not* adjust for xLength/yLength!
         private bool InsertUpdateInternal(
-            [Payload(Payload.Value)] ValueType value,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,            [Feature(Feature.Range2)][Widen] int yLength,            bool add,            bool update)
+            [Payload(Payload.Value)] ValueType value,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xLength,
+            [Feature(Feature.Range2)][Widen] int yLength,
+            bool add,
+            bool update)
         {
             Debug.Assert(add != update);
 
@@ -1600,7 +1614,10 @@ uint countNew = checked(this.count + 1);
         // DOES NOT adjust xExtent and yExtent!
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private void ShiftRightOfPath(
-            [Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            [Widen] int xAdjust,            [Feature(Feature.Range2)][Widen] int yAdjust)
+            [Widen] int position,
+            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
+            [Widen] int xAdjust,
+            [Feature(Feature.Range2)][Widen] int yAdjust)
         {
             unchecked
             {
@@ -1644,7 +1661,8 @@ uint countNew = checked(this.count + 1);
         }
 
         private bool DeleteInternal(
-            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,            [Feature(Feature.Range2)][Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)][SuppressConst(Feature.Range2)] Side side)
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int position,
+            [Feature(Feature.Range2)][Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)][SuppressConst(Feature.Range2)] Side side)
         {
             unchecked
             {
@@ -1932,7 +1950,12 @@ uint countNew = checked(this.count + 1);
 
         // Replace the matching node with its successor.
         private void ReplaceNode(
-            NodeRef match,            NodeRef parentOfMatch,            NodeRef successor,            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,            [Feature(Feature.Range2)][Widen] int yOffsetMatchSuccessor,            NodeRef parentOfsuccessor)
+            NodeRef match,
+            NodeRef parentOfMatch,
+            NodeRef successor,
+            [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] int xOffsetMatchSuccessor,
+            [Feature(Feature.Range2)][Widen] int yOffsetMatchSuccessor,
+            NodeRef parentOfsuccessor)
         {
             unchecked
             {
@@ -1998,7 +2021,7 @@ uint countNew = checked(this.count + 1);
 
         // Replace the child of a parent node. 
         // If the parent node is null, replace the root.        
-        private void ReplaceChildOfNodeOrRoot(NodeRef parent,NodeRef child,NodeRef newChild)
+        private void ReplaceChildOfNodeOrRoot(NodeRef parent,NodeRef child, NodeRef newChild)
         {
             if (parent != Null)
             {
@@ -2017,7 +2040,7 @@ uint countNew = checked(this.count + 1);
             }
         }
 
-        private NodeRef GetSibling(NodeRef node,NodeRef parent)
+        private NodeRef GetSibling(NodeRef node, NodeRef parent)
         {
             if (nodes[parent].left == node)
             {
@@ -2030,7 +2053,7 @@ uint countNew = checked(this.count + 1);
         // It doesn't matter if we keep grandParent and greatGrantParent up-to-date 
         // because we won't need to split again in the next node.
         // By the time we need to split again, everything will be correctly set.
-        private void InsertionBalance(NodeRef current,ref NodeRef parent,NodeRef grandParent,NodeRef greatGrandParent)
+        private void InsertionBalance(NodeRef current,ref NodeRef parent,NodeRef grandParent, NodeRef greatGrandParent)
         {
             Debug.Assert(grandParent != Null, "Grand parent cannot be null here!");
             bool parentIsOnRight = (nodes[grandParent].right == parent);
@@ -2082,7 +2105,7 @@ uint countNew = checked(this.count + 1);
             return (node != Null && nodes[node].isRed);
         }
 
-        private void Merge2Nodes(NodeRef parent,NodeRef child1,NodeRef child2)
+        private void Merge2Nodes(NodeRef parent,NodeRef child1, NodeRef child2)
         {
             Debug.Assert(IsRed(parent), "parent must be red");
             // combing two 2-nodes into a 4-node
@@ -2093,7 +2116,13 @@ uint countNew = checked(this.count + 1);
 
         [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
         private bool FindPosition(
-            [Widen] int position,            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,            out NodeRef lastLessEqual,            [Widen] out int xPositionLastLessEqual,            [Feature(Feature.Range2)][Widen] out int yPositionLastLessEqual,            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength,            [Feature(Feature.Range2)][Widen] out int yLength)
+            [Widen] int position,
+            [Feature(Feature.Range2)] [Const(Side.X, Feature.Rank, Feature.RankMulti, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,
+            out NodeRef lastLessEqual,
+            [Widen] out int xPositionLastLessEqual,
+            [Feature(Feature.Range2)][Widen] out int yPositionLastLessEqual,
+            [Feature(Feature.RankMulti, Feature.Range, Feature.Range2)][Widen] out int xLength,
+            [Feature(Feature.Range2)][Widen] out int yLength)
         {
             unchecked
             {
@@ -2326,7 +2355,7 @@ uint countNew = checked(this.count + 1);
             LeftRightRotation = 4,
         }
 
-        private TreeRotation RotationNeeded(NodeRef parent,NodeRef current,NodeRef sibling)
+        private TreeRotation RotationNeeded(NodeRef parent,NodeRef current, NodeRef sibling)
         {
             Debug.Assert(IsRed(nodes[sibling].left) || IsRed(nodes[sibling].right), "sibling must have at least one red child");
             if (IsRed(nodes[sibling].left))
@@ -2547,7 +2576,7 @@ uint countNew = checked(this.count + 1);
             return (root == Null) ? 0 : (1 + Math.Max(ActualMaxDepth(nodes[root].left), ActualMaxDepth(nodes[root].right)));
         }
 
-        private void ActualMinDepth(NodeRef root,int depth,ref int min)
+        private void ActualMinDepth(NodeRef root,int depth, ref int min)
         {
             if (root == Null)
             {
@@ -2768,7 +2797,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="side">The side (X or Y) to which the index pertains</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable([Widen] int startAt, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/); // default
         }
@@ -2785,7 +2814,7 @@ uint countNew = checked(this.count + 1);
         /// from the last range through decreasing start indexes</param>
         /// <returns>A new instance of the default enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        public IEnumerable<EntryRange2Map<ValueType>> GetEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward); // default
         }
@@ -2799,7 +2828,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="side">The side (X or Y) to which the index pertains</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable([Widen] int startAt, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return new FastEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/);
         }
@@ -2816,7 +2845,7 @@ uint countNew = checked(this.count + 1);
         /// from the last range through decreasing start indexes</param>
         /// <returns>A new instance of the fast enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        public IEnumerable<EntryRange2Map<ValueType>> GetFastEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
         {
             return new FastEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward);
         }
@@ -2830,7 +2859,7 @@ uint countNew = checked(this.count + 1);
         /// <param name="side">The side (X or Y) to which the index pertains</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
+        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable([Widen] int startAt, [Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, true/*forward*/);
         }
@@ -2847,7 +2876,7 @@ uint countNew = checked(this.count + 1);
         /// from the last range through decreasing start indexes</param>
         /// <returns>A new instance of the robust enumerator</returns>
         [Feature(Feature.Range, Feature.Range2)]
-        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+        public IEnumerable<EntryRange2Map<ValueType>> GetRobustEnumerable([Widen] int startAt,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
         {
             return new RobustEnumerableSurrogate(this, startAt, /*[Feature(Feature.Range2)]*/side, forward);
         }
@@ -2871,7 +2900,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public RobustEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree,bool forward)
+            public RobustEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2882,7 +2911,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public RobustEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public RobustEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2927,7 +2956,7 @@ uint countNew = checked(this.count + 1);
 
             // Construction
 
-            public FastEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree,bool forward)
+            public FastEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -2938,7 +2967,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public FastEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public FastEnumerableSurrogate(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3001,7 +3030,7 @@ uint countNew = checked(this.count + 1);
             [Feature(Feature.Range, Feature.Range2)]
             private uint treeVersion;
 
-            public RobustEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree,bool forward)
+            public RobustEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3010,7 +3039,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public RobustEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public RobustEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3165,7 +3194,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if (this.enumeratorVersion != requiredEnumeratorVersion)
                 {
@@ -3219,7 +3248,7 @@ uint countNew = checked(this.count + 1);
             private STuple<NodeRef, /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*//*[Widen]*/int, /*[Feature(Feature.Range2)]*//*[Widen]*/int>[] stack;
             private int stackIndex;
 
-            public FastEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree,bool forward)
+            public FastEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3228,7 +3257,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Feature(Feature.Range, Feature.Range2)]
-            public FastEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side,bool forward)
+            public FastEnumerator(RedBlackTreeArrayRange2Map<ValueType> tree,[Widen] int startStart,[Feature(Feature.Range2)] [Const(Side.X, Feature.Range)] [SuppressConst(Feature.Range2)] Side side, bool forward)
             {
                 this.tree = tree;
                 this.forward = forward;
@@ -3503,7 +3532,7 @@ uint countNew = checked(this.count + 1);
             }
 
             [Payload(Payload.Value)]
-            public void SetValue(ValueType value,uint requiredEnumeratorVersion)
+            public void SetValue(ValueType value, uint requiredEnumeratorVersion)
             {
                 if ((this.enumeratorVersion != requiredEnumeratorVersion) || (this.treeVersion != tree.version))
                 {
