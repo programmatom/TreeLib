@@ -175,7 +175,7 @@ namespace TreeLib
             public NodeRef leftOrNull { get { return left_child ? left : Null; } }
             [Feature(Feature.Dict)]
             public NodeRef rightOrNull { get { return right_child ? right : Null; } }
-            // OR
+            //[OR]
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public NodeRef leftOrNull { get { return left; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -276,7 +276,7 @@ namespace TreeLib
             public NodeRef leftOrNull { get { return left_child ? left : Null; } }
             [Feature(Feature.Dict)]
             public NodeRef rightOrNull { get { return right_child ? right : Null; } }
-            // OR
+            //[OR]
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public NodeRef leftOrNull { get { return left; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -783,7 +783,7 @@ namespace TreeLib
                         node = next;
                     }
                 }
-                // OR
+                //[OR]
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 {
                     // non-recusrive depth-first traversal (in-order, but doesn't matter here)
@@ -2647,7 +2647,7 @@ namespace TreeLib
             {
                 /*[Payload(Payload.Value)]*/
                 initial = predicateMap(key, ref value, resident);
-                // OR
+                //[OR]
                 /*[Payload(Payload.None)]*/
                 {
                     KeyType localKey = key;
@@ -3201,7 +3201,7 @@ namespace TreeLib
                             nodes[parent].left_child = false;
                             /*[Feature(Feature.Dict)]*/
                             nodes[parent].left = nodes[node].left; // back thread
-                            // OR
+                            //[OR]
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             nodes[parent].left = Null;
                             nodes[parent].balance++;
@@ -3212,7 +3212,7 @@ namespace TreeLib
                             nodes[parent].right_child = false;
                             /*[Feature(Feature.Dict)]*/
                             nodes[parent].right = nodes[node].right; // forward thread
-                            // OR
+                            //[OR]
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             nodes[parent].right = Null;
                             nodes[parent].balance--;
@@ -3227,7 +3227,7 @@ namespace TreeLib
 
                         /*[Feature(Feature.Dict)]*/
                         successor = g_tree_node_next(node);
-                        // OR
+                        //[OR]
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         {
                             successor = nodes[node].right;
@@ -3341,7 +3341,7 @@ namespace TreeLib
                             {
                                 /*[Feature(Feature.Dict)]*/
                                 nodes[successorParent].left_child = false; // 'left' remains as back thread
-                                // OR
+                                //[OR]
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                                 nodes[successorParent].left = Null;
                             }
@@ -3617,7 +3617,7 @@ namespace TreeLib
                 {
                     /*[Feature(Feature.Dict)]*/
                     nodes[node].right_child = false;
-                    // OR
+                    //[OR]
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     nodes[node].right = Null;
                     /*[Feature(Feature.Dict)]*/
@@ -3687,7 +3687,7 @@ namespace TreeLib
                 {
                     /*[Feature(Feature.Dict)]*/
                     nodes[node].left_child = false;
-                    // OR
+                    //[OR]
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     nodes[node].left = Null;
                     /*[Feature(Feature.Dict)]*/
@@ -4683,13 +4683,13 @@ namespace TreeLib
                 {
                     return new FastEnumeratorThreaded(tree, startKey, forward);
                 }
-                // OR
+                //[OR]
                 /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                 if (startKeyed)
                 {
                     return new FastEnumerator(tree, startKey, forward);
                 }
-                // OR
+                //[OR]
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 if (startIndexed)
                 {
@@ -4698,7 +4698,7 @@ namespace TreeLib
 
                 /*[Feature(Feature.Dict)]*/
                 return new FastEnumeratorThreaded(tree, forward);
-                // OR
+                //[OR]
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
@@ -4806,7 +4806,7 @@ namespace TreeLib
 
                             /*[Feature(Feature.Dict)]*/
                             value = tree.GetValue(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/currentKey);
-                            // OR
+                            //[OR]
                             /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                             tree.Get(
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/currentKey,
@@ -4829,7 +4829,7 @@ namespace TreeLib
                                 /*[Feature(Feature.Range2)]*/0);
                         }
 
-                        // OR
+                        //[OR]
 
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
@@ -4920,7 +4920,7 @@ namespace TreeLib
                         }
                     }
 
-                    // OR
+                    //[OR]
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     {
@@ -4966,7 +4966,7 @@ namespace TreeLib
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
 
-                    // OR
+                    //[OR]
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     if (forward)
@@ -5010,7 +5010,7 @@ namespace TreeLib
 
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                 tree.SetValue(currentKey, value);
-                // OR
+                //[OR]
                 tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
             }
         }
@@ -5224,10 +5224,10 @@ namespace TreeLib
                             {
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                                 c = tree.comparer.Compare(startKey, tree.nodes[node].key);
-                                // OR
+                                //[OR]
                                 /*[Feature(Feature.Range)]*/
                                 c = startStart.CompareTo(xPosition);
-                                // OR
+                                //[OR]
                                 /*[Feature(Feature.Range2)]*/
                                 c = startStart.CompareTo(side == Side.X ? xPosition : yPosition);
                             }

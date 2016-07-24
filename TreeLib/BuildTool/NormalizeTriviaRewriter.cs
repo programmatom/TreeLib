@@ -79,6 +79,9 @@ namespace BuildTool
                             node.Members[i + 1].WithLeadingTrivia(
                                 node.Members[i + 1].GetLeadingTrivia().RemoveAt(index))));
                 }
+                node = node.ReplaceNode(
+                    node.Members[i],
+                    RemoveOrComment(node.Members[i]));
             }
 
             node = (ClassDeclarationSyntax)base.VisitClassDeclaration(node);
@@ -108,9 +111,25 @@ namespace BuildTool
                             node.Members[i + 1].WithLeadingTrivia(
                                 node.Members[i + 1].GetLeadingTrivia().RemoveAt(index))));
                 }
+                node = node.ReplaceNode(
+                    node.Members[i],
+                    RemoveOrComment(node.Members[i]));
             }
 
             node = (StructDeclarationSyntax)base.VisitStructDeclaration(node);
+
+            return node;
+        }
+
+        public override SyntaxNode VisitBlock(BlockSyntax node)
+        {
+            for (int i = 0; i < node.Statements.Count; i++)
+            {
+                StatementSyntax statement = node.Statements[i];
+                node = node.WithStatements(node.Statements.RemoveAt(i).Insert(i, RemoveOrComment(statement)));
+            }
+
+            node = (BlockSyntax)base.VisitBlock(node);
 
             return node;
         }
@@ -431,6 +450,30 @@ namespace BuildTool
             }
 
             return node;
+        }
+
+        private static SyntaxTriviaList RemoveOrComment(SyntaxTriviaList leadingTrivia)
+        {
+            SyntaxTriviaList trivia = SyntaxTriviaList.Empty;
+            foreach (SyntaxTrivia trivium in leadingTrivia)
+            {
+                if (!(trivium.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                    && String.Equals(trivium.ToString().Replace("//", "").Trim(), "[OR]", StringComparison.OrdinalIgnoreCase)))
+                {
+                    trivia = trivia.Add(trivium);
+                }
+            }
+            return trivia;
+        }
+
+        private static MemberDeclarationSyntax RemoveOrComment(MemberDeclarationSyntax member)
+        {
+            return member.WithLeadingTrivia(RemoveOrComment(member.GetLeadingTrivia()));
+        }
+
+        private static StatementSyntax RemoveOrComment(StatementSyntax member)
+        {
+            return member.WithLeadingTrivia(RemoveOrComment(member.GetLeadingTrivia()));
         }
     }
 }

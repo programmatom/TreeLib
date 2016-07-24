@@ -2415,7 +2415,7 @@ namespace TreeLib
             {
                 /*[Payload(Payload.Value)]*/
                 initial = predicateMap(key, ref value, resident);
-                // OR
+                //[OR]
                 /*[Payload(Payload.None)]*/
                 {
                     KeyType localKey = key;
@@ -4513,7 +4513,7 @@ namespace TreeLib
 
                             /*[Feature(Feature.Dict)]*/
                             value = tree.GetValue(/*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/currentKey);
-                            // OR
+                            //[OR]
                             /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                             tree.Get(
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/currentKey,
@@ -4536,7 +4536,7 @@ namespace TreeLib
                                 /*[Feature(Feature.Range2)]*/0);
                         }
 
-                        // OR
+                        //[OR]
 
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
@@ -4633,7 +4633,7 @@ namespace TreeLib
                         }
                     }
 
-                    // OR
+                    //[OR]
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     {
@@ -4679,7 +4679,7 @@ namespace TreeLib
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
 
-                    // OR
+                    //[OR]
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     if (forward)
@@ -4723,7 +4723,7 @@ namespace TreeLib
 
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                 tree.SetValue(currentKey, value);
-                // OR
+                //[OR]
                 tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
             }
         }
@@ -4942,10 +4942,10 @@ namespace TreeLib
                             {
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                                 c = tree.comparer.Compare(startKey, tree.nodes[node].key);
-                                // OR
+                                //[OR]
                                 /*[Feature(Feature.Range)]*/
                                 c = startStart.CompareTo(xPosition);
-                                // OR
+                                //[OR]
                                 /*[Feature(Feature.Range2)]*/
                                 c = startStart.CompareTo(side == Side.X ? xPosition : yPosition);
                             }

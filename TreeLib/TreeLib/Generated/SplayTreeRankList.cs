@@ -366,7 +366,7 @@ namespace TreeLib
             int savedXExtent = this.xExtent;
             this.xExtent = 0;
             try
-                // OR
+                
                 /*[Payload(Payload.None)]*/
                 {
                     KeyType localKey = key;
@@ -2315,7 +2315,7 @@ namespace TreeLib
                             KeyType key = currentKey;
                             /*[Widen]*/
                             int rank = 0;
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                             tree.Get(
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/currentKey,

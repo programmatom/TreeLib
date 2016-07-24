@@ -86,7 +86,7 @@ namespace TreeLib
             public bool left_child { get { return left != Null; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public bool right_child { get { return right != Null; } }
-            // OR
+            
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public Node leftOrNull { get { return left; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -337,7 +337,7 @@ namespace TreeLib
             // no need to do any work for DynamicDiscard mode
             if (allocationMode != AllocationMode.DynamicDiscard)
             {
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 {
                     // non-recusrive depth-first traversal (in-order, but doesn't matter here)
@@ -2013,14 +2013,14 @@ out xPosition,
                         }
                         else if (left_node)
                         {
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             parent.left = Null;
                             parent.balance++;
                         }
                         else
                         {
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             parent.right = Null;
                             parent.balance--;
@@ -2030,7 +2030,7 @@ out xPosition,
                     {
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         xPositionSuccessor = xPositionNode;
-                        // OR
+                        
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         {
                             successor = node.right;
@@ -2121,7 +2121,7 @@ out xPosition,
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                                 successorParent.left = Null;
                             }
@@ -2355,7 +2355,7 @@ out xPosition,
                 }
                 else
                 {
-                    // OR
+                    
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     node.right = Null;
                 }
@@ -2414,7 +2414,7 @@ out xPosition,
                 }
                 else
                 {
-                    // OR
+                    
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     node.left = Null;
                 }
@@ -3232,13 +3232,13 @@ out xPosition,
 
             public IEnumerator<EntryMultiRankList<KeyType>> GetEnumerator()
             {
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                 if (startKeyed)
                 {
                     return new FastEnumerator(tree, startKey, forward);
                 }
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
@@ -3304,7 +3304,7 @@ out xPosition,
                             int rank = 0;
                             /*[Widen]*/
                             int count = 1;
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti)]*/
                             tree.Get(
                                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/currentKey,

@@ -2235,7 +2235,7 @@ uint countNew = checked(this.count + 1);
 
                     if (valid)
 
-                        // OR
+                        
 
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
@@ -2307,7 +2307,7 @@ uint countNew = checked(this.count + 1);
                 if (!started)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     {
@@ -2342,7 +2342,7 @@ uint countNew = checked(this.count + 1);
                 else if (valid)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     if (forward)
@@ -2383,7 +2383,7 @@ uint countNew = checked(this.count + 1);
                 {
                     throw new InvalidOperationException();
                 }
-                // OR
+                
                 tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
 
                 /*[Feature(Feature.Range, Feature.Range2)]*/
@@ -2601,7 +2601,7 @@ uint countNew = checked(this.count + 1);
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Range2)]*/
                                 c = startStart.CompareTo(side == Side.X ? xPosition : yPosition);
                             }

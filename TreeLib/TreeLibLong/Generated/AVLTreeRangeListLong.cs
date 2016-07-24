@@ -84,7 +84,7 @@ namespace TreeLib
             public bool left_child { get { return left != Null; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public bool right_child { get { return right != Null; } }
-            // OR
+            
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public Node leftOrNull { get { return left; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -293,7 +293,7 @@ namespace TreeLib
             // no need to do any work for DynamicDiscard mode
             if (allocationMode != AllocationMode.DynamicDiscard)
             {
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 {
                     // non-recusrive depth-first traversal (in-order, but doesn't matter here)
@@ -1482,14 +1482,14 @@ out length))
                         }
                         else if (left_node)
                         {
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             parent.left = Null;
                             parent.balance++;
                         }
                         else
                         {
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             parent.right = Null;
                             parent.balance--;
@@ -1499,7 +1499,7 @@ out length))
                     {
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         xPositionSuccessor = xPositionNode;
-                        // OR
+                        
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         {
                             successor = node.right;
@@ -1590,7 +1590,7 @@ out length))
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                                 successorParent.left = Null;
                             }
@@ -1824,7 +1824,7 @@ out length))
                 }
                 else
                 {
-                    // OR
+                    
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     node.right = Null;
                 }
@@ -1883,7 +1883,7 @@ out length))
                 }
                 else
                 {
-                    // OR
+                    
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     node.left = Null;
                 }
@@ -2577,13 +2577,13 @@ out length))
 
             public IEnumerator<EntryRangeListLong> GetEnumerator()
             {
-                // OR
+                
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 if (startIndexed)
                 {
                     return new FastEnumerator(tree, startStart, forward);
                 }
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
@@ -2655,7 +2655,7 @@ out length))
 
                     if (valid)
 
-                        // OR
+                        
 
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
@@ -2695,7 +2695,7 @@ out length))
                 if (!started)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     {
@@ -2730,7 +2730,7 @@ out length))
                 else if (valid)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     if (forward)
@@ -2922,7 +2922,7 @@ out length))
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Range)]*/
                                 c = startStart.CompareTo(xPosition);
                             }

@@ -88,7 +88,7 @@ namespace TreeLib
             public bool left_child { get { return left != Null; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public bool right_child { get { return right != Null; } }
-            // OR
+            
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
             public NodeRef leftOrNull { get { return left; } }
             [Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]
@@ -277,7 +277,7 @@ namespace TreeLib
             // no need to do any work for DynamicDiscard mode
             if (allocationMode != AllocationMode.DynamicDiscard)
             {
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 {
                     // non-recusrive depth-first traversal (in-order, but doesn't matter here)
@@ -1633,14 +1633,14 @@ uint countNew = checked(this.count + 1);
                         }
                         else if (left_node)
                         {
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             nodes[parent].left = Null;
                             nodes[parent].balance++;
                         }
                         else
                         {
-                            // OR
+                            
                             /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                             nodes[parent].right = Null;
                             nodes[parent].balance--;
@@ -1650,7 +1650,7 @@ uint countNew = checked(this.count + 1);
                     {
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         xPositionSuccessor = xPositionNode;
-                        // OR
+                        
                         /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                         {
                             successor = nodes[node].right;
@@ -1741,7 +1741,7 @@ uint countNew = checked(this.count + 1);
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                                 nodes[successorParent].left = Null;
                             }
@@ -1975,7 +1975,7 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
-                    // OR
+                    
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     nodes[node].right = Null;
                 }
@@ -2034,7 +2034,7 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
-                    // OR
+                    
                     /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                     nodes[node].left = Null;
                 }
@@ -2732,13 +2732,13 @@ uint countNew = checked(this.count + 1);
 
             public IEnumerator<EntryRangeMap<ValueType>> GetEnumerator()
             {
-                // OR
+                
                 /*[Feature(Feature.Range, Feature.Range2)]*/
                 if (startIndexed)
                 {
                     return new FastEnumerator(tree, startStart, forward);
                 }
-                // OR
+                
                 /*[Feature(Feature.Rank, Feature.RankMulti, Feature.Range, Feature.Range2)]*/
                 return new FastEnumerator(tree, forward);
             }
@@ -2812,7 +2812,7 @@ uint countNew = checked(this.count + 1);
 
                     if (valid)
 
-                        // OR
+                        
 
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
@@ -2857,7 +2857,7 @@ uint countNew = checked(this.count + 1);
                 if (!started)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     {
@@ -2892,7 +2892,7 @@ uint countNew = checked(this.count + 1);
                 else if (valid)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     if (forward)
@@ -2930,7 +2930,7 @@ uint countNew = checked(this.count + 1);
                 {
                     throw new InvalidOperationException();
                 }
-                // OR
+                
                 tree.SetValue(currentStart, value);
             }
         }
@@ -3105,7 +3105,7 @@ uint countNew = checked(this.count + 1);
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Range)]*/
                                 c = startStart.CompareTo(xPosition);
                             }

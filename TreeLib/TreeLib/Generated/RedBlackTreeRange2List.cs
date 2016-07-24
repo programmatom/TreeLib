@@ -2972,7 +2972,7 @@ namespace TreeLib
 
                     if (valid)
 
-                        // OR
+                        
 
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
@@ -3036,7 +3036,7 @@ namespace TreeLib
                 if (!started)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     {
@@ -3071,7 +3071,7 @@ namespace TreeLib
                 else if (valid)
                 {
 
-                    // OR
+                    
 
                     /*[Feature(Feature.Range, Feature.Range2)]*/
                     if (forward)
@@ -3285,7 +3285,7 @@ namespace TreeLib
                             }
                             else
                             {
-                                // OR
+                                
                                 /*[Feature(Feature.Range2)]*/
                                 c = startStart.CompareTo(side == Side.X ? xPosition : yPosition);
                             }
