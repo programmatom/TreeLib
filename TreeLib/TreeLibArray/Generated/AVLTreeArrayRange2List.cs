@@ -1399,6 +1399,8 @@ out length))
                         }
                         else
                         {
+                            // precedes node
+
 
                             if (!add)
                             {
@@ -1420,6 +1422,8 @@ out length))
                         }
                         else
                         {
+                            // follows node
+
 
                             if (!add)
                             {
@@ -2945,9 +2949,6 @@ uint countNew = checked(this.count + 1);
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             /*[Widen]*/

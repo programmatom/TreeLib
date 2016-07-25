@@ -2785,9 +2785,6 @@ namespace TreeLib
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             ValueType value = default(ValueType);
@@ -2910,6 +2907,10 @@ namespace TreeLib
                 {
                     throw new InvalidOperationException();
                 }
+
+                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
+                // the node directly
+
                 
                 tree.SetValue(currentStart, value);
             }

@@ -2545,9 +2545,6 @@ uint countNew = checked(this.count + 1);
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             /*[Widen]*/

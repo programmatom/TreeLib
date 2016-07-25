@@ -366,6 +366,8 @@ namespace TreeLib
                 Splay2(ref root, start, /*[Feature(Feature.Range2)]*/side);
                 if (start == Start(root, /*[Feature(Feature.Range2)]*/side))
                 {
+                    // insert item just in front of root
+
 uint countNew = checked(this.count + 1);
                     /*[Widen]*/
                     int xExtentNew = checked(this.xExtent + xLength);
@@ -2234,9 +2236,6 @@ uint countNew = checked(this.count + 1);
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             ValueType value = default(ValueType);
@@ -2383,6 +2382,10 @@ uint countNew = checked(this.count + 1);
                 {
                     throw new InvalidOperationException();
                 }
+
+                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
+                // the node directly
+
                 
                 tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
 

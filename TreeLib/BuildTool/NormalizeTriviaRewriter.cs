@@ -129,6 +129,8 @@ namespace BuildTool
                 node = node.WithStatements(node.Statements.RemoveAt(i).Insert(i, RemoveOrComment(statement)));
             }
 
+            node = node.WithStatements(RestructureComments(node.Statements));
+
             node = (BlockSyntax)base.VisitBlock(node);
 
             return node;
@@ -474,6 +476,67 @@ namespace BuildTool
         private static StatementSyntax RemoveOrComment(StatementSyntax member)
         {
             return member.WithLeadingTrivia(RemoveOrComment(member.GetLeadingTrivia()));
+        }
+
+        private static List<SyntaxTriviaList> RestructureComments(SyntaxTriviaList leadingTrivia)
+        {
+            List<SyntaxTriviaList> groups = new List<SyntaxTriviaList>();
+
+            groups.Add(SyntaxTriviaList.Empty);
+            bool newline = false;
+            bool nonNewlineSeen = false;
+            foreach (SyntaxTrivia trivium in leadingTrivia)
+            {
+                groups[groups.Count - 1] = groups[groups.Count - 1].Add(trivium);
+                if (trivium.IsKind(SyntaxKind.EndOfLineTrivia))
+                {
+                    if (newline && nonNewlineSeen)
+                    {
+                        groups.Add(SyntaxTriviaList.Empty);
+                        nonNewlineSeen = false;
+                    }
+                    newline = true;
+                }
+                else
+                {
+                    nonNewlineSeen = true;
+                    newline = false;
+                }
+            }
+            if (newline && !nonNewlineSeen && (groups.Count != 1))
+            {
+                groups.Add(SyntaxTriviaList.Empty);
+            }
+
+            return groups;
+        }
+
+        private static SyntaxList<StatementSyntax> RestructureComments(SyntaxList<StatementSyntax> statements)
+        {
+            SyntaxList<StatementSyntax> result = new SyntaxList<StatementSyntax>();
+
+            foreach (StatementSyntax statement in statements)
+            {
+                List<SyntaxTriviaList> groups = RestructureComments(statement.GetLeadingTrivia());
+                if (groups.Count == 1)
+                {
+                    result = result.Add(statement);
+                }
+                else
+                {
+                    for (int i = 0; i < groups.Count - 1; i++)
+                    {
+                        result = result.Add(
+                            SyntaxFactory.EmptyStatement(SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken))
+                                .WithLeadingTrivia(groups[i]));
+                    }
+                    result = result.Add(
+                        statement.WithLeadingTrivia(groups[groups.Count - 1])
+                            .WithTrailingTrivia(statement.GetTrailingTrivia()));
+                }
+            }
+
+            return result;
         }
     }
 }

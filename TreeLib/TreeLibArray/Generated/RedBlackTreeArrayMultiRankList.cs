@@ -1731,6 +1731,8 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
+                    // precedes parent
+
 
                     // compute here to throw before modifying tree
                     /*[Widen]*/
@@ -3221,6 +3223,9 @@ uint countNew = checked(this.count + 1);
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -3234,6 +3239,9 @@ uint countNew = checked(this.count + 1);
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;

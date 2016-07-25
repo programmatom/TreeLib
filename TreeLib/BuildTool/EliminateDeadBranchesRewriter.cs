@@ -64,6 +64,11 @@ namespace BuildTool
 
         public override SyntaxNode VisitEmptyStatement(EmptyStatementSyntax node)
         {
+            if (node.SemicolonToken.IsMissing)
+            {
+                return node;
+            }
+
             Changed = true;
             return null;
         }
@@ -348,15 +353,44 @@ namespace BuildTool
             return node;
         }
 
+        private static bool IsBlockRedundant(BlockSyntax node, out int index)
+        {
+            index = -1;
+            int blockStatements = 0;
+            for (int i = 0; i < node.Statements.Count; i++)
+            {
+                StatementSyntax statement = node.Statements[i];
+
+                if (statement.IsKind(SyntaxKind.Block))
+                {
+                    index = i;
+                    blockStatements++;
+                }
+                else if (statement.IsKind(SyntaxKind.EmptyStatement))
+                {
+                    if (!statement.IsMissing)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return blockStatements == 1;
+        }
+
         public override SyntaxNode VisitBlock(BlockSyntax node)
         {
             node = (BlockSyntax)base.VisitBlock(node);
 
             // remove nested statements (cosmetic)
-            if ((node.Statements.Count == 1) && (node.Statements[0].IsKind(SyntaxKind.Block)))
+            int index;
+            if (IsBlockRedundant(node, out index))
             {
                 Changed = true;
-                node = (BlockSyntax)node.Statements[0];
+                node = (BlockSyntax)node.Statements[index];
             }
 
             return node;

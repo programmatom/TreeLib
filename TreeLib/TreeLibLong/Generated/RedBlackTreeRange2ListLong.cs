@@ -2971,9 +2971,6 @@ namespace TreeLib
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             /*[Widen]*/

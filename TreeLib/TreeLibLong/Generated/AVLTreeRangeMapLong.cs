@@ -1423,6 +1423,8 @@ out length))
                         }
                         else
                         {
+                            // precedes node
+
 
                             if (!add)
                             {
@@ -1444,6 +1446,8 @@ out length))
                         }
                         else
                         {
+                            // follows node
+
 
                             if (!add)
                             {
@@ -2862,9 +2866,6 @@ out length))
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             ValueType value = default(ValueType);
@@ -2981,6 +2982,10 @@ out length))
                 {
                     throw new InvalidOperationException();
                 }
+
+                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
+                // the node directly
+
                 
                 tree.SetValue(currentStart, value);
             }

@@ -369,6 +369,8 @@ namespace TreeLib
 
                 if ((root == Nil) || (c < 0))
                 {
+                    // insert item just in front of root
+
 uint countNew = checked(this.count + 1);
                     /*[Widen]*/
                     int xExtentNew = checked(this.xExtent + rankCount);
@@ -2711,6 +2713,9 @@ uint countNew = checked(this.count + 1);
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -2724,6 +2729,9 @@ uint countNew = checked(this.count + 1);
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;

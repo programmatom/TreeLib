@@ -1221,6 +1221,8 @@ out length))
                         }
                         else
                         {
+                            // precedes node
+
 
                             if (!add)
                             {
@@ -1242,6 +1244,8 @@ out length))
                         }
                         else
                         {
+                            // follows node
+
 
                             if (!add)
                             {
@@ -2654,9 +2658,6 @@ out length))
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             /*[Widen]*/

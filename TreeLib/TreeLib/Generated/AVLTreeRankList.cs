@@ -3125,6 +3125,9 @@ out xPosition))
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -3138,6 +3141,9 @@ out xPosition))
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;

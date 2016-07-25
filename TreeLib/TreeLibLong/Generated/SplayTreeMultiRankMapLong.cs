@@ -2742,6 +2742,9 @@ namespace TreeLib
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -2755,6 +2758,9 @@ namespace TreeLib
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;

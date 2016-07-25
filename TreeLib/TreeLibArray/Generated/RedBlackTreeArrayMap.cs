@@ -1208,6 +1208,8 @@ uint countNew = checked(this.count + 1);
                 }
                 else
                 {
+                    // precedes parent
+
 uint countNew = checked(this.count + 1);
 
                     Debug.Assert(parent == successor);
@@ -2278,6 +2280,9 @@ uint countNew = checked(this.count + 1);
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -2291,6 +2296,9 @@ uint countNew = checked(this.count + 1);
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;

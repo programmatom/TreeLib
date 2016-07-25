@@ -339,6 +339,8 @@ namespace TreeLib
                 Splay2(ref root, start);
                 if (start == Start(root))
                 {
+                    // insert item just in front of root
+
 uint countNew = checked(this.count + 1);
                     /*[Widen]*/
                     int xExtentNew = checked(this.xExtent + xLength);
@@ -1805,9 +1807,6 @@ uint countNew = checked(this.count + 1);
                     }
 
                     if (valid)
-
-                        
-
                         /*[Feature(Feature.Range, Feature.Range2)]*/
                         {
                             /*[Widen]*/

@@ -2534,6 +2534,9 @@ uint countNew = checked(this.count + 1);
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -2547,6 +2550,9 @@ uint countNew = checked(this.count + 1);
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;

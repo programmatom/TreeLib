@@ -1761,6 +1761,8 @@ out xPosition,
                         }
                         else
                         {
+                            // precedes node
+
 
                             if (!add)
                             {
@@ -1782,6 +1784,8 @@ out xPosition,
                         }
                         else
                         {
+                            // follows node
+
 
                             if (!add)
                             {
@@ -3359,6 +3363,9 @@ out xPosition,
                         }
                     }
 
+                    
+
+
                     started = true;
                 }
                 else if (valid)
@@ -3372,6 +3379,9 @@ out xPosition,
                     {
                         valid = tree.NearestLess(currentKey, out currentKey);
                     }
+
+                    
+
                 }
 
                 return valid;
