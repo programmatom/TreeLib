@@ -3316,9 +3316,6 @@ out xPosition))
                     throw new InvalidOperationException();
                 }
 
-                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
-                // the node directly
-
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                 tree.SetValue(currentKey, value);
             }

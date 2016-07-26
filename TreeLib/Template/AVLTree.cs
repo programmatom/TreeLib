@@ -5005,12 +5005,10 @@ namespace TreeLib
                     throw new InvalidOperationException();
                 }
 
-                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
-                // the node directly
-
                 /*[Feature(Feature.Dict, Feature.Rank, Feature.RankMulti)]*/
                 tree.SetValue(currentKey, value);
                 //[OR]
+                /*[Feature(Feature.Range, Feature.Range2)]*/
                 tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
             }
         }

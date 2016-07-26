@@ -3202,11 +3202,8 @@ uint countNew = checked(this.count + 1);
                 {
                     throw new InvalidOperationException();
                 }
-
-                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
-                // the node directly
-
                 
+                /*[Feature(Feature.Range, Feature.Range2)]*/
                 tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
             }
         }

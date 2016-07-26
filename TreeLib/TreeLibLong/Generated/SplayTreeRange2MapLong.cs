@@ -2411,15 +2411,12 @@ namespace TreeLib
                 {
                     throw new InvalidOperationException();
                 }
-
-                // TODO: improve this to O(1) by using internal query methods above that expose the node and updating
-                // the node directly
-
                 
-                tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
-
                 /*[Feature(Feature.Range, Feature.Range2)]*/
-                treeVersion = tree.version; // the update we just made is acceptable since it doesn't change length (TODO: will be unneeded after doing TODO: above)
+                {
+                    tree.SetValue(currentStart, /*[Feature(Feature.Range2)]*/side, value);
+                    treeVersion = tree.version; // the update we just made is acceptable since it doesn't change length
+                }
             }
         }
 
