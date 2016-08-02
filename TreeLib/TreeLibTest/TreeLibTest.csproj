@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TreeLibTest</RootNamespace>
     <AssemblyName>TreeLibTest</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -108,7 +108,7 @@
     <Compile Include="UnitTestFailureException.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Properties\App.config" />
+    <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TreeLibArray\TreeLibArray.csproj">
