@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>TreeLibArray</id>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <title>TreeLibArray</title>
     <authors>Thomas R. Lawrence</authors>
     <owners>Thomas R. Lawrence</owners>
@@ -10,11 +10,11 @@
     <projectUrl>http://programmatom.github.io/TreeLib/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>TreeLib: Balanced Binary Trees, Rank Augmented provides binary tree collections (AVL, red-black and splay) with optional rank information for order-statistic and sparse indexing applications. This package contains array-embedded implementations.</description>
-    <releaseNotes>Fix bug limiting size of AVL trees; Enhanced enumeration (start at key/index and reverse); ConditionalSetOrAdd and ConditionalSetOrRemmove</releaseNotes>
-    <copyright>Copyright 2016 Thomas R. Lawrence</copyright>
+    <releaseNotes>Enable use on .NET Framework v4.5</releaseNotes>
+    <copyright>Copyright 2016, 2017 Thomas R. Lawrence</copyright>
     <tags>binary search tree bst avl red-black splay rank augmented order-statistic sparse</tags>
     <dependencies>
-      <dependency id="TreeLibInterface" version="1.1.0" />
+      <dependency id="TreeLibInterface" version="1.1.1" />
     </dependencies>
   </metadata>
   <files>
